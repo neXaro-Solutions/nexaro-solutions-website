@@ -3,7 +3,7 @@
   const hero = document.querySelector('.hero');
   const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
   const navigation = performance.getEntriesByType('navigation')[0];
-  if (!hero || motion.matches || location.hash || (navigation && navigation.type !== 'navigate')) return;
+  if (!hero || motion.matches || location.hash || navigation?.type === 'back_forward') return;
   let timer, glow;
   function stop() {
     clearTimeout(timer);
@@ -23,7 +23,7 @@
     hero.classList.add('nx-welcome');
     motion.addEventListener('change', stop);
     window.addEventListener('pagehide', stop);
-    timer = setTimeout(stop, 2200);
+    timer = setTimeout(stop, 3900);
   }
   if (document.hidden) document.addEventListener('visibilitychange', start);
   else start();
