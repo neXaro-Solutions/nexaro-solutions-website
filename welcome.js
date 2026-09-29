@@ -1,24 +1,21 @@
-/* Decorative only: no storage, tracking or network requests. */
+/* Automatic, decorative arrival. No storage, tracking or requests. */
 (() => {
- const hero=document.querySelector('.hero'), replay=document.getElementById('nxReplayEffect'), status=document.getElementById('nxEffectStatus');
- if(!hero||!replay)return;
- replay.hidden=false;
+ const hero=document.querySelector('.hero');if(!hero)return;
  const motion=matchMedia('(prefers-reduced-motion: reduce)');
- let timer,pending,glow,visible=false,ready=document.readyState==='complete',played=false;
- function stop(){clearTimeout(timer);clearTimeout(pending);hero.classList.remove('nx-welcome');glow?.remove();glow=null}
- function play(manual=false){
-  stop();if(document.hidden)return;
-  if(motion.matches){if(manual)status.textContent='„Bewegung reduzieren“ ist aktiviert. Die Animation bleibt ausgeschaltet.';return}
-  played=true;glow=document.createElement('div');glow.className='nx-welcome-glow';glow.setAttribute('aria-hidden','true');hero.append(glow);
-  void hero.offsetWidth;hero.classList.add('nx-welcome');status.textContent=manual?'Neon-Effekt läuft.':'';
-  timer=setTimeout(()=>{stop();status.textContent=''},3900);
+ let timer,pending,frame,visible=false,ready=document.readyState==='complete',played=false;
+ function stop(){clearTimeout(timer);clearTimeout(pending);hero.classList.remove('nx-arrival','nx-arrival-motion');frame?.remove();frame=null}
+ function play(){
+  stop();if(document.hidden||!visible)return;
+  played=true;frame=document.createElement('div');frame.className='nx-arrival-frame';frame.setAttribute('aria-hidden','true');
+  frame.innerHTML='<i></i><i></i><span></span>';hero.append(frame);
+  hero.classList.add('nx-arrival');if(!motion.matches)hero.classList.add('nx-arrival-motion');
+  timer=setTimeout(stop,motion.matches?2200:4800);
  }
- function schedule(){clearTimeout(pending);if(ready&&visible&&!played&&!document.hidden&&!motion.matches)pending=setTimeout(()=>play(),700)}
- const observer=new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;schedule()},{threshold:.15});observer.observe(hero);
- replay.addEventListener('click',()=>play(true));
+ function schedule(){clearTimeout(pending);if(ready&&visible&&!played&&!document.hidden)pending=setTimeout(play,450)}
+ new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;schedule()},{threshold:.12}).observe(hero);
  window.addEventListener('load',()=>{ready=true;schedule()},{once:true});
- window.addEventListener('pageshow',event=>{if(event.persisted)played=false;schedule()});
+ window.addEventListener('pageshow',e=>{if(e.persisted)played=false;schedule()});
  window.addEventListener('pagehide',stop);
- document.addEventListener('visibilitychange',()=>{if(document.hidden)stop();else schedule()});
- motion.addEventListener('change',()=>{stop();schedule()});schedule();
+ document.addEventListener('visibilitychange',()=>{if(document.hidden){if(frame)played=false;stop()}else schedule()});
+ motion.addEventListener('change',stop);schedule();
 })();
