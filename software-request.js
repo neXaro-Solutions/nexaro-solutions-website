@@ -1,5 +1,7 @@
 (()=>{
+document.querySelectorAll('#mainNav a[href="#software"],.nx-header-software[href="#software"],.hero a[href="#software"],.nx-announcement[href="#software"]').forEach(a=>a.setAttribute('href','/crm/'));
 const form=document.getElementById('softwareRequestForm');if(!form)return;
+const requestedKind=new URLSearchParams(location.search).get('software_kind');if(['consultation','demo','pilot'].includes(requestedKind||''))form.elements.namedItem('request_kind').value=requestedKind;
 const endpoint='https://hbuqzdmjqvgybwohfnqy.supabase.co/functions/v1/nx-software-sales';
 const button=form.querySelector('button[type=submit]'),status=document.getElementById('softwareRequestStatus');let challenge=null,pending=null,busy=false;
 async function prepare(){if(challenge&&Date.now()-challenge.issued<3500000)return challenge;if(pending)return pending;pending=fetch(endpoint,{cache:'no-store',signal:AbortSignal.timeout(20000)}).then(async r=>{if(!r.ok)throw Error('Der Dienst ist gerade nicht verfügbar.');challenge=await r.json();return challenge}).finally(()=>{pending=null});return pending}
