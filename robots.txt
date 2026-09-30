@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /produktrundgang/
+
+Sitemap: https://www.nexaro-solutions.de/sitemap.xml
