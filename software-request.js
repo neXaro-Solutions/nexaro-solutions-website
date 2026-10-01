@@ -14,3 +14,4 @@ form.addEventListener('submit',async e=>{
  }catch(error){status.textContent=(error.name==='TypeError'||error.name==='TimeoutError'?'Die Verbindung ist gerade nicht verfügbar. Deine Angaben bleiben erhalten. Bitte versuche es erneut.':error.message)}finally{busy=false;button.disabled=false}
 });
 })();
+import('/comparison-ui.js?v=20261001a').catch(()=>{});
