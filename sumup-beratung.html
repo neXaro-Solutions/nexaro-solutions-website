@@ -18,6 +18,17 @@
 "use strict";
 const endpoint="https://hbuqzdmjqvgybwohfnqy.supabase.co/functions/v1/nx-public-intake";
 const form=document.getElementById("contactForm"),send=document.getElementById("submitLead"),status=document.getElementById("formResult");
+const query=new URLSearchParams(window.location.search);
+const clip=(value,max)=>String(value||"").trim().slice(0,max);
+const attribution={
+ utm_source:clip(query.get("utm_source"),100),
+ utm_medium:clip(query.get("utm_medium"),100),
+ utm_campaign:clip(query.get("utm_campaign"),200),
+ utm_term:clip(query.get("utm_term"),200),
+ utm_content:clip(query.get("utm_content"),200),
+ gclid:clip(query.get("gclid"),255),
+ landing_page:clip(window.location.pathname,500)
+};
 let challenge=null,issuedAt=0,pending=false;
 async function getChallenge(){const r=await fetch(endpoint,{signal:AbortSignal.timeout(20000)});if(!r.ok)throw Error("Die Verbindung ist derzeit nicht verfügbar.");challenge=await r.json();issuedAt=Date.now()}
 void getChallenge().catch(()=>{});
@@ -27,9 +38,11 @@ form.addEventListener("submit",async e=>{
   if(!challenge||Date.now()-issuedAt>3500000)await getChallenge();
   const pause=Math.max(0,2200-(Date.now()-issuedAt));if(pause)await new Promise(resolve=>setTimeout(resolve,pause));
   const d=new FormData(form);
-  const payload={interest:"sumup",request_type:"sumup_consultation",company:String(d.get("company")||"").trim(),contact:String(d.get("contact")||"").trim(),city:String(d.get("city")||"").trim(),email:String(d.get("email")||"").trim(),phone:String(d.get("phone")||"").trim(),message:"Quelle: Google Ads · Kampagne: neXaro SumUp Regional · Landingpage: /sumup-beratung.html\n\n"+String(d.get("message")||"").trim(),consent:d.get("consent")==="on"};
+  const payload={interest:"sumup",request_type:"sumup_consultation",company:String(d.get("company")||"").trim(),contact:String(d.get("contact")||"").trim(),city:String(d.get("city")||"").trim(),email:String(d.get("email")||"").trim(),phone:String(d.get("phone")||"").trim(),message:String(d.get("message")||"").trim(),consent:d.get("consent")==="on",...attribution};
   const r=await fetch(endpoint,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({payload,website:String(d.get("website")||""),challenge}),signal:AbortSignal.timeout(25000)});
   if(!r.ok){if(r.status===429)throw Error("Zu viele Anfragen in kurzer Zeit. Bitte versuche es später oder kontaktiere uns telefonisch.");if(r.status===400){challenge=null;throw Error("Bitte prüfe deine Angaben und versuche es erneut.")}throw Error("Deine Anfrage konnte nicht bestätigt werden. Bitte versuche es erneut oder schreibe uns direkt.")}
+  window.dataLayer=window.dataLayer||[];
+  window.dataLayer.push({event:"nx_lead_submitted",lead_type:"sumup_consultation",acquisition_source:attribution.utm_source||(attribution.gclid?"google":"Direkt"),utm_campaign:attribution.utm_campaign});
   status.textContent="Vielen Dank! Deine Anfrage ist eingegangen. Du wirst zur Bestätigungsseite weitergeleitet.";status.dataset.state="success";form.reset();challenge=null;window.location.assign("./sumup-danke.html");
  }catch(error){status.dataset.state="error";status.textContent=error instanceof Error&&error.name!=="TimeoutError"&&error.name!=="TypeError"?error.message:"Die Verbindung ist gerade nicht verfügbar. Bitte versuche es erneut oder schreibe uns direkt."}
  finally{pending=false;send.disabled=false;send.textContent="Anfrage sicher senden ↗"}
