@@ -28,7 +28,7 @@
     <div class="nx-mode-panel" data-panel="upload">
      <div class="nx-panel-intro"><strong>Abrechnung hochladen</strong><span>PDF oder Foto auswählen – die relevanten Vergleichsdaten werden beim sicheren Upload automatisch ausgelesen.</span></div>
      <label class="nx-file-drop" for="feeStatement"><span class="nx-file-icon">↥</span><strong id="feeFileLabel">Abrechnung auswählen</strong><small>PDF, JPG, PNG oder WebP · maximal 8 MB</small><input id="feeStatement" name="statement" type="file" accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/jpeg,image/png,image/webp"></label>
-     <div class="nx-upload-note"><b>✓</b><span><strong>Du musst keine Gebühren abschreiben.</strong><small>Wir lesen Anbieter, Umsatz, Transaktionen und Gebühren soweit möglich direkt aus der Abrechnung aus.</small></span></div>
+     <div class="nx-upload-note"><b>✓</b><span><strong>Elektronisch &amp; datenschutzkonform ausgelesen.</strong><small>Deine Abrechnung wird ausschließlich für den angeforderten Vergleich verarbeitet. Die Verarbeitung erfolgt zweckgebunden gemäß unseren Datenschutzhinweisen.</small></span></div>
     </div>
     <div class="nx-mode-panel" data-panel="manual" hidden>
      <div class="nx-panel-intro"><strong>Vergleichsdaten manuell eingeben</strong><span>Trage die Werte ein, die dir vorliegen. Unbekannte Angaben kannst du frei lassen.</span></div>
