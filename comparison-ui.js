@@ -1,7 +1,90 @@
 (() => {
+ const setupPaymentLoader=section=>{
+  const form=section.querySelector('#feeCheckForm');
+  const submit=section.querySelector('#feeCheckSubmit');
+  const status=section.querySelector('#feeCheckStatus');
+  if(!form||!submit||!status||form.dataset.paymentLoaderReady==='1')return;
+  form.dataset.paymentLoaderReady='1';
+
+  const loader=document.createElement('div');
+  loader.id='feeUploadLoader';
+  loader.className='nx-payment-loader';
+  loader.hidden=true;
+  loader.setAttribute('role','status');
+  loader.setAttribute('aria-live','polite');
+  loader.innerHTML=`
+   <div class="nx-payment-loader-visual" aria-hidden="true">
+    <div class="nx-loader-terminal">
+     <div class="nx-loader-screen"></div>
+     <div class="nx-loader-card"><i></i></div>
+     <div class="nx-loader-wave nx-wave-1"></div>
+     <div class="nx-loader-wave nx-wave-2"></div>
+     <div class="nx-loader-wave nx-wave-3"></div>
+    </div>
+   </div>
+   <div class="nx-payment-loader-copy">
+    <strong id="feeUploadLoaderTitle">Abrechnung wird verarbeitet …</strong>
+    <small id="feeUploadLoaderText">Deine Datei wird sicher übertragen und elektronisch verarbeitet.</small>
+   </div>`;
+  status.before(loader);
+
+  const style=document.createElement('style');
+  style.textContent=`
+   .nx-payment-loader[hidden]{display:none!important}
+   .nx-payment-loader{display:flex;align-items:center;gap:15px;margin:14px 0 8px;padding:15px 16px;border:1px solid #d8e7cb;border-radius:15px;background:linear-gradient(135deg,#f9fcf4,#eef8e4);box-shadow:0 10px 25px #20331b0b}
+   .nx-payment-loader-visual{flex:none;width:72px;height:72px;display:grid;place-items:center}
+   .nx-loader-terminal{position:relative;width:62px;height:62px;border-radius:18px;background:linear-gradient(155deg,#2b3b31,#18221c);box-shadow:0 10px 20px #18221c26;overflow:hidden}
+   .nx-loader-screen{position:absolute;left:11px;top:11px;width:40px;height:11px;border-radius:6px;background:linear-gradient(90deg,#baff37,#ddff98);box-shadow:0 0 13px #baff3766;animation:nxScreenPulse 1.5s ease-in-out infinite}
+   .nx-loader-card{position:absolute;left:-11px;top:31px;width:29px;height:19px;border-radius:6px;background:linear-gradient(135deg,#baff37,#efffc9);box-shadow:0 5px 12px #baff374f;animation:nxCardMove 1.8s ease-in-out infinite}
+   .nx-loader-card:before{content:"";position:absolute;left:5px;top:5px;width:8px;height:6px;border-radius:2px;background:#26332966}
+   .nx-loader-card i{position:absolute;right:4px;bottom:4px;width:8px;height:2px;border-radius:2px;background:#26332955}
+   .nx-loader-wave{position:absolute;border:2px solid #baff37;border-left:0;border-bottom:0;border-radius:0 18px 0 0;opacity:0;transform-origin:left bottom}
+   .nx-wave-1{right:10px;top:28px;width:7px;height:7px;animation:nxWave 1.8s ease-out infinite}
+   .nx-wave-2{right:7px;top:24px;width:13px;height:13px;animation:nxWave 1.8s ease-out .18s infinite}
+   .nx-wave-3{right:3px;top:20px;width:20px;height:20px;animation:nxWave 1.8s ease-out .36s infinite}
+   .nx-payment-loader-copy{display:flex;flex-direction:column;gap:4px;min-width:0}.nx-payment-loader-copy strong{font-size:13px;color:#1d2820}.nx-payment-loader-copy small{font-size:11px;color:#667268;line-height:1.45}
+   @keyframes nxCardMove{0%{transform:translateX(0);opacity:.25}18%{opacity:1}52%{transform:translateX(24px);opacity:1}72%{transform:translateX(29px);opacity:1}100%{transform:translateX(46px);opacity:.15}}
+   @keyframes nxWave{0%{opacity:0;transform:scale(.65)}30%{opacity:.95}100%{opacity:0;transform:scale(1.18)}}
+   @keyframes nxScreenPulse{0%,100%{opacity:.58}50%{opacity:1}}
+   @media(max-width:700px){.nx-payment-loader{align-items:flex-start;padding:14px}.nx-payment-loader-visual{width:62px;height:62px}.nx-loader-terminal{width:56px;height:56px}.nx-loader-screen{width:35px}.nx-payment-loader-copy strong{font-size:12.5px}}
+   @media(prefers-reduced-motion:reduce){.nx-loader-screen,.nx-loader-card,.nx-loader-wave{animation:none!important}.nx-loader-card{left:12px;opacity:1}.nx-loader-wave{opacity:.6}}
+  `;
+  document.head.append(style);
+
+  const title=loader.querySelector('#feeUploadLoaderTitle');
+  const text=loader.querySelector('#feeUploadLoaderText');
+  const currentMode=()=>section.querySelector('.nx-mode-btn.is-active')?.dataset.mode||'upload';
+  const showLoader=()=>{
+   const upload=currentMode()==='upload';
+   title.textContent=upload?'Abrechnung wird sicher verarbeitet …':'Vergleich wird vorbereitet …';
+   text.textContent=upload?'Deine Datei wird sicher übertragen und elektronisch für den Vergleich verarbeitet.':'Deine Angaben werden sicher übermittelt und für den Vergleich vorbereitet.';
+   loader.hidden=false;
+  };
+  const hideLoader=()=>{loader.hidden=true};
+
+  form.addEventListener('submit',()=>{
+   if(!form.reportValidity())return;
+   showLoader();
+  },true);
+
+  new MutationObserver(()=>{
+   const state=status.dataset.state;
+   if(state==='success'||state==='error')hideLoader();
+  }).observe(status,{attributes:true,attributeFilter:['data-state'],childList:true,subtree:true});
+
+  new MutationObserver(()=>{
+   if(!submit.disabled&&!status.dataset.state)hideLoader();
+   if(submit.disabled&&/Abrechnung wird sicher übertragen/i.test(submit.textContent||'')){
+    title.textContent='Abrechnung wird sicher übertragen …';
+    text.textContent='Kartenzahlungsdaten werden geschützt übertragen und elektronisch verarbeitet.';
+   }
+  }).observe(submit,{attributes:true,attributeFilter:['disabled'],childList:true,subtree:true});
+ };
+
  const setupComparison=()=>{
   const section=document.getElementById('vergleich');
   if(!section||section.dataset.foldReady==='1')return false;
+  setupPaymentLoader(section);
   section.dataset.foldReady='1';
   const wrap=section.querySelector('.wrap');
   if(!wrap)return false;
