@@ -1,35 +1,91 @@
-const PDFJS_URL='https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.mjs';
-const PDF_WORKER_URL='https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.worker.mjs';
-const TESSERACT_URL='https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.esm.min.js';
-const TESSERACT_WORKER_URL='https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/worker.min.js';
-const TESSERACT_CORE_URL='https://cdn.jsdelivr.net/npm/tesseract.js-core@5.1.1';
-const TESSERACT_LANG_URL='https://tessdata.projectnaptha.com/4.0.0';
-const INTAKE_ENDPOINT='https://hbuqzdmjqvgybwohfnqy.supabase.co/functions/v1/nx-public-intake';
-const SERVER_OCR_ENDPOINT='https://hbuqzdmjqvgybwohfnqy.supabase.co/functions/v1/nx-statement-ocr';
-const MAX_PAGES=8,MAX_IMAGE_EDGE=2000;
-let pdfjsPromise=null,tesseractPromise=null;
-function deNumber(raw){const s=String(raw||'').replace(/\s/g,'').replace(/€/g,'').trim();if(!s)return null;let n=s;if(n.includes(',')&&n.includes('.'))n=n.lastIndexOf(',')>n.lastIndexOf('.')?n.replace(/\./g,'').replace(',','.'):n.replace(/,/g,'');else if(n.includes(','))n=n.replace(/\./g,'').replace(',','.');else if(/^\d{1,3}(?:\.\d{3})+$/.test(n))n=n.replace(/\./g,'');const v=Number(n.replace(/[^0-9.-]/g,''));return Number.isFinite(v)?v:null}
-function money(v){return Number.isFinite(v)?String(Math.round(v*100)/100):''}
-function normalizeText(text){return String(text||'').replace(/\u00a0/g,' ').replace(/[ \t]+/g,' ').replace(/\r/g,'').trim()}
-function linesOf(text){return normalizeText(text).split(/\n+/).map(x=>x.trim()).filter(Boolean)}
-function windowText(lines,i,r=1){return lines.slice(Math.max(0,i-r),Math.min(lines.length,i+r+1)).join(' ')}
-function amounts(s){return [...String(s).matchAll(/(?:€\s*)?(-?\d{1,3}(?:[.\s]\d{3})*(?:,\d{1,2})|-?\d+(?:[.,]\d{1,2})?)(?:\s*€)?/g)].map(m=>deNumber(m[1])).filter(v=>v!==null)}
-function percents(s){return [...String(s).matchAll(/(\d{1,2}(?:[.,]\d{1,3})?)\s*%/g)].map(m=>deNumber(m[1])).filter(v=>v!==null&&v<=20)}
-function integers(s){return [...String(s).matchAll(/\b(\d{1,7})\b/g)].map(m=>Number(m[1])).filter(Number.isFinite)}
-function pickContext(lines,terms,kind){let best=null;for(let i=0;i<lines.length;i++){const low=lines[i].toLowerCase();if(!terms.some(t=>low.includes(t)))continue;const scope=windowText(lines,i,1);let vals=kind==='percent'?percents(scope):kind==='integer'?integers(scope):amounts(scope);if(kind==='money')vals=vals.filter(v=>v>=0&&v<=100000000);if(kind==='integer')vals=vals.filter(v=>v>=0&&v<=10000000);if(!vals.length)continue;const value=kind==='money'?Math.max(...vals):vals[0];const score=terms.reduce((n,t)=>n+(low.includes(t)?1:0),0)+(lines[i].match(/gesamt|summe|total|monat/i)?1:0);if(!best||score>best.score)best={value,score,line:lines[i]}}return best}
-function providerFrom(lines){const joined=lines.slice(0,45).join(' ').toLowerCase();const providers=[['Worldline',/worldline/],['PAYONE',/payone/],['Nexi',/\bnexi\b|concardis/],['TeleCash',/telecash|fiserv/],['VR Payment',/vr payment/],['Zettle / PayPal',/zettle|paypal/],['Adyen',/\badyen\b/],['Stripe',/\bstripe\b/],['Unzer',/\bunzer\b/],['Viva.com',/viva\.com|viva wallet/],['myPOS',/\bmypos\b/],['CCV',/\bccv\b/],['Global Payments',/global payments/],['Elavon',/\belavon\b/],['SumUp',/\bsumup\b/]];return providers.find(([,rx])=>rx.test(joined))?.[0]||''}
-function extractFields(text,meta={}){const lines=linesOf(text);const volume=pickContext(lines,['kartenumsatz','gesamtumsatz','zahlungsvolumen','transaktionsvolumen','umsatz gesamt','bruttoumsatz','sales volume','turnover','total volume'],'money');const tx=pickContext(lines,['anzahl transaktionen','transaktionen gesamt','transaktionsanzahl','transactions','vorgänge','vorgaenge','anzahl zahlungen'],'integer');const total=pickContext(lines,['gesamtgebühr','gesamtgebuehr','gesamtkosten','gebühren gesamt','gebuehren gesamt','summe gebühren','summe gebuehren','total fees','serviceentgelt gesamt'],'money');const fixed=pickContext(lines,['grundgebühr','grundgebuehr','monatspauschale','servicegebühr','servicegebuehr','terminalmiete','mietgebühr','mietgebuehr','fixkosten','monatliche gebühr','monatliche gebuehr'],'money');const debit=pickContext(lines,['girocard','ec-karte','ec karte','debit','maestro','v pay','vpay'],'percent');const credit=pickContext(lines,['kreditkarte','credit card','visa','mastercard','master card','premiumkarte','premium card'],'percent');const debitTx=pickContext(lines,['girocard transaktionen','debit transaktionen','ec transaktionen','maestro transaktionen'],'integer');const creditTx=pickContext(lines,['kreditkarten transaktionen','credit card transactions','visa transaktionen','mastercard transaktionen','premium transaktionen'],'integer');const found=[volume,tx,total,fixed,debit,credit,debitTx,creditTx].filter(Boolean).length+(providerFrom(lines)?1:0);const confidence=Math.min(.98,.2+found*.085+(text.length>800?.08:0));return {version:2,source:meta.source||'local',file_type:meta.fileType||'',pages:meta.pages||1,confidence:Number(confidence.toFixed(2)),provider:providerFrom(lines),monthly_volume:volume?money(volume.value):'',transaction_count:tx?String(Math.round(tx.value)):'',current_total_cost:total?money(total.value):'',monthly_fixed_cost:fixed?money(fixed.value):'',debit_fee_percent:debit?money(debit.value):'',credit_fee_percent:credit?money(credit.value):'',debit_transactions:debitTx?String(Math.round(debitTx.value)):'',premium_transactions:creditTx?String(Math.round(creditTx.value)):'',text_length:text.length,review_required:true}}
-async function pdfjs(){if(!pdfjsPromise)pdfjsPromise=import(PDFJS_URL).then(m=>{m.GlobalWorkerOptions.workerSrc=PDF_WORKER_URL;return m});return pdfjsPromise}
-async function tesseract(){if(!tesseractPromise)tesseractPromise=import(TESSERACT_URL);return tesseractPromise}
-async function imageBitmapFromFile(file){if('createImageBitmap' in window)return await createImageBitmap(file,{imageOrientation:'from-image'}).catch(()=>createImageBitmap(file));const url=URL.createObjectURL(file);try{const img=new Image();img.decoding='async';img.src=url;await img.decode();return img}finally{URL.revokeObjectURL(url)}}
-function prepareCanvas(source,maxEdge=MAX_IMAGE_EDGE){const sw=source.width||source.naturalWidth,sh=source.height||source.naturalHeight;if(!sw||!sh)throw Error('image_dimensions_missing');const scale=Math.min(1,maxEdge/Math.max(sw,sh));const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(sw*scale));canvas.height=Math.max(1,Math.round(sh*scale));const ctx=canvas.getContext('2d',{alpha:false,willReadFrequently:true});ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(source,0,0,canvas.width,canvas.height);try{const image=ctx.getImageData(0,0,canvas.width,canvas.height),d=image.data;for(let i=0;i<d.length;i+=4){const y=.299*d[i]+.587*d[i+1]+.114*d[i+2];const v=Math.max(0,Math.min(255,(y-128)*1.22+128));d[i]=d[i+1]=d[i+2]=v;d[i+3]=255}ctx.putImageData(image,0,0)}catch{}return canvas}
-async function makeWorker(lang,onProgress){const {createWorker}=await tesseract();return await createWorker(lang,1,{workerPath:TESSERACT_WORKER_URL,corePath:TESSERACT_CORE_URL,langPath:TESSERACT_LANG_URL,logger:m=>{if(m.status==='recognizing text'&&onProgress)onProgress(Math.round((m.progress||0)*100))}})}
-async function ocrSource(source,onProgress){let worker=null;try{try{worker=await makeWorker('deu',onProgress)}catch{worker=await makeWorker('eng',onProgress)}const r=await worker.recognize(source);return r?.data?.text||''}finally{if(worker)await worker.terminate().catch(()=>{})}}
-async function readImage(file,onProgress){const bitmap=await imageBitmapFromFile(file);try{const canvas=prepareCanvas(bitmap);return {text:await ocrSource(canvas,onProgress),pages:1,source:'ocr-image-preprocessed'}}finally{bitmap?.close?.()}}
-async function readPdf(file,onProgress){const pdf=await (await pdfjs()).getDocument({data:new Uint8Array(await file.arrayBuffer())}).promise;const pages=Math.min(pdf.numPages,MAX_PAGES);let text='';for(let n=1;n<=pages;n++){const page=await pdf.getPage(n),content=await page.getTextContent();text+='\n'+content.items.map(i=>i.str||'').join(' ');onProgress?.(Math.round(n/pages*45))}if(normalizeText(text).length>=220)return {text,pages,source:'pdf-text'};text='';for(let n=1;n<=pages;n++){const page=await pdf.getPage(n),viewport=page.getViewport({scale:1.45});const raw=document.createElement('canvas');raw.width=Math.ceil(viewport.width);raw.height=Math.ceil(viewport.height);const ctx=raw.getContext('2d',{alpha:false});ctx.fillStyle='#fff';ctx.fillRect(0,0,raw.width,raw.height);await page.render({canvasContext:ctx,viewport}).promise;const canvas=prepareCanvas(raw,1800);text+='\n'+await ocrSource(canvas,p=>onProgress?.(45+Math.round(((n-1)+p/100)/pages*55)))}return {text,pages,source:'ocr-pdf-preprocessed'}}
-async function serverRead(file,status){status.textContent='Lokale Erkennung nicht möglich – sichere Server-Erkennung läuft …';const c=await fetch(INTAKE_ENDPOINT,{signal:AbortSignal.timeout(20000)});if(!c.ok)throw Error('challenge_unavailable');const challenge=await c.json();const wait=Math.max(0,1200-(Date.now()-Number(challenge.issued||0)));if(wait)await new Promise(r=>setTimeout(r,wait));const fd=new FormData();fd.append('statement',file,file.name);fd.append('challenge',JSON.stringify(challenge));const r=await fetch(SERVER_OCR_ENDPOINT,{method:'POST',body:fd,signal:AbortSignal.timeout(55000)});if(!r.ok)throw Error('server_ocr_'+r.status);const j=await r.json();if(!j?.data)throw Error('server_ocr_invalid');return j.data}
-function applyField(form,name,value){const el=form.elements.namedItem(name);if(el&&value!==''&&value!==null&&value!==undefined&&!String(el.value||'').trim()){el.value=value;el.dataset.statementDetected='1'}}
-function normalizeServerData(d){return {...d,monthly_volume:d.monthly_volume==null?'':money(Number(d.monthly_volume)),transaction_count:d.transaction_count==null?'':String(Math.round(Number(d.transaction_count))),current_total_cost:d.current_total_cost==null?'':money(Number(d.current_total_cost)),monthly_fixed_cost:d.monthly_fixed_cost==null?'':money(Number(d.monthly_fixed_cost)),debit_fee_percent:d.debit_fee_percent==null?'':money(Number(d.debit_fee_percent)),credit_fee_percent:d.credit_fee_percent==null?'':money(Number(d.credit_fee_percent)),debit_transactions:d.debit_transactions==null?'':String(Math.round(Number(d.debit_transactions))),premium_transactions:d.premium_transactions==null?'':String(Math.round(Number(d.premium_transactions)))}}
-function summary(data){return [['Anbieter',data.provider],['Kartenumsatz',data.monthly_volume&&data.monthly_volume+' €'],['Transaktionen',data.transaction_count],['Gesamtkosten',data.current_total_cost&&data.current_total_cost+' €'],['Debit-/EC-Gebühr',data.debit_fee_percent&&data.debit_fee_percent+' %'],['Kreditkarten-Gebühr',data.credit_fee_percent&&data.credit_fee_percent+' %'],['Fixkosten',data.monthly_fixed_cost&&data.monthly_fixed_cost+' €'],['Debit-/EC-Transaktionen',data.debit_transactions],['Premium-/Kreditkarten-Transaktionen',data.premium_transactions]].filter(([,v])=>v)}
-function renderResult({form,panel,status,data,onExtracted}){applyField(form,'current_provider',data.provider);applyField(form,'monthly_volume',data.monthly_volume);applyField(form,'transaction_count',data.transaction_count);applyField(form,'debit_fee',data.debit_fee_percent?data.debit_fee_percent+' %':'');applyField(form,'credit_fee',data.credit_fee_percent?data.credit_fee_percent+' %':'');applyField(form,'monthly_fixed_cost',data.monthly_fixed_cost?data.monthly_fixed_cost+' €':'');form.querySelectorAll('[data-statement-detected="1"]').forEach(el=>el.classList.add('nx-statement-detected'));const rows=summary(data);panel.innerHTML=rows.length?'<strong>Abrechnung erkannt ✓ – bitte Werte kurz prüfen</strong><ul>'+rows.map(([k,v])=>'<li><b>'+k+':</b> '+String(v).replace(/[<>&]/g,'')+'</li>').join('')+'</ul><small>Erkannte Werte sind Vorschläge und können vor dem Absenden korrigiert werden.</small>':'<strong>Dokument gelesen – Werte bitte ergänzen</strong><small>Das Format wurde verarbeitet, die Vergleichswerte waren aber nicht eindeutig genug.</small>';status.textContent=rows.length?'Abrechnung ausgelesen. Bitte prüfe die vorausgefüllten Werte.':'Abrechnung gelesen. Bitte ergänze die fehlenden Werte.';status.dataset.state=rows.length?'success':'error';onExtracted?.(data);return rows.length}
-export function attachStatementReader({form,fileInput,status,fileLabel,onExtracted}){const panel=document.createElement('div');panel.className='nx-statement-readout';panel.hidden=true;fileInput.closest('.nx-file-drop')?.insertAdjacentElement('afterend',panel);const style=document.createElement('style');style.textContent='.nx-statement-readout{margin:-7px 0 18px;padding:14px 15px;border:1px solid #cfe4b5;border-radius:13px;background:#f5ffe8;font-size:11px;color:#34452f}.nx-statement-readout strong{display:block;font-size:12px;margin-bottom:7px}.nx-statement-readout ul{margin:0;padding-left:18px;line-height:1.6}.nx-statement-readout small{display:block;margin-top:8px;color:#657260}.nx-statement-detected{box-shadow:0 0 0 2px #baff3755}';document.head.append(style);async function analyze(){const file=fileInput.files?.[0];if(!file)return;panel.hidden=false;panel.innerHTML='<strong>Abrechnung wird ausgelesen …</strong><small>neXaro versucht zuerst die schnelle lokale Erkennung. Falls dein Gerät sie nicht unterstützt, übernimmt automatisch die Server-Erkennung.</small>';status.textContent='Abrechnung wird ausgelesen …';delete status.dataset.state;let localError=null;try{const progress=p=>{status.textContent='Abrechnung wird ausgelesen … '+p+' %'};const read=file.type==='application/pdf'?await readPdf(file,progress):await readImage(file,progress);const local=extractFields(read.text,{source:read.source,fileType:file.type,pages:read.pages});if(summary(local).length&&local.confidence>=.35){renderResult({form,panel,status,data:local,onExtracted});return}}catch(e){localError=e;console.warn('local statement OCR failed',e)}try{const server=normalizeServerData(await serverRead(file,status));renderResult({form,panel,status,data:server,onExtracted});return}catch(e){console.warn('server statement OCR failed',e,localError);panel.innerHTML='<strong>Automatisches Auslesen derzeit nicht möglich</strong><small>Die Datei bleibt ausgewählt und kann sicher gesendet werden. Bitte ergänze die sichtbaren Werte manuell. Wir haben den Fehler technisch protokolliert.</small>';status.textContent='Die Abrechnung konnte weder lokal noch serverseitig zuverlässig ausgelesen werden.';status.dataset.state='error';onExtracted?.({version:2,source:'failed',confidence:0,review_required:true,error:'local_and_server_failed'})}}fileInput.addEventListener('change',()=>void analyze())}
+/* neXaro statement upload UI.
+   The authoritative extraction happens server-side during the secure upload.
+   This module deliberately avoids browser OCR so the customer experience is
+   consistent across iOS, Android, Windows and macOS. */
+
+export function attachStatementReader({form,fileInput,status,fileLabel,onExtracted}){
+  if(!form||!fileInput||form.dataset.statementUiReady==='1') return;
+  form.dataset.statementUiReady='1';
+
+  /* Remove readout panels left by an older cached OCR implementation. */
+  form.querySelectorAll('.nx-statement-readout').forEach(el=>el.remove());
+
+  const loader=document.createElement('div');
+  loader.className='nx-payment-upload-loader';
+  loader.hidden=true;
+  loader.setAttribute('role','status');
+  loader.setAttribute('aria-live','polite');
+  loader.setAttribute('aria-busy','true');
+  loader.innerHTML=`
+    <div class="nx-pay-visual" aria-hidden="true">
+      <div class="nx-pay-terminal">
+        <div class="nx-pay-screen"><i></i></div>
+        <div class="nx-pay-card"><span></span></div>
+        <div class="nx-pay-wave nx-pay-wave-1"></div>
+        <div class="nx-pay-wave nx-pay-wave-2"></div>
+        <div class="nx-pay-wave nx-pay-wave-3"></div>
+      </div>
+    </div>
+    <div class="nx-pay-copy">
+      <strong>Abrechnung wird sicher übertragen …</strong>
+      <small>Elektronische Verarbeitung läuft. Deine Datei wird geschützt übertragen und für den Vergleich ausgelesen.</small>
+    </div>`;
+
+  const submit=form.querySelector('#feeCheckSubmit');
+  if(submit) submit.before(loader); else status?.before(loader);
+
+  const style=document.createElement('style');
+  style.textContent=`
+    .nx-payment-upload-loader[hidden]{display:none!important}
+    .nx-payment-upload-loader{display:flex;align-items:center;gap:15px;margin:14px 0;padding:15px 16px;border:1px solid #d7e6ca;border-radius:15px;background:linear-gradient(135deg,#f8fcf3,#edf8e2);box-shadow:0 10px 24px #20331b0d}
+    .nx-pay-visual{width:72px;height:72px;display:grid;place-items:center;flex:none}
+    .nx-pay-terminal{position:relative;width:62px;height:62px;overflow:hidden;border-radius:18px;background:linear-gradient(155deg,#2b3b31,#17211b);box-shadow:0 10px 20px #18221c28}
+    .nx-pay-screen{position:absolute;left:11px;top:10px;width:40px;height:12px;border-radius:6px;background:linear-gradient(90deg,#baff37,#e3ffa5);box-shadow:0 0 14px #baff3766;animation:nxPayScreen 1.35s ease-in-out infinite}
+    .nx-pay-screen i{display:block;width:13px;height:3px;margin:4px auto 0;border-radius:2px;background:#1c2a20aa}
+    .nx-pay-card{position:absolute;left:-13px;top:31px;width:30px;height:20px;border-radius:6px;background:linear-gradient(135deg,#baff37,#efffc8);box-shadow:0 5px 12px #baff374f;animation:nxPayCard 1.75s ease-in-out infinite}
+    .nx-pay-card:before{content:"";position:absolute;left:5px;top:5px;width:8px;height:6px;border-radius:2px;background:#26332966}.nx-pay-card span{position:absolute;right:4px;bottom:4px;width:8px;height:2px;border-radius:2px;background:#26332955}
+    .nx-pay-wave{position:absolute;border:2px solid #baff37;border-left:0;border-bottom:0;border-radius:0 18px 0 0;opacity:0;transform-origin:left bottom}
+    .nx-pay-wave-1{right:10px;top:28px;width:7px;height:7px;animation:nxPayWave 1.75s ease-out infinite}
+    .nx-pay-wave-2{right:7px;top:24px;width:13px;height:13px;animation:nxPayWave 1.75s ease-out .18s infinite}
+    .nx-pay-wave-3{right:3px;top:20px;width:20px;height:20px;animation:nxPayWave 1.75s ease-out .36s infinite}
+    .nx-pay-copy{display:flex;flex-direction:column;gap:4px;min-width:0}.nx-pay-copy strong{font-size:13px;color:#1d2820}.nx-pay-copy small{font-size:11px;color:#667268;line-height:1.45}
+    .nx-statement-ready{margin:-3px 0 14px;padding:11px 13px;border:1px solid #dce9d0;border-radius:12px;background:#f7fbf2;color:#526151;font-size:11px;line-height:1.45}
+    @keyframes nxPayCard{0%{transform:translateX(0);opacity:.2}18%{opacity:1}55%{transform:translateX(25px);opacity:1}73%{transform:translateX(30px);opacity:1}100%{transform:translateX(47px);opacity:.12}}
+    @keyframes nxPayWave{0%{opacity:0;transform:scale(.65)}30%{opacity:.95}100%{opacity:0;transform:scale(1.18)}}
+    @keyframes nxPayScreen{0%,100%{opacity:.58}50%{opacity:1}}
+    @media(max-width:700px){.nx-payment-upload-loader{align-items:flex-start;padding:14px}.nx-pay-visual{width:62px;height:62px}.nx-pay-terminal{width:56px;height:56px}.nx-pay-screen{width:35px}.nx-pay-copy strong{font-size:12.5px}}
+    @media(prefers-reduced-motion:reduce){.nx-pay-screen,.nx-pay-card,.nx-pay-wave{animation:none!important}.nx-pay-card{left:12px;opacity:1}.nx-pay-wave{opacity:.55}}
+  `;
+  document.head.append(style);
+
+  const ready=document.createElement('div');
+  ready.className='nx-statement-ready';
+  ready.hidden=true;
+  fileInput.closest('.nx-file-drop')?.insertAdjacentElement('afterend',ready);
+
+  const setReady=()=>{
+    const file=fileInput.files?.[0];
+    loader.hidden=true;
+    if(!file){ready.hidden=true;return;}
+    ready.hidden=false;
+    ready.textContent='✓ Abrechnung ausgewählt. Die elektronische Auswertung startet beim sicheren Absenden.';
+    if(status){status.textContent='';delete status.dataset.state;}
+    onExtracted?.({version:3,source:'server-on-upload',confidence:null,review_required:true});
+  };
+  fileInput.addEventListener('change',setReady);
+
+  form.addEventListener('submit',()=>{
+    if(!form.reportValidity()) return;
+    const mode=form.closest('#vergleich')?.querySelector('.nx-mode-btn.is-active')?.dataset.mode||'upload';
+    if(mode!=='upload') return;
+    if(!fileInput.files?.[0]) return;
+    ready.hidden=true;
+    loader.hidden=false;
+  },true);
+
+  if(status){
+    new MutationObserver(()=>{
+      if(status.dataset.state==='success'||status.dataset.state==='error') loader.hidden=true;
+    }).observe(status,{attributes:true,attributeFilter:['data-state'],childList:true,subtree:true});
+  }
+}
