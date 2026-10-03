@@ -1,0 +1,39 @@
+name: replace legacy neXaro logos
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/logo-swap.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  replace-logo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Replace legacy logo references
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -RIl --exclude-dir=.git -E 'nexaro-(transparent|official)-logo\.webp' . | while read -r file; do
+            sed -i -E 's#nexaro-(transparent|official)-logo\.webp#nexaro-official-logo.svg#g' "$file"
+          done
+      - name: Commit replacement
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet; then
+            echo 'No legacy logo references found.'
+            exit 0
+          fi
+          git config user.name 'neXaro-Solutions'
+          git config user.email 'kontakt@nexaro-solutions.de'
+          git add -A
+          git commit -m 'Use transparent official neXaro logo everywhere'
+          git push origin main
