@@ -113,3 +113,23 @@
   finally{busy=false;submit.disabled=false;submit.textContent=mode==='upload'?'Vergleich anfordern ↗':'Manuellen Vergleich anfordern ↗'}
  });
 })();
+
+/* Secondary consultation path: compact on mobile, full form on demand. */
+(() => {
+ const section=document.getElementById('beratung'),form=document.getElementById('contactForm'),copy=section?.querySelector('.contact-copy');
+ if(!section||!form||!copy||section.dataset.secondaryReady==='1')return;
+ section.dataset.secondaryReady='1';
+ const intro=copy.querySelector('p');if(intro)intro.textContent='Du möchtest lieber persönlich sprechen? Dann ruf direkt an, schreib uns oder öffne bei Bedarf die kurze Beratungsanfrage.';
+ const direct=copy.querySelector('.direct');if(direct){direct.classList.add('nx-direct-actions');direct.querySelectorAll('a').forEach(a=>a.classList.add('nx-direct-action'))}
+ const toggle=document.createElement('button');toggle.type='button';toggle.className='nx-consult-toggle';toggle.setAttribute('aria-expanded','false');toggle.setAttribute('aria-controls','contactForm');toggle.innerHTML='<span>Persönliche Beratungsanfrage öffnen</span><b aria-hidden="true">＋</b>';
+ copy.append(toggle);
+ form.classList.add('nx-secondary-form');
+ const style=document.createElement('style');style.textContent=`
+ .nx-consult-toggle{display:none;width:100%;min-height:52px;margin-top:16px;padding:13px 15px;border:1px solid #cbd9c3;border-radius:13px;background:#fff;color:#18251c;font-weight:850;align-items:center;justify-content:space-between;gap:12px;text-align:left;cursor:pointer}.nx-consult-toggle b{font-size:20px;line-height:1}.nx-direct-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px}.nx-direct-action{display:flex;align-items:center;justify-content:center;min-height:48px;padding:11px 13px;border:1px solid #d8e4d0;border-radius:12px;background:#fff;text-align:center;font-size:12px!important}
+ @media(max-width:700px){.contact{padding:34px 0}.contact-grid{gap:14px}.contact-copy h2{font-size:30px;margin:11px 0}.contact-copy>p{font-size:12px;line-height:1.5}.contact-copy>p[style]{display:none}.nx-direct-actions{margin-top:16px}.nx-consult-toggle{display:flex}.nx-secondary-form{display:none;padding:18px;border-radius:17px;box-shadow:0 12px 30px #253a1712}.nx-secondary-form.is-open{display:block}.nx-secondary-form h3{font-size:22px}.nx-secondary-form p{font-size:10.5px}.nx-secondary-form label{margin:10px 0;font-size:11px}.nx-secondary-form input,.nx-secondary-form textarea{font-size:16px;min-height:48px;padding:11px 12px}.nx-secondary-form textarea{min-height:88px}.nx-secondary-form .consent{font-size:10px!important}.nx-consult-toggle[aria-expanded="true"] b{transform:rotate(45deg)}}
+ @media(max-width:430px){.nx-direct-actions{grid-template-columns:1fr}.nx-direct-action{min-height:46px}}
+ `;document.head.append(style);
+ const sync=()=>{const mobile=matchMedia('(max-width:700px)').matches;if(!mobile){form.classList.add('is-open');toggle.setAttribute('aria-expanded','true');toggle.querySelector('span').textContent='Persönliche Beratungsanfrage'}else if(!toggle.dataset.touched){form.classList.remove('is-open');toggle.setAttribute('aria-expanded','false');toggle.querySelector('span').textContent='Persönliche Beratungsanfrage öffnen'}};
+ toggle.addEventListener('click',()=>{toggle.dataset.touched='1';const open=!form.classList.contains('is-open');form.classList.toggle('is-open',open);toggle.setAttribute('aria-expanded',String(open));toggle.querySelector('span').textContent=open?'Beratungsanfrage schließen':'Persönliche Beratungsanfrage öffnen';if(open)setTimeout(()=>form.querySelector('input')?.focus({preventScroll:true}),50)});
+ addEventListener('resize',sync,{passive:true});sync();
+})();
