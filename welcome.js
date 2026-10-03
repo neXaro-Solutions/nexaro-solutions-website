@@ -1,13 +1,27 @@
-/* Automatic, decorative arrival. No storage, tracking or requests. */
+/* neXaro Payment navigation + comparison flow. */
 (() => {
- const hero=document.querySelector('.hero');if(!hero)return;
- const motion=matchMedia('(prefers-reduced-motion: reduce)');
- let timer,pending,frame,visible=false,ready=document.readyState==='complete',played=false;
- function stop(){clearTimeout(timer);clearTimeout(pending);hero.classList.remove('nx-arrival','nx-arrival-motion');frame?.remove();frame=null}
- function play(){stop();if(document.hidden||!visible)return;played=true;frame=document.createElement('div');frame.className='nx-arrival-frame';frame.setAttribute('aria-hidden','true');frame.innerHTML='<i></i><i></i><span></span>';hero.append(frame);hero.classList.add('nx-arrival');if(!motion.matches)hero.classList.add('nx-arrival-motion');timer=setTimeout(stop,motion.matches?2200:4800)}
- function schedule(){clearTimeout(pending);if(ready&&visible&&!played&&!document.hidden)pending=setTimeout(play,450)}
- new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;schedule()},{threshold:.12}).observe(hero);
- window.addEventListener('load',()=>{ready=true;schedule()},{once:true});window.addEventListener('pageshow',e=>{if(e.persisted)played=false;schedule()});window.addEventListener('pagehide',stop);document.addEventListener('visibilitychange',()=>{if(document.hidden){if(frame)played=false;stop()}else schedule()});motion.addEventListener('change',stop);schedule();
+ const header=document.querySelector('.top .wrap');
+ if(!header||!document.getElementById('check')||document.getElementById('nxPaymentMenuButton'))return;
+ const oldAction=header.querySelector('.top-action');
+ const nav=document.createElement('nav');nav.className='nx-payment-nav';nav.id='nxPaymentNav';nav.setAttribute('aria-label','Payment Navigation');
+ nav.innerHTML='<a href="./">Startseite</a><a href="./sumup-gastronomie.html">Gastronomie</a><a href="./sumup-einzelhandel.html">Einzelhandel</a><a href="./sumup-dienstleister.html">Dienstleister</a><a href="./crm/">CRM</a><a class="nx-payment-cta" href="#vergleich">Payment-Lösung prüfen ↗</a>';
+ const button=document.createElement('button');button.id='nxPaymentMenuButton';button.className='nx-payment-menu';button.type='button';button.setAttribute('aria-expanded','false');button.setAttribute('aria-controls','nxPaymentNav');button.setAttribute('aria-label','Menü öffnen');button.innerHTML='<span></span><span></span><span></span>';
+ oldAction?.remove();header.append(nav,button);
+ const style=document.createElement('style');style.textContent=`
+ .nx-payment-nav{display:flex;align-items:center;gap:18px;margin-left:auto}.nx-payment-nav a{font-size:12px;font-weight:800;text-decoration:none;color:#314238;white-space:nowrap}.nx-payment-nav a:hover{color:#f36b29}.nx-payment-cta{padding:12px 16px;border-radius:12px;background:#18251c;color:#fff!important}.nx-payment-menu{display:none;width:46px;height:46px;border:1px solid #dbe5d6;border-radius:13px;background:#fff;align-items:center;justify-content:center;flex-direction:column;gap:5px;cursor:pointer;box-shadow:0 8px 20px #18251c0d}.nx-payment-menu span{display:block;width:20px;height:2px;border-radius:2px;background:#18251c;transition:transform .2s,opacity .2s}.nx-payment-menu[aria-expanded="true"] span:nth-child(1){transform:translateY(7px) rotate(45deg)}.nx-payment-menu[aria-expanded="true"] span:nth-child(2){opacity:0}.nx-payment-menu[aria-expanded="true"] span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+ @media(max-width:900px){.top .wrap{position:relative}.nx-payment-menu{display:flex;margin-left:auto}.nx-payment-nav{display:none;position:absolute;left:18px;right:18px;top:calc(100% + 8px);padding:12px;border:1px solid #dfe7db;border-radius:17px;background:#fff;box-shadow:0 18px 45px #18251c20;flex-direction:column;align-items:stretch;gap:4px}.nx-payment-nav.is-open{display:flex}.nx-payment-nav a{padding:12px 13px;border-radius:10px;font-size:13px}.nx-payment-nav a:not(.nx-payment-cta):hover{background:#f5f9f1}.nx-payment-cta{text-align:center;margin-top:4px;padding:14px!important}.brand{position:relative;z-index:1}}
+ @media(max-width:550px){.top .wrap{padding-left:18px;padding-right:18px}.brand{width:138px;height:58px}.nx-payment-menu{width:44px;height:44px}.nx-payment-nav{left:12px;right:12px}}
+ @media(min-width:901px) and (max-width:1080px){.nx-payment-nav{gap:11px}.nx-payment-nav a{font-size:11px}.nx-payment-cta{padding:11px 13px}}
+ @media(prefers-reduced-motion:reduce){.nx-payment-menu span{transition:none!important}}
+ .content,.contact{content-visibility:auto;contain-intrinsic-size:1px 760px}
+ `;document.head.append(style);
+ const close=()=>{nav.classList.remove('is-open');button.setAttribute('aria-expanded','false');button.setAttribute('aria-label','Menü öffnen')};
+ button.addEventListener('click',()=>{const open=!nav.classList.contains('is-open');nav.classList.toggle('is-open',open);button.setAttribute('aria-expanded',String(open));button.setAttribute('aria-label',open?'Menü schließen':'Menü öffnen')});
+ nav.querySelectorAll('a').forEach(a=>a.addEventListener('click',close));
+ document.addEventListener('click',e=>{if(!header.contains(e.target))close()});
+ document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
+ const brandImg=header.querySelector('.brand img');if(brandImg){brandImg.decoding='async';brandImg.fetchPriority='high'}
+ document.querySelectorAll('.hero-x img,.footer-logo').forEach(img=>{img.decoding='async';img.loading='lazy'});
 })();
 
 /* Customer-friendly SumUp comparison: upload statement OR enter data manually. */
@@ -46,7 +60,7 @@
  </div>`;
  check.before(section);
  const style=document.createElement('style');style.textContent=`
- .nx-fee-check{position:relative;overflow:hidden;background:#fff;padding:54px 0}.nx-fee-check:before{content:"X";position:absolute;right:-110px;bottom:-330px;font-size:620px;font-weight:950;font-style:italic;line-height:1;color:#f36b2907;pointer-events:none}
+ .nx-fee-check{position:relative;overflow:hidden;background:#fff;padding:54px 0;content-visibility:auto;contain-intrinsic-size:1px 980px}.nx-fee-check:before{content:"X";position:absolute;right:-110px;bottom:-330px;font-size:620px;font-weight:950;font-style:italic;line-height:1;color:#f36b2907;pointer-events:none}
  .nx-compare-card{position:relative;max-width:900px;margin:0 auto;border:1px solid #e1e8dc;border-radius:28px;background:#fbfdf8;box-shadow:0 22px 60px #20331b10;overflow:hidden}.nx-compare-head{padding:34px 38px 20px;text-align:left}.nx-compare-head h2{font-size:clamp(34px,4vw,48px);margin:12px 0 8px}.nx-compare-head p{max-width:690px;margin:0;color:var(--muted);font-size:14px}
  .nx-mode-switch{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 38px 22px}.nx-mode-btn{display:grid;grid-template-columns:auto 1fr;column-gap:12px;align-items:center;text-align:left;padding:16px;border:1px solid #d8e1d1;border-radius:16px;background:#fff;color:#1e2521}.nx-mode-btn>span{grid-row:1/3;display:grid;place-items:center;width:38px;height:38px;border-radius:11px;background:#eef6e7;font-size:19px}.nx-mode-btn strong{font-size:13px}.nx-mode-btn small{font-size:10.5px;line-height:1.4;color:#6b776d}.nx-mode-btn.is-active{background:#ecffd0;border-color:#a9cf6e;box-shadow:0 0 0 2px #baff3733}.nx-mode-btn.is-active>span{background:#baff37}
  .nx-fee-form{padding:28px 38px 38px;border-top:1px solid #e3e9df;background:#fff}.nx-panel-intro{display:flex;flex-direction:column;gap:4px;margin-bottom:14px}.nx-panel-intro strong{font-size:17px}.nx-panel-intro span{font-size:12px;color:#68746a;line-height:1.55}.nx-fee-form label{display:block;font-size:12px;font-weight:800;color:#2b342d}.nx-fee-form input,.nx-fee-form textarea{width:100%;margin-top:7px;padding:12px 13px;border:1px solid #cfd9c8;border-radius:10px;background:#fff;color:#18221c;box-sizing:border-box}.nx-fee-form input:focus,.nx-fee-form textarea:focus{outline:3px solid #f36b2933;border-color:#f36b29}
