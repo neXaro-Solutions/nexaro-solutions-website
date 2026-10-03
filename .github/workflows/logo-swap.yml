@@ -1,4 +1,4 @@
-name: fix neXaro logo compatibility
+name: use transparent neXaro logo
 
 on:
   push:
@@ -17,23 +17,23 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: main
-      - name: Replace SVG logo references with standalone WebP
+      - name: Replace all official logo references with transparent WebP
         shell: bash
         run: |
           set -euo pipefail
-          grep -RIl --exclude-dir=.git 'nexaro-official-logo\.svg' . | while read -r file; do
-            sed -i 's#nexaro-official-logo\.svg#nexaro-official-logo.webp#g' "$file"
+          grep -RIl --exclude-dir=.git -E 'nexaro-(official-logo\.(svg|webp)|transparent-logo\.webp)' . | while read -r file; do
+            sed -i -E 's#nexaro-official-logo\.(svg|webp)#nexaro-transparent-logo.webp#g' "$file"
           done
-      - name: Commit compatibility fix
+      - name: Commit transparent logo fix
         shell: bash
         run: |
           set -euo pipefail
           if git diff --quiet; then
-            echo 'No SVG logo references found.'
+            echo 'No logo references needed replacement.'
             exit 0
           fi
           git config user.name 'neXaro-Solutions'
           git config user.email 'kontakt@nexaro-solutions.de'
           git add -A
-          git commit -m 'Fix neXaro logo rendering on Safari'
+          git commit -m 'Use transparent neXaro logo without white background'
           git push origin main
