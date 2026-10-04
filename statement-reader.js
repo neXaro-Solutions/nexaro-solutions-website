@@ -50,18 +50,39 @@ export function attachStatementReader({form,fileInput,status,fileLabel,onExtract
     .nx-pay-wave-3{right:3px;top:20px;width:20px;height:20px;animation:nxPayWave 1.75s ease-out .36s infinite}
     .nx-pay-copy{display:flex;flex-direction:column;gap:4px;min-width:0}.nx-pay-copy strong{font-size:13px;color:#1d2820}.nx-pay-copy small{font-size:11px;color:#667268;line-height:1.45}
     .nx-statement-ready{margin:-3px 0 14px;padding:11px 13px;border:1px solid #dce9d0;border-radius:12px;background:#f7fbf2;color:#526151;font-size:11px;line-height:1.45}
+    .nx-upload-security{margin:10px 0 15px;padding:15px 16px;border:1px solid #dce7d4;border-radius:14px;background:linear-gradient(135deg,#fff,#f8fbf4);box-shadow:0 8px 20px #20331b08}
+    .nx-upload-security-head{display:flex;align-items:center;gap:9px;margin-bottom:8px;color:#1d2820}.nx-upload-security-head b{font-size:13px}.nx-upload-security-icon{display:grid;place-items:center;width:28px;height:28px;border-radius:9px;background:#eaffc4;font-size:15px}
+    .nx-upload-security p{margin:0 0 8px;color:#5c695f;font-size:11px;line-height:1.5}.nx-upload-security-list{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px}.nx-upload-security-list span{font-size:10.5px;line-height:1.4;color:#455348;font-weight:700}.nx-upload-security-list span:before{content:"✓";margin-right:6px;color:#61a524}.nx-upload-security a{display:inline-block;margin-top:9px;font-size:10.5px;font-weight:800;color:#a84a22;text-decoration:none}
     @keyframes nxPayCard{0%{transform:translateX(0);opacity:.2}18%{opacity:1}55%{transform:translateX(25px);opacity:1}73%{transform:translateX(30px);opacity:1}100%{transform:translateX(47px);opacity:.12}}
     @keyframes nxPayWave{0%{opacity:0;transform:scale(.65)}30%{opacity:.95}100%{opacity:0;transform:scale(1.18)}}
     @keyframes nxPayScreen{0%,100%{opacity:.58}50%{opacity:1}}
-    @media(max-width:700px){.nx-payment-upload-loader{align-items:flex-start;padding:14px}.nx-pay-visual{width:62px;height:62px}.nx-pay-terminal{width:56px;height:56px}.nx-pay-screen{width:35px}.nx-pay-copy strong{font-size:12.5px}}
+    @media(max-width:700px){.nx-payment-upload-loader{align-items:flex-start;padding:14px}.nx-pay-visual{width:62px;height:62px}.nx-pay-terminal{width:56px;height:56px}.nx-pay-screen{width:35px}.nx-pay-copy strong{font-size:12.5px}.nx-upload-security-list{grid-template-columns:1fr}}
     @media(prefers-reduced-motion:reduce){.nx-pay-screen,.nx-pay-card,.nx-pay-wave{animation:none!important}.nx-pay-card{left:12px;opacity:1}.nx-pay-wave{opacity:.55}}
   `;
   document.head.append(style);
 
+  const drop=fileInput.closest('.nx-file-drop');
+  if(drop&&!form.querySelector('.nx-upload-security')){
+    const security=document.createElement('div');
+    security.className='nx-upload-security';
+    security.setAttribute('role','note');
+    security.innerHTML=`
+      <div class="nx-upload-security-head"><span class="nx-upload-security-icon" aria-hidden="true">🔒</span><b>Deine Abrechnung wird geschützt verarbeitet.</b></div>
+      <p>Der Upload ist technisch vom internen CRM getrennt. Nur gültige Upload-Vorgänge von der neXaro-Seite werden akzeptiert und die Auswertung erfolgt serverseitig für deinen Payment-Vergleich.</p>
+      <div class="nx-upload-security-list">
+        <span>Dateityp, Dateigröße und Dateisignatur werden geprüft</span>
+        <span>Upload nur mit gültiger, zeitlich begrenzter Sicherheits-Challenge</span>
+        <span>Auswertung erfolgt serverseitig statt offen im Browser</span>
+        <span>Verarbeitung zweckgebunden für Anfrage und Vergleich</span>
+      </div>
+      <a href="/datenschutz.html">Mehr zum Datenschutz →</a>`;
+    drop.insertAdjacentElement('afterend',security);
+  }
+
   const ready=document.createElement('div');
   ready.className='nx-statement-ready';
   ready.hidden=true;
-  fileInput.closest('.nx-file-drop')?.insertAdjacentElement('afterend',ready);
+  (form.querySelector('.nx-upload-security')||drop)?.insertAdjacentElement('afterend',ready);
 
   const setReady=()=>{
     const file=fileInput.files?.[0];
