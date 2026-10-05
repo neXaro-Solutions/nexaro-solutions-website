@@ -1,4 +1,18 @@
 (()=>{
+// Google Ads base tag for the main neXaro website. Consent defaults to denied
+// for EEA users; a consent manager can update these states after consent.
+window.dataLayer=window.dataLayer||[];
+window.gtag=window.gtag||function(){window.dataLayer.push(arguments)};
+gtag('consent','default',{ad_storage:'denied',analytics_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',wait_for_update:500});
+if(!document.querySelector('script[src*="googletagmanager.com/gtag/js?id=AW-18472432420"]')){
+ const googleTag=document.createElement('script');
+ googleTag.async=true;
+ googleTag.src='https://www.googletagmanager.com/gtag/js?id=AW-18472432420';
+ document.head.appendChild(googleTag);
+}
+gtag('js',new Date());
+gtag('config','AW-18472432420');
+
 document.querySelectorAll('#mainNav a[href="#software"],.nx-header-software[href="#software"],.hero a[href="#software"],.nx-announcement[href="#software"]').forEach(a=>a.setAttribute('href','/crm/'));
 const form=document.getElementById('softwareRequestForm');if(!form)return;
 const requestedKind=new URLSearchParams(location.search).get('software_kind');if(['consultation','demo','pilot'].includes(requestedKind||''))form.elements.namedItem('request_kind').value=requestedKind;
