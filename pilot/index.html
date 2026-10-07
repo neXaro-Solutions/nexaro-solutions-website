@@ -89,14 +89,37 @@ background-size:34px 34px,34px 34px,auto,auto,auto;box-shadow:0 26px 80px rgba(1
 @media(max-width:1180px){.core-orbit{opacity:.34;right:-4%}.core-copy{max-width:720px}.operations-grid{grid-template-columns:1fr}.ai-rail{grid-template-columns:repeat(6,150px)}}
 @media(max-width:760px){.core-stage{min-height:auto;padding:23px 18px;border-radius:22px}.core-orbit{width:260px;right:-108px;top:44%;opacity:.22}.machine-title{font-size:45px;max-width:88%;margin-top:16px}.machine-sub{font-size:15px;max-width:88%}.machine-metrics{grid-template-columns:1fr 1fr;margin-top:24px}.machine-metric strong{font-size:20px}.ai-rail{margin:0 -2px;grid-template-columns:repeat(6,138px)}.operation-panel{padding:18px;border-radius:19px}.ai-synthesis{grid-template-columns:1fr}.synth-node{height:34px}.synth-node span{width:34px;height:34px;border-radius:11px;transform:rotate(90deg)}.pipeline{display:block}.pipe-step{min-width:0;border:1px solid #e3e7ea!important;border-radius:14px!important;margin-bottom:8px;padding-left:18px}.pipe-step:after{display:none}}
 @media(prefers-reduced-motion:reduce){.core-ring,.live-pulse,.ai-module.live:before,.pipe-step.running:before{animation:none!important}}
+
+/* Login Core Experience v4 */
+.auth{position:relative;overflow:hidden;background:
+radial-gradient(circle at 18% 12%,rgba(255,116,23,.10),transparent 24rem),
+radial-gradient(circle at 82% 18%,rgba(141,255,47,.16),transparent 24rem),
+linear-gradient(180deg,#f7f9fa 0%,#eef2f4 100%)}
+.auth:before{content:"PILOT CORE";position:absolute;left:50%;top:55%;transform:translate(-50%,-50%);font-size:clamp(90px,17vw,240px);font-weight:950;letter-spacing:-.08em;color:rgba(17,20,24,.025);white-space:nowrap;pointer-events:none}
+.auth:after{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(25,30,35,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(25,30,35,.025) 1px,transparent 1px);background-size:36px 36px;mask-image:linear-gradient(to bottom,rgba(0,0,0,.8),transparent 80%);pointer-events:none}
+.auth .box{z-index:2;width:min(1120px,calc(100vw - 36px));display:grid;grid-template-columns:minmax(0,1.15fr) minmax(360px,.85fr);gap:34px;padding:26px;border-radius:30px;background:rgba(255,255,255,.78);backdrop-filter:blur(22px);box-shadow:0 34px 100px rgba(18,24,33,.12)}
+.auth-core-panel{position:relative;min-height:610px;border-radius:24px;padding:34px;overflow:hidden;background:
+radial-gradient(circle at 72% 30%,rgba(141,255,47,.26),transparent 18rem),
+radial-gradient(circle at 40% 88%,rgba(255,116,23,.17),transparent 20rem),
+linear-gradient(140deg,#fff 0%,#f7faf8 60%,#f2f5f5 100%);border:1px solid rgba(220,225,229,.9)}
+.auth-core-panel:after{content:"";position:absolute;width:420px;height:420px;border:1px solid rgba(50,60,70,.08);border-radius:50%;right:-120px;top:40px;box-shadow:0 0 0 58px rgba(141,255,47,.035),0 0 0 118px rgba(255,116,23,.025)}
+.auth-core-copy{position:relative;z-index:2;max-width:620px}.auth-core-copy h1{font-size:clamp(46px,5.8vw,76px);line-height:.95;letter-spacing:-.07em;text-align:left;margin:20px 0 18px}
+.auth-core-copy h1 em{font-style:normal;background:linear-gradient(110deg,#121417 10%,#33383e 55%,#ff5d00 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.auth-core-copy p{text-align:left;font-size:17px;line-height:1.6;color:#6c747c;max-width:560px}
+.auth-system-rail{position:absolute;left:34px;right:34px;bottom:30px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;z-index:2}
+.auth-system-node{padding:14px;border-radius:15px;border:1px solid rgba(220,225,229,.9);background:rgba(255,255,255,.72);backdrop-filter:blur(10px)}
+.auth-system-node span{display:block;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#899099;font-weight:800}.auth-system-node strong{display:block;font-size:14px;margin-top:6px}
+.auth-form-panel{display:flex;flex-direction:column;justify-content:center;padding:20px 16px 18px}.auth-form-panel .brand-login{justify-content:flex-start;min-height:82px;margin:0 0 6px}.auth-form-panel .brand-logo-login{width:255px;height:100px;max-width:100%;object-position:left center}
+.auth-form-panel .ey{text-align:left!important}.auth-form-panel h2{font-size:34px;line-height:1.05;letter-spacing:-.045em;margin:12px 0 8px}.auth-form-panel>p{color:#737b84;margin:0 0 22px;line-height:1.55}
+.auth-form-panel .field{margin:12px 0}.auth-form-panel .btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}.auth-form-panel .btn{width:100%;min-height:50px}
+.auth-trust{display:flex;align-items:center;gap:9px;margin-top:18px;font-size:11px;color:#7b838b}.auth-trust .dot{width:8px;height:8px;margin:0}
+@media(max-width:850px){.auth{padding:10px;align-items:start}.auth .box{display:block;width:min(100%,760px);padding:14px;border-radius:25px}.auth-core-panel{min-height:260px;padding:22px 20px}.auth-core-panel:after{width:250px;height:250px;right:-110px;top:10px}.auth-core-copy h1{font-size:clamp(40px,10vw,58px);max-width:92%;margin:14px 0 10px}.auth-core-copy p{font-size:14px;max-width:80%;margin-bottom:0}.auth-system-rail{position:relative;left:auto;right:auto;bottom:auto;margin-top:22px;grid-template-columns:1fr 1fr}.auth-system-node{padding:11px}.auth-form-panel{padding:22px 8px 10px}.auth-form-panel .brand-login{min-height:64px}.auth-form-panel .brand-logo-login{width:220px;height:74px}.auth-form-panel h2{font-size:30px}.auth-form-panel .btns{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.auth-core-panel{min-height:285px}.auth-core-copy h1{font-size:44px}.auth-core-copy p{max-width:92%}.auth-system-rail{grid-template-columns:1fr 1fr}.auth-form-panel{padding:18px 6px 8px}.auth-form-panel .btns{grid-template-columns:1fr}.auth-form-panel .brand-login{display:none}.auth-form-panel .ey{margin-top:0!important}}
 </style></head>
 <body>
 <section id="auth" class="auth"><div class="box">
-<div class="brand-login"><img src="/nexaro-transparent-logo.webp" class="brand-logo-login" alt="neXaro Solutions"></div>
-<div class="ey" style="text-align:center;margin-top:8px">ENTER PILOT CORE · PRIVATE ALPHA</div><h1>Steuere Ziele.<br>Starte Ausführung.</h1><p>Dein Zugang zum neXaro AI Operations System.</p>
-<div class="field"><label>E-Mail</label><input id="email" type="email" autocomplete="email"></div>
-<div class="field"><label>Passwort</label><input id="password" type="password" minlength="8"></div>
-<div class="btns auth-actions"><button id="login" class="btn primary">Anmelden</button><button id="signup" class="btn">Account erstellen</button></div><div id="message"></div>
+<section class="auth-core-panel"><div class="auth-core-copy"><div class="system-kicker"><span class="live-pulse"></span>nexaro · pilot core online</div><h1>Eine Maschine.<br><em>Gebaut für Wirkung.</em></h1><p>Research, GPT, Claude, Synthesis, Execution und Verification arbeiten als ein System auf dein Ziel hin.</p></div><div class="auth-system-rail"><div class="auth-system-node"><span>01 · Research</span><strong>Evidence Engine</strong></div><div class="auth-system-node"><span>02 · Intelligence</span><strong>GPT + Claude</strong></div><div class="auth-system-node"><span>03 · Execution</span><strong>Action Runtime</strong></div><div class="auth-system-node"><span>04 · Quality</span><strong>Verification Gate</strong></div></div></section>
+<section class="auth-form-panel"><div class="brand-login"><img src="/nexaro-transparent-logo.webp" class="brand-logo-login" alt="neXaro Solutions"></div><div class="ey">ENTER PILOT CORE · PRIVATE ALPHA</div><h2>Command Access</h2><p>Melde dich an und betrete dein AI Operations System.</p><div class="field"><label>E-Mail</label><input id="email" type="email" autocomplete="email"></div><div class="field"><label>Passwort</label><input id="password" type="password" minlength="8"></div><div class="btns auth-actions"><button id="login" class="btn primary">Pilot öffnen</button><button id="signup" class="btn">Account erstellen</button></div><div id="message"></div><div class="auth-trust"><span class="dot"></span><span>Private Alpha · geschützte Session · RLS aktiv</span></div></section>
 </div></section>
 
 <section id="app" class="shell hidden"><aside class="side"><div class="brand"><div class="brand-meta"><img src="/nexaro-transparent-logo.webp" class="brand-logo" alt="neXaro Solutions"><div class="ey">Pilot Command Center</div></div></div>
