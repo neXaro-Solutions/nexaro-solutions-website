@@ -97,6 +97,17 @@ function applyElement(el){
    el.setAttribute(attr,translateString(el.dataset[key]));
  }
 }
+function decorateLinks(root=document){
+ root.querySelectorAll?.("a[href]").forEach(a=>{
+   try{
+     const u=new URL(a.getAttribute("href"),location.href);
+     if(u.hostname==="nexaro-solutions.github.io"&&u.pathname.includes("/nexaro-sales-hub/")){
+       if(language==="en")u.searchParams.set("lang","en");else u.searchParams.delete("lang");
+       a.href=u.toString();
+     }
+   }catch{}
+ });
+}
 function walk(root=document.body){
  if(!root)return;
  applying=true;
@@ -104,6 +115,7 @@ function walk(root=document.body){
  let n;while((n=walker.nextNode()))applyText(n);
  root.querySelectorAll?.("*").forEach(applyElement);
  document.documentElement.lang=language==="en"?"en":"de";
+ decorateLinks(root);
  applying=false;
 }
 function setLanguage(next){
