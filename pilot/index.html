@@ -367,6 +367,50 @@ input,textarea{border-radius:var(--radius-input)}.btn{border-radius:var(--radius
   .auth-trust{margin-top:5px!important;font-size:8px!important}
   .mini-trust{margin-top:5px!important;padding:6px 8px!important}
 }
+
+/* Mobile One-Screen Hotfix v8.1 */
+@media (max-width:760px){
+  .auth .box{
+    grid-template-columns:minmax(0,1fr)!important;
+    grid-template-rows:minmax(0,1.12fr) minmax(0,.88fr)!important;
+    align-items:stretch!important;
+  }
+  .auth-core-panel,
+  .auth-form-panel{
+    width:100%!important;
+    min-width:0!important;
+    max-width:none!important;
+    grid-column:1!important;
+  }
+  .auth-core-panel{grid-row:1!important}
+  .auth-form-panel{grid-row:2!important}
+
+  .auth-core-copy{
+    width:100%;
+    max-width:none!important;
+  }
+  .auth-core-copy h1{
+    max-width:100%!important;
+  }
+  .auth-core-copy p{
+    max-width:96%!important;
+  }
+  .auth-system-rail{
+    width:100%!important;
+  }
+
+  .auth-form-panel{
+    border-radius:20px;
+    background:rgba(255,255,255,.72);
+    backdrop-filter:blur(10px);
+  }
+}
+@media (max-width:760px) and (max-height:760px){
+  .auth .box{
+    grid-template-columns:minmax(0,1fr)!important;
+    grid-template-rows:minmax(0,1fr) minmax(0,.82fr)!important;
+  }
+}
 </style></head>
 <body>
 <section id="auth" class="auth"><div class="box">
