@@ -130,21 +130,29 @@ function setLanguage(next){
  language=next==="en"?"en":"de";
  localStorage.setItem(KEY,language);
  document.documentElement.lang=language;
- document.querySelectorAll("[data-nx-lang]").forEach(b=>{b.textContent=language==="de"?"EN":"DE";b.setAttribute("aria-label",language==="de"?"Switch to English":"Auf Deutsch umstellen");});
+ document.querySelectorAll("[data-nx-lang]").forEach(b=>renderLanguageToggle(b));
  walk();
  window.dispatchEvent(new CustomEvent("nx-language-change",{detail:{language}}));
+}
+function renderLanguageToggle(b){
+ b.innerHTML='<span class="nx-lang-option '+(language==="de"?"is-active":"")+'">DE</span><span class="nx-lang-sep">|</span><span class="nx-lang-option '+(language==="en"?"is-active":"")+'">EN</span>';
+ b.setAttribute("aria-label",language==="de"?"Switch language to English":"Sprache auf Deutsch umstellen");
+ b.setAttribute("title",language==="de"?"English version":"Deutsche Version");
 }
 function installToggle(){
  if(document.querySelector("[data-nx-lang]"))return;
  const b=document.createElement("button");b.type="button";b.dataset.nxLang="1";b.className="nx-language-toggle";
- b.textContent=language==="de"?"EN":"DE";b.setAttribute("aria-label",language==="de"?"Switch to English":"Auf Deutsch umstellen");
+ renderLanguageToggle(b);
  b.addEventListener("click",()=>setLanguage(language==="de"?"en":"de"));
  const nav=document.querySelector(".top .nav,.nx-payment-nav");
  if(nav)nav.appendChild(b);else document.body.appendChild(b);
  const st=document.createElement("style");st.textContent=`
- .nx-language-toggle{display:inline-flex;align-items:center;justify-content:center;min-width:42px;height:34px;padding:0 10px;border:1px solid #cfdcc8;border-radius:999px;background:#fff;color:#243522;font:inherit;font-size:11px;font-weight:900;letter-spacing:.08em;cursor:pointer;box-shadow:0 6px 18px rgba(35,55,28,.08)}
- .nx-language-toggle:hover{border-color:#9fc970;background:#f5fbea}
- @media(max-width:900px){.nx-language-toggle{min-height:42px;width:100%;border-radius:10px}}
+ .nx-language-toggle{display:inline-flex;align-items:center;gap:3px;min-width:108px;height:42px;padding:4px;border:2px solid #ff6b00;border-radius:999px;background:#172015;color:#fff;font:inherit;font-size:11px;font-weight:900;letter-spacing:.08em;cursor:pointer;box-shadow:0 9px 24px rgba(23,32,21,.2),0 0 0 3px rgba(186,255,55,.18);transition:transform .18s ease,box-shadow .18s ease}
+ .nx-language-toggle:hover{transform:translateY(-1px);box-shadow:0 12px 30px rgba(23,32,21,.26),0 0 0 4px rgba(186,255,55,.24)}
+ .nx-language-toggle .nx-lang-option{display:grid;place-items:center;min-width:44px;height:30px;padding:0 8px;border-radius:999px;color:#d9e1d4;transition:background .18s ease,color .18s ease,box-shadow .18s ease}
+ .nx-language-toggle .nx-lang-option.is-active{background:#baff37;color:#172015;box-shadow:0 3px 10px rgba(186,255,55,.28)}
+ .nx-language-toggle .nx-lang-sep{color:#ff8b52;font-weight:900}
+ @media(max-width:900px){.nx-language-toggle{position:sticky;top:8px;z-index:20;width:100%;min-height:48px;border-radius:14px}.nx-language-toggle .nx-lang-option{flex:1;height:36px}}
  `;document.head.appendChild(st);
 }
 const observer=new MutationObserver(muts=>{if(applying)return;for(const m of muts){for(const node of m.addedNodes){if(node.nodeType===Node.TEXT_NODE)applyText(node);else if(node.nodeType===Node.ELEMENT_NODE){applyElement(node);walk(node);}}}});
