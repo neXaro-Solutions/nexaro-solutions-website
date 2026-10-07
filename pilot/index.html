@@ -504,6 +504,163 @@ input,textarea{border-radius:var(--radius-input)}.btn{border-radius:var(--radius
     height:210px;
   }
 }
+
+/* Adaptive Centered Landing v9 */
+.auth .box{
+  margin-inline:auto;
+}
+.auth-core-copy,
+.auth-form-panel,
+.auth-system-rail{
+  margin-inline:auto;
+}
+.auth-core-copy{
+  text-align:center;
+}
+.auth-core-copy h1,
+.auth-core-copy p,
+.auth-form-panel .ey,
+.auth-form-panel h2,
+.auth-form-panel>p{
+  text-align:center!important;
+  margin-left:auto!important;
+  margin-right:auto!important;
+}
+.auth-core-copy p{
+  max-width:680px;
+}
+.auth-system-rail{
+  width:min(100%,760px);
+}
+.auth-form-panel{
+  align-items:center;
+}
+.auth-form-panel>*{
+  width:min(100%,620px);
+}
+.access-actions{
+  width:min(100%,620px);
+}
+.auth-trust,
+.mini-trust{
+  width:min(100%,620px);
+}
+.auth-trust{
+  justify-content:center;
+}
+.mini-trust{
+  text-align:center;
+}
+.brand-login{
+  justify-content:center!important;
+}
+.auth-form-panel .brand-logo-login{
+  object-position:center center!important;
+}
+.auth-modal-card{
+  margin-inline:auto;
+}
+.modal-form-panel{
+  align-items:center;
+}
+.modal-form-panel>*{
+  width:min(100%,540px);
+}
+.trust-panel{
+  text-align:center;
+}
+.trust-shield{
+  margin-left:auto;
+  margin-right:auto;
+}
+.trust-proof{
+  text-align:left;
+}
+.trust-link{
+  margin-left:auto;
+  margin-right:auto;
+}
+@media (max-width:760px){
+  .auth{
+    place-items:center!important;
+  }
+  .auth .box{
+    width:min(100%,720px)!important;
+    max-width:720px!important;
+    margin-inline:auto!important;
+  }
+  .auth-core-panel,
+  .auth-form-panel{
+    margin-inline:auto!important;
+  }
+  .auth-core-copy{
+    width:min(100%,640px)!important;
+    margin-inline:auto!important;
+    text-align:center!important;
+  }
+  .auth-core-copy .system-kicker{
+    margin-inline:auto!important;
+  }
+  .auth-core-copy h1{
+    max-width:94%!important;
+    text-align:center!important;
+  }
+  .auth-core-copy p{
+    max-width:92%!important;
+    text-align:center!important;
+  }
+  .auth-system-rail{
+    width:min(100%,620px)!important;
+    margin-inline:auto!important;
+  }
+  .gear-cluster{
+    left:50%!important;
+    right:auto!important;
+    transform:translate(-50%,-50%) scale(.78)!important;
+  }
+  .visual-flow{
+    left:50%!important;
+    right:auto!important;
+    transform:translate(-50%,-50%)!important;
+  }
+  .auth-form-panel{
+    align-items:center!important;
+    text-align:center!important;
+  }
+  .auth-form-panel .ey,
+  .auth-form-panel h2,
+  .auth-form-panel>p{
+    text-align:center!important;
+  }
+  .access-actions,
+  .auth-trust,
+  .mini-trust{
+    width:min(100%,620px)!important;
+    margin-left:auto!important;
+    margin-right:auto!important;
+  }
+  .auth-trust{
+    justify-content:center!important;
+    white-space:normal!important;
+    text-align:center!important;
+  }
+  .mini-trust span{
+    white-space:normal!important;
+    overflow:visible!important;
+    text-overflow:clip!important;
+  }
+}
+@media (min-width:761px) and (max-width:1100px){
+  .auth .box{
+    width:min(94vw,980px);
+  }
+  .auth-core-copy{
+    max-width:700px;
+  }
+  .auth-system-rail{
+    width:min(100%,760px);
+  }
+}
 </style></head>
 <body>
 <section id="auth" class="auth"><div class="box">
