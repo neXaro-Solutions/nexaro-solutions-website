@@ -877,6 +877,80 @@ input,textarea{border-radius:var(--radius-input)}.btn{border-radius:var(--radius
   .modal-form-panel .field input{height:56px}
   .trust-proof{grid-template-columns:32px 1fr}
 }
+
+/* Mobile floating guided modal hotfix v10.1 */
+@media(max-width:760px){
+  .auth-modal{
+    display:grid!important;
+    place-items:center!important;
+    padding:max(12px,env(safe-area-inset-top)) 12px max(12px,env(safe-area-inset-bottom))!important;
+    overflow:hidden!important;
+  }
+  .auth-modal-card{
+    width:min(94vw,680px)!important;
+    height:min(88svh,860px)!important;
+    min-height:0!important;
+    max-height:88svh!important;
+    margin:0!important;
+    border-radius:28px!important;
+    overflow-y:auto!important;
+    overflow-x:hidden!important;
+    box-shadow:0 34px 110px rgba(10,15,20,.30)!important;
+    border:1px solid rgba(255,255,255,.92)!important;
+    -webkit-overflow-scrolling:touch;
+    scroll-behavior:smooth;
+  }
+  .auth-modal-backdrop{
+    background:rgba(16,19,22,.42)!important;
+    backdrop-filter:blur(14px)!important;
+  }
+  .modal-close{
+    position:sticky!important;
+    float:right;
+    right:14px!important;
+    top:14px!important;
+    margin:14px 14px -54px auto!important;
+    z-index:20!important;
+  }
+  .trust-panel{
+    min-height:auto!important;
+    padding:58px 22px 28px!important;
+    display:block!important;
+  }
+  .trust-shield{
+    width:52px!important;
+    height:52px!important;
+    border-radius:18px!important;
+    margin-bottom:14px!important;
+  }
+  .trust-panel h3{
+    font-size:28px!important;
+    margin-top:8px!important;
+  }
+  .trust-panel>p{
+    font-size:14px!important;
+    line-height:1.5!important;
+    max-width:520px!important;
+  }
+  .security-accordion{
+    margin-top:18px!important;
+  }
+  .access-scroll{
+    margin-top:16px!important;
+  }
+  .modal-form-panel{
+    min-height:auto!important;
+    padding:38px 22px 42px!important;
+    justify-content:flex-start!important;
+    scroll-margin-top:10px!important;
+  }
+  .modal-form-panel h2{
+    font-size:31px!important;
+  }
+  .modal-form-panel .field input{
+    height:54px!important;
+  }
+}
 </style></head>
 <body>
 <section id="auth" class="auth"><div class="box">
