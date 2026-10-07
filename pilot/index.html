@@ -961,11 +961,35 @@ input,textarea{border-radius:var(--radius-input)}.btn{border-radius:var(--radius
     display:none!important;
   }
 }
+
+.free-start-note{
+  width:min(100%,620px);
+  margin:8px auto 0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  font-size:9px;
+  color:#707880;
+  letter-spacing:.04em;
+}
+.free-start-note strong{
+  color:#15181c;
+  font-weight:850;
+}
+@media(max-width:760px){
+  .free-start-note{
+    margin-top:6px;
+    font-size:8px;
+    flex-wrap:wrap;
+    text-align:center;
+  }
+}
 </style></head>
 <body>
 <section id="auth" class="auth"><div class="box">
 <section class="auth-core-panel"><div class="machine-depth-layer"></div><div class="auth-core-copy"><div class="system-kicker"><span class="live-pulse"></span>neXaro · Pilot-Zentrale aktiv</div><h1>Die Zukunft<br><em>arbeitet hier.</em></h1><p>Pilot verbindet Recherche, Intelligenz, Ausführung und Prüfung zu einem operativen KI-System.</p></div><div class="visual-flow" aria-hidden="true"><span></span><span></span><span></span></div><div class="gear-cluster" aria-hidden="true"><div class="gear-energy"></div><div class="gear g1"></div><div class="gear g2"></div><div class="gear g3"></div><div class="gear g4"></div></div><span class="system-visual-chip c1">INTELLIGENZ AKTIV</span><span class="system-visual-chip c2">AUSFÜHRUNG BEREIT</span><span class="system-visual-chip c3">PRÜFUNG GESICHERT</span><div class="auth-system-rail"><div class="auth-system-node keyword"><strong>EVIDENZ</strong></div><div class="auth-system-node keyword"><strong>INTELLIGENZ</strong></div><div class="auth-system-node keyword"><strong>AUSFÜHRUNG</strong></div><div class="auth-system-node keyword"><strong>PRÜFUNG</strong></div></div></section>
-<section class="auth-form-panel"><div class="brand-login"><img src="/nexaro-transparent-logo.webp" class="brand-logo-login" alt="neXaro Solutions"></div><div class="ey">PILOT-ZENTRALE · PRIVATE TESTPHASE</div><h2>Systemzugang</h2><p>Dein Zugang zur nächsten Stufe operativer KI.</p><div class="access-actions"><button id="openLogin" class="btn primary">Pilot öffnen</button><button id="openRegister" class="btn">Konto erstellen</button></div><div class="auth-trust"><span class="dot"></span><span>Geschützte Sitzung · Zugriffsschutz aktiv</span></div><div class="mini-trust"><strong>Datenschutz von Beginn an</strong><span>Verschlüsselte Verbindung · geschützte Anmeldung · Zugriff nur innerhalb deiner Sitzung</span></div></section>
+<section class="auth-form-panel"><div class="brand-login"><img src="/nexaro-transparent-logo.webp" class="brand-logo-login" alt="neXaro Solutions"></div><div class="ey">PILOT-ZENTRALE · PRIVATE TESTPHASE</div><h2>Systemzugang</h2><p>Dein Zugang zur nächsten Stufe operativer KI.</p><div class="access-actions"><button id="openLogin" class="btn primary">Pilot öffnen</button><button id="openRegister" class="btn">Zukunft kostenfrei starten</button></div><div class="free-start-note"><strong>Kostenfrei starten</strong><span>Keine Zahlungsdaten · Private Testphase</span></div><div class="auth-trust"><span class="dot"></span><span>Geschützte Sitzung · Zugriffsschutz aktiv</span></div><div class="mini-trust"><strong>Datenschutz von Beginn an</strong><span>Verschlüsselte Verbindung · geschützte Anmeldung · Zugriff nur innerhalb deiner Sitzung</span></div></section>
 </div></section>
 <div id="authModal" class="auth-modal hidden" role="dialog" aria-modal="true" aria-labelledby="authModalTitle">
   <button class="auth-modal-backdrop" id="closeAuthBackdrop" aria-label="Fenster schließen"></button>
