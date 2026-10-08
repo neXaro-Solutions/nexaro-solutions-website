@@ -4416,6 +4416,16 @@ async function pilotOpenArtifact(id,download=false){
 .pilot-market-feed-form .btn{justify-self:start;min-height:44px}
 .pilot-market-feed-status{overflow-wrap:anywhere;font-weight:700}
 @media(max-width:560px){.pilot-market-feeds{padding:0 13px}.pilot-market-feed-form .btn{width:100%}}
+
+.pilot-partner-enroll{display:grid;gap:8px;margin:12px 0 17px}
+.pilot-partner-enroll-item{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px 14px;border:1px solid #dce8dc;border-radius:13px;background:#f8fbf7}
+.pilot-partner-enroll-item strong{display:block;font-size:13px;color:#294833}
+.pilot-partner-enroll-item small{display:block;margin-top:4px;color:#688071;font-size:11px}
+.pilot-partner-enroll-item a{color:#2a5a31;text-decoration:none;font-size:12px;font-weight:780;min-height:44px;display:inline-flex;align-items:center}
+.pilot-partner-enroll-item a:focus-visible{outline:3px solid #8cff29;outline-offset:3px}
+.pilot-partner-feed-toggle{border-top:1px solid #dce9de;margin:18px 0 10px;padding-top:8px}
+.pilot-partner-feed-toggle>summary{cursor:pointer;font-size:12px;font-weight:780;min-height:44px;display:flex;align-items:center;color:#42654b}
+@media(max-width:500px){.pilot-partner-enroll-item a{width:100%;justify-content:flex-start}}
 </style></head><body>'+await d.data.text()+'</body></html>':await d.data.text();node.replaceChildren(frame);
  }catch{pilotNotice('Die Ergebnisdatei konnte nicht geöffnet werden. Bitte erneut versuchen.')}
 }
@@ -4786,8 +4796,23 @@ function pilotMarketView(){
 let pilotMarketFeedState={busy:false,message:"",error:false};
 function pilotMarketFeedPanel(){
  const sources=[["awin","Awin"],["adcell","ADCELL"],["impact","impact.com"],["cj","CJ Affiliate"],["tradedoubler","Tradedoubler"],["webgains","Webgains"],["rakuten","Rakuten Advertising"],["partnerize","Partnerize"],["belboon","belboon"],["amazon","Amazon PartnerNet"],["ebay","eBay"],["comparison","Lizenzierter Vergleichspartner"]];
+ const publishers=[
+  ["ADCELL","https://www.adcell.de/affiliates","Kostenlose Publisher-Anmeldung"],
+  ["eBay Partner Network","https://partnernetwork.ebay.com/solutions/joining-the-ebay-partner-network","eBay-Konto und Programmfreigabe"],
+  ["Awin","https://www.awin.com/de/affiliate-marketing/publisher-werden","Publisher-Antrag, Identitätsprüfung"],
+  ["impact.com","https://impact.com/get-started/","Partnerkonto und Medienprüfung"],
+  ["Webgains","https://webgains.com/de/publishers/","Publisher-Antrag und Websiteprüfung"]
+ ];
+ const applicationLinks='<div class="pilot-partner-enroll">'+publishers.map(([name,url,hint])=>
+   '<div class="pilot-partner-enroll-item"><div><strong>'+esc(name)+'</strong><small>'+esc(hint)+' · Zugang noch nicht bestätigt</small></div>'+
+   '<a href="'+esc(url)+'" target="_blank" rel="noopener noreferrer" aria-label="Offizielle Publisher-Anmeldung '+esc(name)+' öffnen">Anmeldung öffnen ↗</a></div>'
+ ).join('')+'</div>';
  return '<details class="pilot-market-feeds" id="pilotMarketFeedAdmin">'+
-  '<summary>Partnerdaten verbinden · Admin</summary>'+
+  '<summary>Partnerprogramme verbinden · Admin</summary>'+
+  '<p>1. Als Publisher beim offiziellen Anbieter registrieren und Unternehmensangaben bestätigen. 2. Aktivierung und Freigabe abschließen. 3. Erst danach verifizierte Trackinglinks und genehmigte Feeds in Pilot übernehmen.</p>'+
+  applicationLinks+
+  '<p><strong>Wichtig:</strong> Ein geöffneter Anmeldelink ist noch kein aktives Partnerkonto. Persönliche Daten und Zugangsschlüssel gehören nicht in den GitHub-Quellcode.</p>'+
+  '<details class="pilot-partner-feed-toggle"><summary>Offiziellen Produktfeed importieren</summary>'+
   '<p>Nur Produktfeeds verwenden, für die eine ausdrückliche Nutzungserlaubnis besteht. CSV, TSV oder JSON mit Produkt-ID, Bezeichnung, Händler, Preis in EUR und HTTPS-Angebotslink.</p>'+
   '<form id="pilotMarketFeedForm" class="pilot-market-feed-form">'+
   '<label for="pilotMarketFeedSource">Partnerquelle</label>'+
@@ -4797,7 +4822,7 @@ function pilotMarketFeedPanel(){
   '<button type="submit" class="btn ai" '+(pilotMarketFeedState.busy?'disabled':'')+'>'+(pilotMarketFeedState.busy?'Import läuft …':'Angebote übernehmen')+'</button></form>'+
   '<p class="pilot-market-feed-status" role="status" aria-live="polite">'+esc(pilotMarketFeedState.message||'Keine Verbindung ohne offizielle Partnerschaft. Es werden keine Musterpreise veröffentlicht.')+'</p>'+
   '<p class="pilot-market-feed-hint">Die Schnittstelle prüft Produktfelder und Händlerlinks, überspringt fehlerhafte Zeilen und speichert gültige Angebote zeitlich begrenzt. Ein Affiliate-Trackinglink muss vom Partner stammen.</p>'+
-  '</details>';
+  '</details></details>';
 }
 async function pilotMarketImportFile(){
  if(!effectiveAdmin()||pilotMarketFeedState.busy)return;
