@@ -1939,6 +1939,10 @@ async function pilotApiError(response,fallback){
       else if(typeof ctx.json==="function")extracted=await ctx.json();
     }catch{}
   }
+  if(extracted?.reason_code==="safety_review_required")
+    return new Error("Pilot kann diese Anfrage noch nicht zuverlässig beurteilen. Aus Sicherheitsgründen wurde sie nicht ausgeführt. Bitte formuliere den Auftrag sachlich und eindeutig oder kontaktiere den Support. (Code: SAFETY_REVIEW_REQUIRED)");
+  if(extracted?.reason_code==="secondary_moderation_blocked")
+    return new Error("Die Sicherheitsprüfung hat diesen Auftrag abgelehnt. Du kannst eine zulässige Alternative formulieren. (Code: SAFETY_POLICY_BLOCKED)");
   if(extracted?.reason_code==="safety_provider_unavailable"||extracted?.error==="safety_check_unavailable"){
     return new Error("Die Sicherheitsprüfung ist derzeit technisch nicht verfügbar. Deshalb wird der Auftrag noch nicht ausgeführt. Dein Auftrag wurde nicht als unzulässig eingestuft. (Code: SAFETY_PROVIDER_UNAVAILABLE)");
   }
