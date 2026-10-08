@@ -6396,7 +6396,7 @@ function startPilotFlight(button){
  const size=76; // Matches the single approved LUMEN aircraft sprite and its compositor layer.
  const plane=document.createElement("div"),label=document.createElement("div");
  plane.className="pilot-plane";plane.setAttribute("aria-hidden","true");plane.dataset.artwork="lumen-orb";
- label.className="pilot-flight-status";label.textContent="Pilot hebt vom Startbutton ab …";
+ label.className="pilot-flight-status";label.setAttribute("role","status");label.setAttribute("aria-live","polite");label.textContent="Pilot hebt vom Startbutton ab …";
  const from=pilotMotion.center(button.getBoundingClientRect(),size);
  layer.append(plane,label);
  const f={plane,label,size,from,startedAt:performance.now(),phase:"takeoff",animation:null,frameVersion:0,fallbackFrame:null,resolveLanding:null,worker:null,boardingPromise:null,attentionTimer:null};
@@ -6852,7 +6852,7 @@ function pilotAvatarDisembark(f,message="Hier ist deine Handlung erforderlich.")
    if(allowPatrol())worker.classList.add("pilot-worker--patrol");
  }else{
    const arrived=e=>{
-     if(e.target!==worker||e.animationName!=="pilotWorkerExit")return;
+     if(e.target!==worker||!["pilotGroundEnter","pilotWorkerExit"].includes(e.animationName))return;
      worker.removeEventListener("animationend",arrived);
      if(!allowPatrol())return;
      worker.classList.remove("pilot-worker--exit");
