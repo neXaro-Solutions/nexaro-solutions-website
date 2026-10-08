@@ -2017,8 +2017,9 @@ async function pilotSafetyDiagnostic({show=true}={}){
       throw new Error("HTTP "+response.status+" · "+reason+(sbCode?" · Supabase: "+sbCode:"")+" (Code: SAFETY_DIAGNOSTIC_HTTP_"+response.status+")");
     }
   }catch(e){
-    if(show)await nxDialog({title:"Sicherheitsverbindung prüfen",description:"Die Diagnosefunktion ist aktuell nicht erreichbar. "+String(e.message||e),buttons:[{value:"submit",label:"Verstanden",primary:true}]});
-    return null;
+    const description="Die Diagnosefunktion konnte nicht abgeschlossen werden. "+String(e.message||e);
+    if(show)await nxDialog({title:"Sicherheitsverbindung prüfen",description,buttons:[{value:"submit",label:"Verstanden",primary:true}]});
+    return {healthy:false,description};
   }
   const describe=(obj,name)=>{
     const code=String(obj?.status||"unknown");
