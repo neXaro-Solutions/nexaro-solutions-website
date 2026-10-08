@@ -2920,7 +2920,8 @@ body{background:radial-gradient(ellipse 72vw 60vw at 92% -10%,rgba(145,255,62,.1
 .pilot-demo-finished .pilot-admin-demo-status{font-weight:850;color:#42772e}
 @media(max-width:760px){.pilot-demo-scope{margin:9px 0!important;padding:9px!important}}
 
-/* Flight V6: 2× aircraft, proportionate industry avatar, and consistent admin preview. */
+
+/* Flight V7: preserve 94px aircraft; 50px professional figure and smooth GPU-composited walking. */
 #pilotFlightLayer .pilot-plane{
  width:94px!important;height:94px!important;font-size:52px!important;
  border-width:3px!important;
@@ -2929,48 +2930,138 @@ body{background:radial-gradient(ellipse 72vw 60vw at 92% -10%,rgba(145,255,62,.1
 #pilotFlightLayer .pilot-plane::after{
  right:77px!important;width:144px!important;height:6px!important;
 }
+/* The 50px avatar is the figure; the speech bubble is a separate sibling. */
 #pilotFlightLayer .pilot-worker-avatar,
 #pilotFlightLayer .pilot-worker-avatar[data-context="dialog"]{
- width:226px!important;height:145px!important;min-height:145px!important;
- max-width:calc(100vw - 16px)!important;gap:5px!important;
- --pilot-worker-scale:1.15;
+ width:172px!important;height:108px!important;min-height:108px!important;
+ max-width:calc(100vw - 16px)!important;gap:4px!important;
+ --pilot-worker-scale:.83;
+ filter:none!important;
 }
 #pilotFlightLayer .pilot-worker-avatar .pilot-worker-figure,
 #pilotFlightLayer .pilot-worker-avatar[data-context="dialog"] .pilot-worker-figure{
- flex:0 0 64px!important;width:64px!important;
- transform:scale(var(--pilot-worker-scale));transform-origin:15% 8%;
+ flex:0 0 50px!important;width:50px!important;height:110px!important;
+ transform:translate3d(0,0,0) scale(var(--pilot-worker-scale));
+ transform-origin:15% 8%;
 }
 #pilotFlightLayer .pilot-worker-avatar .pilot-worker-speech,
 #pilotFlightLayer .pilot-worker-avatar[data-context="dialog"] .pilot-worker-speech{
- max-width:155px!important;font-size:11px!important;padding:8px 9px!important;
- line-height:1.35;
+ max-width:118px!important;font-size:10px!important;padding:6px 7px!important;
+ line-height:1.35!important;overflow-wrap:anywhere;
 }
 #pilotFlightLayer .pilot-worker-avatar .pilot-worker-speech strong{
- font-size:11px!important;
+ font-size:10px!important;
 }
 @media(max-width:420px){
  #pilotFlightLayer .pilot-worker-avatar,
  #pilotFlightLayer .pilot-worker-avatar[data-context="dialog"]{
-  width:208px!important;height:140px!important;min-height:140px!important;
-  --pilot-worker-scale:1.1;
+  width:160px!important;height:104px!important;min-height:104px!important;
  }
  #pilotFlightLayer .pilot-worker-avatar .pilot-worker-figure,
  #pilotFlightLayer .pilot-worker-avatar[data-context="dialog"] .pilot-worker-figure{
-  flex:0 0 61px!important;width:61px!important;
+  flex:0 0 50px!important;width:50px!important;height:110px!important;
  }
  #pilotFlightLayer .pilot-worker-avatar .pilot-worker-speech,
  #pilotFlightLayer .pilot-worker-avatar[data-context="dialog"] .pilot-worker-speech{
-  max-width:140px!important;
+  max-width:106px!important;font-size:10px!important;padding:5px 6px!important;
  }
 }
+/* Replacing the former 3.6s zig-zag with symmetric, continuously eased motion.
+   All limbs share the same 4.8s cycle to prevent stuttering at loop boundaries. */
+#pilotFlightLayer .pilot-worker-avatar.pilot-worker--patrol .pilot-worker-figure{
+ animation:pilotWorkerPace 4.8s cubic-bezier(.42,0,.28,1) infinite;
+ will-change:transform;
+}
+#pilotFlightLayer .pilot-worker-avatar.pilot-worker--patrol .pilot-worker-leg--left,
+#pilotFlightLayer .pilot-worker-avatar.pilot-worker--patrol .pilot-worker-boot--left{
+ transform-origin:top center;
+ animation:pilotWorkerLeftStep 4.8s cubic-bezier(.42,0,.28,1) infinite;
+}
+#pilotFlightLayer .pilot-worker-avatar.pilot-worker--patrol .pilot-worker-leg--right,
+#pilotFlightLayer .pilot-worker-avatar.pilot-worker--patrol .pilot-worker-boot--right{
+ transform-origin:top center;
+ animation:pilotWorkerRightStep 4.8s cubic-bezier(.42,0,.28,1) infinite;
+}
+#pilotFlightLayer .pilot-worker-avatar.pilot-worker--patrol .pilot-worker-arm--wave{
+ animation:pilotWorkerGesture 4.8s cubic-bezier(.42,0,.28,1) infinite;
+}
+#pilotFlightLayer .pilot-worker-avatar.pilot-worker--patrol .pilot-worker-arm--rest{
+ animation:pilotWorkerOppositeArm 4.8s cubic-bezier(.42,0,.28,1) infinite;
+}
+@keyframes pilotWorkerPace{
+ 0%,100%{transform:translate3d(0,0,0) scale(var(--pilot-worker-scale))}
+ 25%{transform:translate3d(3px,0,0) scale(var(--pilot-worker-scale))}
+ 50%{transform:translate3d(7px,0,0) scale(var(--pilot-worker-scale))}
+ 75%{transform:translate3d(3px,0,0) scale(var(--pilot-worker-scale))}
+}
+@keyframes pilotWorkerLeftStep{
+ 0%,100%{transform:rotate(0deg)}
+ 25%{transform:rotate(7deg)}
+ 50%{transform:rotate(-6deg)}
+ 75%{transform:rotate(4deg)}
+}
+@keyframes pilotWorkerRightStep{
+ 0%,100%{transform:rotate(0deg)}
+ 25%{transform:rotate(-7deg)}
+ 50%{transform:rotate(6deg)}
+ 75%{transform:rotate(-4deg)}
+}
+@keyframes pilotWorkerGesture{
+ 0%,100%{transform:rotate(18deg)}
+ 25%{transform:rotate(5deg)}
+ 50%{transform:rotate(-10deg)}
+ 75%{transform:rotate(8deg)}
+}
+@keyframes pilotWorkerOppositeArm{
+ 0%,100%{transform:rotate(-18deg)}
+ 25%{transform:rotate(-8deg)}
+ 50%{transform:rotate(4deg)}
+ 75%{transform:rotate(-6deg)}
+}
+/* Admin preview uses the same physical figure scale and walking cadence. */
 .pilot-demo-scene{height:196px}
 .pilot-demo-plane{font-size:60px;top:94px}
-.pilot-demo-avatar{top:35px}
+.pilot-demo-avatar{
+ width:50px;height:100px;top:41px;--pilot-worker-scale:.83;
+ transform:translate3d(14px,0,0) scale(.8);
+ transition:opacity .35s ease,transform .8s cubic-bezier(.22,.61,.36,1);
+}
+.pilot-demo-avatar .pilot-worker-figure{
+ flex:0 0 50px;width:50px;height:110px;
+ transform:translate3d(0,0,0) scale(var(--pilot-worker-scale));
+ transform-origin:15% 8%;
+}
 .pilot-demo-scene[data-stage="attention"] .pilot-demo-avatar{
- transform:translateX(0) scale(1.04);
+ opacity:1;transform:translate3d(0,0,0) scale(1);
 }
 .pilot-demo-scene[data-stage="boarding"] .pilot-demo-avatar{
- transform:translateX(24px) scale(.5);
+ opacity:0;transform:translate3d(24px,0,0) scale(.5);
+}
+.pilot-demo-avatar.pilot-worker--patrol .pilot-worker-figure{
+ animation:pilotDemoWorkerPace 4.8s cubic-bezier(.42,0,.28,1) infinite;
+ will-change:transform;
+}
+@keyframes pilotDemoWorkerPace{
+ 0%,100%{transform:translate3d(0,0,0) scale(var(--pilot-worker-scale))}
+ 25%{transform:translate3d(3px,0,0) scale(var(--pilot-worker-scale))}
+ 50%{transform:translate3d(7px,0,0) scale(var(--pilot-worker-scale))}
+ 75%{transform:translate3d(3px,0,0) scale(var(--pilot-worker-scale))}
+}
+.pilot-demo-avatar.pilot-worker--patrol .pilot-worker-leg--left{
+ animation:pilotWorkerLeftStep 4.8s cubic-bezier(.42,0,.28,1) infinite;
+}
+.pilot-demo-avatar.pilot-worker--patrol .pilot-worker-leg--right{
+ animation:pilotWorkerRightStep 4.8s cubic-bezier(.42,0,.28,1) infinite;
+}
+@media(prefers-reduced-motion:reduce){
+ #pilotFlightLayer .pilot-worker-avatar.pilot-worker--patrol .pilot-worker-figure,
+ #pilotFlightLayer .pilot-worker-avatar.pilot-worker--patrol .pilot-worker-leg,
+ #pilotFlightLayer .pilot-worker-avatar.pilot-worker--patrol .pilot-worker-boot,
+ #pilotFlightLayer .pilot-worker-avatar.pilot-worker--patrol .pilot-worker-arm,
+ .pilot-demo-avatar.pilot-worker--patrol .pilot-worker-figure,
+ .pilot-demo-avatar.pilot-worker--patrol .pilot-worker-leg{
+  animation:none!important;will-change:auto!important;
+ }
 }
 </style></head>
 <body>
@@ -4739,9 +4830,9 @@ async function previewPilotFlight(){
    await stage("takeoff","Flugzeug startet …",800);
    await stage("cruise","Pilot fliegt zu deinem Auftrag …",1050);
    await stage("landing","Pilot landet …",850);
-   await stage("attention","Avatar steigt aus und läuft ein paar Schritte.",1700);
+   await stage("attention","Avatar steigt aus …",850);
    avatar.classList.add("pilot-worker--patrol");
-   await stage("attention","Hier ist deine Handlung erforderlich.",1400);
+   await stage("attention","Avatar läuft flüssig · Hier ist deine Handlung erforderlich.",4900);
    avatar.classList.remove("pilot-worker--patrol");
    await stage("boarding","Handlung bestätigt · Avatar steigt wieder ein …",800);
    await stage("relaunch","Pilot hebt erneut ab …",850);
@@ -4827,8 +4918,8 @@ function pilotWorkerProfile(goalId,taskHint=""){
 function pilotPositionWorker(worker,plane){
  const r=plane.getBoundingClientRect(),w=window.innerWidth;
  const vh=window.visualViewport?.height||window.innerHeight;
- const workerWidth=worker.getBoundingClientRect().width||226;
- const workerHeight=worker.getBoundingClientRect().height||145;
+ const workerWidth=worker.getBoundingClientRect().width||172;
+ const workerHeight=worker.getBoundingClientRect().height||108;
  const right=r.right+10,leftCandidate=r.left-workerWidth-10;
  const fitsRight=right+workerWidth<=w-8,fitsLeft=leftCandidate>=8;
  // On small screens the larger avatar stands above the landed aircraft,
@@ -4844,8 +4935,8 @@ function pilotPositionWorker(worker,plane){
  const left=Math.round(Math.max(8,Math.min(w-workerWidth-8,x)));
  const top=Math.round(Math.max(72,Math.min(vh-workerHeight-20,y)));
  worker.style.left=left+"px";worker.style.top=top+"px";
- worker.style.setProperty("--worker-to-plane-x",Math.round(r.left+r.width*.5-left-32)+"px");
- worker.style.setProperty("--worker-to-plane-y",Math.round(r.top+r.height*.5-top-50)+"px");
+ worker.style.setProperty("--worker-to-plane-x",Math.round(r.left+r.width*.5-left-25)+"px");
+ worker.style.setProperty("--worker-to-plane-y",Math.round(r.top+r.height*.5-top-45)+"px");
  worker.classList.toggle("pilot-worker--left",!fitsRight&&fitsLeft);
 }
 function pilotAvatarDisembark(f,message="Hier ist deine Handlung erforderlich."){
