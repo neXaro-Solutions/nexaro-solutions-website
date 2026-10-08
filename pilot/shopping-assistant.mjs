@@ -86,7 +86,16 @@ export function makeShoppingAssistant({sb,getUser,getOrg,redraw,safeLink,escape,
    }));
    if(!s.offers.length){
     s.recommendation={};
-    note("assistant","Ich habe deine Wünsche erfasst. Aktuell finde ich dafür noch keine verifizierten Händlerangebote. Deshalb nenne ich dir keinen angeblichen Testsieger oder erfundenen Bestpreis. Du kannst mir aber bereits Fragen zu Kaufkriterien und wichtigen Eigenschaften stellen.");
+    const tips={
+     Kamera:"Wichtig sind verlässliche Bildqualität bei wenig Licht, Bildstabilisierung und sinnvolle optische Brennweiten.",
+     Akku:"Achte auf unabhängige Laufzeitmessungen, Ladegeschwindigkeit und die Reparierbarkeit des Akkus.",
+     Leistung:"Prüfe unabhängige Alltagstests, Speicherbedarf, thermische Leistung und langfristige Softwareunterstützung.",
+     "Preis-Leistung":"Vergleiche auch garantierte Updates, Ausstattung und Gesamtkosten statt nur den Anschaffungspreis.",
+     Größe:"Prüfe die reale Gerätegröße, das Gewicht und die Lesbarkeit des Displays im Alltag."
+    };
+    const guidance=s.topic_key==="smartphone"?(tips[s.preferences?.priority]||"Für eine ausgewogene Wahl zählen Kamera, Laufzeit, langfristige Updates, Leistung und Handlichkeit."):
+     "Entscheidend sind nachvollziehbare Produkttests, Folgekosten, Garantiebedingungen und Eignung für den konkreten Einsatzzweck.";
+    note("assistant","Ich habe deine Wünsche erfasst"+(s.preferences?.budget?" (Budget bis "+s.preferences.budget+" €)":"")+". "+guidance+" Aktuell liegen noch keine verifizierten Händlerangebote vor. Deshalb nenne ich keinen angeblichen Testsieger oder erfundenen Bestpreis. Du kannst mich direkt zu den Kriterien weiterfragen.");
    }else{
     let id=null,reason="",answer="";
     try{
