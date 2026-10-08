@@ -2362,6 +2362,40 @@ body{background:radial-gradient(ellipse 72vw 60vw at 92% -10%,rgba(145,255,62,.1
   .side .nav .pilot-nav-icon svg{width:25px!important;height:25px!important}
 }
 
+
+/* LUMEN .36: isolate technical smoke checks inside compact admin Systemtests. */
+.pilot-admin-quicktest{
+ margin:12px 0 10px;min-width:0;padding:12px;border-radius:16px;
+ border:1px solid rgba(145,223,106,.32);
+ background:linear-gradient(115deg,rgba(245,255,239,.88),rgba(255,255,255,.97));
+}
+.pilot-admin-quicktest-title{
+ font-size:10px;line-height:1.3;letter-spacing:.09em;font-weight:900;
+ color:#658460;margin:0 0 9px;display:flex;align-items:center;gap:7px;
+}
+.pilot-admin-quicktest-title>span{color:#62b82f;font-size:15px}
+.pilot-admin-quicktest-grid{
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:7px;width:100%;min-width:0;
+}
+.pilot-admin-quicktest-grid .btn{
+ min-width:0!important;width:100%;min-height:44px;padding:8px 7px!important;
+ white-space:normal;line-height:1.3;font-size:11px!important;font-weight:850;
+ border-radius:12px;
+}
+.pilot-admin-quicktest-grid .pilot-admin-ai-test{
+ color:#26461d;border:1px solid #b9ee9c;
+ background:linear-gradient(115deg,#f1ffea,#e7ffd9);
+}
+.pilot-admin-quicktest-note{
+ margin:8px 0 0;font-size:10px;line-height:1.4;color:#788b74;
+}
+@media(max-width:380px){
+ .pilot-admin-quicktest{padding:10px}
+ .pilot-admin-quicktest-grid{gap:6px}
+ .pilot-admin-quicktest-grid .btn{font-size:10px!important;padding:8px 4px!important}
+}
+
 </style></head>
 <body>
 <section id="auth" class="auth"><div class="box">
@@ -2649,8 +2683,7 @@ function home(){
       '<button class="attach-btn pilot-home-upload" type="button" data-attach-kind="file">＋ Foto / Dokument</button>'+
       '<span class="attachment-note">Optional</span></div>'+attachmentInputs+'<div id="attachmentTray" class="attachment-tray" aria-live="polite"></div></div>'+
       '<button id="createGoal" type="button" class="btn ai launch-primary pilot-home-primary">✈ Pilot jetzt starten →</button></div>'+
-      (effectiveAdmin()?'<div class="pilot-home-admin"><button id="diagnoseSafety" type="button" class="btn">🛡 Verbindung prüfen</button>'+
-      '<button id="diagnosePilotAI" type="button" class="btn">✦ KI-Ausführung testen</button></div>':'')+
+
     '</section>';
   const active=g?'<section class="pilot-home-card pilot-home-active" aria-labelledby="homeActiveTitle">'+
       '<div class="pilot-home-active-header"><div class="pilot-home-active-title"><span class="pilot-home-icon-orange" aria-hidden="true">◎</span><div>'+
@@ -2669,7 +2702,6 @@ function home(){
   const failureInfo=previousFailed?'<div class="pilot-execution-retry-note" role="status"><span aria-hidden="true">↻</span><div><strong>Letzter Arbeitsversuch unterbrochen</strong><small>Pilot hat diesen Schritt nicht abgeschlossen. Dein Ziel bleibt erhalten. Du kannst den Schritt unten erneut starten.</small></div></div>':'';
   const action=g?'<section class="pilot-home-card operation-panel pilot-home-next" id="pilotNextActionPanel" aria-labelledby="homeNextTitle">'+
       '<div class="pilot-home-next-head"><div><span class="pilot-home-eyebrow">DEIN NÄCHSTER SCHRITT</span><h2 id="homeNextTitle">Nächste Aktion</h2></div>'+
-      (effectiveAdmin()&&n&&!approval&&!interruption?'<button class="btn pilot-flight-preview" id="pilotLandingPreview" type="button">✈ Flug &amp; Landung testen</button>':'')+
       '</div>'+
       pilotAutoStatusCard()+failureInfo+
       (approval?pilotReviewCard(approval):
@@ -2826,7 +2858,15 @@ function canvaView(){
 }
 
 function roadmapLegacy(){if(!effectiveAdmin())return home();const c=features.reduce((a,f)=>(a[f.status]=(a[f.status]||0)+1,a),{}),done=c.ready||0,total=features.length,pct=total?Math.round(done/total*100):0;return '<div class="card roadmap-card"><div class="section-head"><div><div class="ey">NUR ADMIN</div><h2>Entwicklungsplan</h2></div><button class="btn" data-jump="alpha">Systemtest öffnen</button></div><p class="muted">Umgesetzte Funktionen sind abgehakt. Der Status wird automatisch aus technischen Verifikationsnachweisen aktualisiert; offene oder spätere Funktionen bleiben sichtbar und werden nicht vergessen.</p><div class="roadmap-auto"><span class="dot"></span><strong>Automatische Statuspflege aktiv</strong><small>Verifiziert → automatisch grün</small></div><div class="roadmap-progress"><div><strong>'+done+' / '+total+' erledigt</strong><span>'+pct+'%</span></div><div class="progress-track"><div class="progress-bar" style="width:'+pct+'%"></div></div></div><div class="btns roadmap-summary"><span class="badge green">✓ Erledigt '+done+'</span><span class="badge">MVP '+(c.mvp||0)+'</span><span class="badge">Alpha '+(c.alpha||0)+'</span><span class="badge">Geplant '+(c.planned||0)+'</span><span class="badge orange">Zurückgestellt '+(c.deferred||0)+'</span></div><div class="roadmap-list">'+features.map(f=>{const ready=f.status==="ready";return '<div class="roadmap-item '+(ready?"done":"")+'"><span class="roadmap-check">'+(ready?"✓":"")+'</span><div><strong>'+f.workspace_number+'. '+esc(f.name)+'</strong><small>'+esc(f.priority)+'</small></div><span class="badge '+(ready?"green":"")+'">'+(ready?"Erledigt":esc(deStatus(f.status)))+'</span></div>'}).join("")+'</div></div>'}
-function alphaViewLegacy(){if(!effectiveAdmin())return home();const passed=readiness.filter(x=>x.status==="passed").length,total=readiness.length,last=evalRuns[0],aiCost=aiRequests.reduce((s,x)=>s+Number(x.actual_cost||0),0);return '<div class="grid"><div class="card"><h2>Bereitschaft der privaten Testphase</h2><div style="font-size:42px;font-weight:900">'+passed+' / '+total+'</div><p class="muted">Pflichtchecks bestanden</p>'+readiness.map(x=>'<div class="stat"><span class="muted">'+esc(x.description)+'</span><strong>'+esc(deStatus(x.status))+'</strong></div>').join("")+'<div class="btns"><button id="runEvals" class="btn primary">Prüfsuite ausführen</button><button id="runAlphaE2E" class="btn ai">✦ Alpha-Systemtest starten</button><button id="pilotBraveTest" class="btn" type="button">⌕ Brave prüfen</button></div><div id="e2eStatus" class="muted" style="margin-top:12px">Der Systemtest nutzt isolierte Testdaten und räumt sie automatisch wieder auf.</div></div><div><div class="card"><h3>Prüfung</h3>'+(last?'<div class="stat"><span class="muted">Status</span><strong>'+esc(last.status)+'</strong></div><div class="stat"><span class="muted">Bewertung</span><strong>'+Math.round(Number(last.score||0)*100)+'%</strong></div><div class="stat"><span class="muted">Fälle</span><strong>'+last.passed_cases+' / '+last.total_cases+'</strong></div>':'<p class="muted">Noch kein Eval-Run.</p>')+'</div><div class="card" style="margin-top:20px"><h3>KI-Kostenmonitor</h3><div class="stat"><span class="muted">Anfragen</span><strong>'+aiRequests.length+'</strong></div><div class="stat"><span class="muted">Aktuelle Kosten</span><strong>'+aiCost.toFixed(4)+'</strong></div><div class="stat"><span class="muted">Ausweichrouten</span><strong>'+aiRequests.filter(x=>x.fallback_used).length+'</strong></div></div><div class="card" style="margin-top:20px"><h3>Hinweise</h3>'+(notifications.map(n=>'<div class="item"><span class="badge">'+esc(n.priority)+'</span><strong>'+esc(n.title)+'</strong><div class="muted">'+esc(n.body)+'</div></div>').join("")||'<p class="muted">Keine offenen Hinweise.</p>')+'</div></div></div>'}
+function alphaViewLegacy(){if(!effectiveAdmin())return home();const passed=readiness.filter(x=>x.status==="passed").length,total=readiness.length,last=evalRuns[0],aiCost=aiRequests.reduce((s,x)=>s+Number(x.actual_cost||0),0);return '<div class="grid"><div class="card"><h2>Bereitschaft der privaten Testphase</h2><div style="font-size:42px;font-weight:900">'+passed+' / '+total+'</div><p class="muted">Pflichtchecks bestanden</p>'+readiness.map(x=>'<div class="stat"><span class="muted">'+esc(x.description)+'</span><strong>'+esc(deStatus(x.status))+'</strong></div>').join("")+'<div class="btns"><button id="runEvals" class="btn primary">Prüfsuite ausführen</button><button id="runAlphaE2E" class="btn ai">✦ Alpha-Systemtest starten</button></div>'+
+'<section class="pilot-admin-quicktest" aria-label="Technische Einzeltests"><div class="pilot-admin-quicktest-title"><span aria-hidden="true">✦</span> VERBINDUNGEN &amp; FUNKTIONEN</div>'+
+'<div class="pilot-admin-quicktest-grid">'+
+'<button id="diagnosePilotAI" class="btn pilot-admin-ai-test" type="button">✦ KI-Ausführung testen</button>'+
+'<button id="pilotBraveTest" class="btn" type="button">⌕ Brave prüfen</button>'+
+'<button id="diagnoseSafety" class="btn" type="button">🛡 Verbindung prüfen</button>'+
+'<button id="pilotLandingPreview" class="btn" type="button">✈ Flug &amp; Landung testen</button>'+
+'</div><p class="pilot-admin-quicktest-note">Einzeltests verändern deinen Auftrag nicht.</p></section>'+
+'<div id="e2eStatus" class="muted" style="margin-top:12px">Der Systemtest nutzt isolierte Testdaten und räumt sie automatisch wieder auf.</div></div><div><div class="card"><h3>Prüfung</h3>'+(last?'<div class="stat"><span class="muted">Status</span><strong>'+esc(last.status)+'</strong></div><div class="stat"><span class="muted">Bewertung</span><strong>'+Math.round(Number(last.score||0)*100)+'%</strong></div><div class="stat"><span class="muted">Fälle</span><strong>'+last.passed_cases+' / '+last.total_cases+'</strong></div>':'<p class="muted">Noch kein Eval-Run.</p>')+'</div><div class="card" style="margin-top:20px"><h3>KI-Kostenmonitor</h3><div class="stat"><span class="muted">Anfragen</span><strong>'+aiRequests.length+'</strong></div><div class="stat"><span class="muted">Aktuelle Kosten</span><strong>'+aiCost.toFixed(4)+'</strong></div><div class="stat"><span class="muted">Ausweichrouten</span><strong>'+aiRequests.filter(x=>x.fallback_used).length+'</strong></div></div><div class="card" style="margin-top:20px"><h3>Hinweise</h3>'+(notifications.map(n=>'<div class="item"><span class="badge">'+esc(n.priority)+'</span><strong>'+esc(n.title)+'</strong><div class="muted">'+esc(n.body)+'</div></div>').join("")||'<p class="muted">Keine offenen Hinweise.</p>')+'</div></div></div>'}
 
 async function loadAdminConsole(force=false){
   if(!isAdmin)return;
@@ -3135,7 +3175,7 @@ function nxOpenNext(){
   const mask=document.createElement("div");mask.className="nx-mask";
   const safe=esc;
   mask.innerHTML='<section class="nx-modal" role="dialog" aria-modal="true" aria-labelledby="nxTitle" aria-describedby="nxDesc">'+
-    '<div class="nx-top"><div class="nx-symbol" aria-hidden="true">✦</div><span class="nx-kicker">neXaro · PILOT · LUMEN 2026.10.08.35</span><button type="button" class="nx-close" aria-label="Schließen">×</button></div>'+
+    '<div class="nx-top"><div class="nx-symbol" aria-hidden="true">✦</div><span class="nx-kicker">neXaro · PILOT · LUMEN 2026.10.08.36</span><button type="button" class="nx-close" aria-label="Schließen">×</button></div>'+
     '<h2 id="nxTitle">'+safe(config.title||"Pilot fragt nach")+'</h2><p class="nx-description" id="nxDesc">'+safe(config.description||"Bitte ergänze die noch fehlenden Angaben.")+'</p>'+
     '<form novalidate><div class="nx-fields">'+fields.map((f,i)=>'<div class="nx-field"><label for="nxInput'+i+'">'+safe(f.label)+'</label>'+
       (f.short?'<input id="nxInput'+i+'" type="text" name="'+safe(f.key)+'" maxlength="500" placeholder="'+safe(f.placeholder||"")+'" data-required="'+(f.required?"1":"0")+'">':
