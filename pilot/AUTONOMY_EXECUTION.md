@@ -167,3 +167,29 @@ Beim erneuten iPhone-Test brach die Recherche **nicht** ab: zwei Quellen gefunde
 **API-Guthaben:** Nutzer meldet, Guthaben wurde wieder aufgeladen. Die bisherige 90-Minuten-Sperre für eine ehemals inaktive OpenAI-API wäre nun unnötig lang gewesen. `best-of-ai v21` prüft deshalb höchstens fünf Minuten zurückliegende OpenAI-Abrechnungsblockaden und probiert anschließend wieder OpenAI, mit Claude als sicherem Ersatz. Bei frischer Sperre bleibt Claude vorrangig, bei erneuter Aktivierung kann OpenAI wieder antworten. **Das Guthaben wurde nicht über den Connector verifiziert, die API-Verfügbarkeit ist weiter durch einen kurzen echten Administratortest zu bestätigen**.
 
 **Offene Abnahmen:** Admin-Cockpit auf dem echten iPhone visuell prüfen und die kurze `✦ KI-Ausführung testen`-Funktion in der Zentrale mit angemeldeter Admin-Sitzung starten. Danach erst vollständige Ausführung. Den Entwicklungsstatus weiterhin nicht auf Ready setzen, bevor die entsprechende Live-Abnahme bestanden ist.
+
+
+## 2026-10-08 · Quellen-Föderation v2 – unabhängige Forschung, amtliche Dokumente, belegbare Ergebnisse
+
+Auf Nutzerwunsch umgesetzte Erweiterung der **bestehenden** Pilot-Funktionen (keine größere Büro-/Admin-UI). Die helle LUMEN-.32-Oberfläche bleibt unverändert.
+
+**Neue Live-Provider (`research-gateway v21`):**
+- **Crossref:** echte, nach DOI registrierte wissenschaftliche Veröffentlichungen; Suche über öffentliches REST-Metadaten-API, ohne zusätzliche API-Secrets. Titel, Publikationsjahr und – falls vorhanden – Auszüge werden mit DOI und Ursprung gespeichert. DOI allein belegt weder fachliche Richtigkeit noch Peer Review.
+- **Europe PMC:** öffentliches fachwissenschaftliches Literaturregister für medizinische, biologische und verwandte Themen. Nur bei erkannten Life-Science-Fragen aktiv; Ergebnisse enthalten valide Artikel-ID, Jahr, Quellen-URL und – falls verfügbar – Inhaltsauszug.
+- **Wikidata:** strukturierte Entitätsinformationen zur Begriffsklärung / Zuordnung, **nur Hintergrundquelle**; unabhängigem offiziellen Nachweis weder gleichgesetzt noch als Rechtsbeleg gewertet.
+- **Brave Search:** optionale unabhängige Websuche nach **amtlichen** Webseiten via `BRAVE_SEARCH_API_KEY` als Supabase Secret. Ohne Schlüssel ist nur der Providerstatus `not_configured`, andere Quellen laufen unverändert weiter. Brave-Treffer gelten erst als mögliche Primärbelege nach echtem HTML-Abruf über HTTPS von einer festen Domain-Allowlist. Kein beliebiger URL-Abruf und keine Redirects. URLs aus Such-Snippets allein werden nicht als verifiziert ausgegeben.
+- **Bestehend erhalten:** Wikipedia (Hintergrund), optionale Google Programmable Search (Discovery), offizieller Website-Rückfall über OpenAI Web Search, falls für regulierte Fragen keine amtliche Quelle gefunden wurde.
+
+**Automatische intelligente Quellenauswahl und Geschwindigkeit:**
+- Branchen- und frageabhängige Providersteuerung (allgemein, technisch/wissenschaftlich, Life Sciences, rechtlich reguliert); Fachprovider laufen nur, wenn die Frage zu ihrem Fachgebiet passt.
+- Wikipedia-Varianten und neue unabhängige Provider werden parallel abgefragt, mit festen Timeouts und voneinander isolierten Providerfehlern.
+- Ranking mit klarer Trennung von `official_candidate`, `academic_abstract`, `publication_metadata`, `background`, `discovery`; geringere Evidenzbewertung von reiner Literaturmetadaten-Information; Quoten je Provider und Themenfragment statt fünf ähnlicher Wikipedia-Treffer.
+- **Keine Quellenwäsche:** Wikipedia-Links werden auch durch den amtlichen Website-Rückfall nie zur offiziellen Quelle. Nur vertrauenswürdige staatliche Seiten (z. B. DGUV, SVLFG, Bundesrecht, EU, IHK), die tatsächlich erfolgreich abgerufen werden konnten, kommen als offizielle Nachweise infrage.
+- `research-intelligence v14` bildet nur eine vorläufige **Quellen-Evidenzprüfung**: Mindestens zwei echte unabhängige Herkunftsgruppen, für regulierte Pflichten eine amtlich abgerufene Quelle, bei Forschungsfragen ein substanzieller Abstract oder offizieller Fachtext. Wikipedia+Wikidata zählen als **ein** Wikimedia-Quellenökosystem. `independently_verified_claims:false` bleibt zwingend: Erst die fachliche Prüfung konkreter Aussagen ist echte Sachverifikation.
+- `execution-engine v27` verwendet die sechs Quellenanbieter standardmäßig im bestehenden Aufgabenablauf und erhält die Qualitätsmetadaten, Quellen-IDs und Links. Ungeprüfte rechtliche/technische Aussagen müssen ausdrücklich offen bleiben; Quellenbelege werden nicht generiert.
+
+**Abnahme:**
+- Live deployed und JWT-geschützt: `research-gateway v21`, `research-intelligence v14`, `execution-engine v27`.
+- Quellcode- und Routertests prüfen offizielles Host-Allowlisting, Ablehnung täuschender Domains, Rechts-/Wissenschafts-Kategorisierung, Quellenranking und Metadaten-Abwertung; zusätzliche Backend-Verdrahtung/Quality-Gate/Parallelisierungsprüfungen bestanden.
+- **Noch offen:** echter authentifizierter Quellenvergleich aus mindestens zwei thematisch verschiedenen Pilot-Aufträgen auf dem iPhone einschließlich überprüfbarer Fundstellen und Seitenaufruf. Brave kann erst nach Hinterlegen von `BRAVE_SEARCH_API_KEY` mit echten Treffern abgenommen werden. Keine Behauptung, dass bisherige 24 gespeicherte Quellen aus diesen neuen Providern stammen.
+- Grundregel unverändert: Pilot darf den Schritt nur als erledigt markieren, wenn belegte, geprüfte Ergebnisse vorliegen. Bei unvollständigen/konfligierenden Quellen muss Unsicherheit sichtbar bleiben und ggf. fachliche Freigabe verlangt werden.
