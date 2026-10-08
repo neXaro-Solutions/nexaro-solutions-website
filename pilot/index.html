@@ -1570,52 +1570,25 @@ input,textarea{border-radius:var(--radius-input)}.btn{border-radius:var(--radius
 }
 
 
-/* Flight v3: high-visibility neXaro aircraft + deterministic landing at the next action. */
-.pilot-flight-preview{margin:2px 0 12px!important;min-height:34px!important;padding:7px 12px!important;border-radius:999px!important;border:1px solid #9ce75a!important;background:#f5ffec!important;color:#416c20!important;font-size:11px!important;font-weight:860!important}
-#pilotFlightLayer{position:fixed!important;inset:0!important;overflow:visible!important;pointer-events:none!important;z-index:2147483000!important;isolation:isolate}
-.pilot-plane{position:fixed!important;z-index:2!important;display:grid!important;place-items:center!important;width:72px!important;height:72px!important;font-size:43px!important;font-weight:900!important;color:#263b19!important;background:radial-gradient(circle at 26% 20%,#fff 0,#f4ffe8 55%,#d8ffad 100%)!important;border:3px solid #8cff23!important;border-radius:50%!important;box-shadow:0 0 0 9px rgba(141,255,47,.22),0 12px 36px rgba(32,54,24,.24),0 0 24px rgba(255,116,23,.25)!important;filter:drop-shadow(0 2px 3px rgba(0,0,0,.12));opacity:1}
-.pilot-plane::after{content:"";position:absolute;right:61px;top:50%;width:135px;height:7px;background:linear-gradient(90deg,rgba(141,255,47,0),rgba(141,255,47,.9),rgba(255,116,23,.96));filter:blur(1.3px);border-radius:999px;box-shadow:0 0 16px rgba(255,116,23,.26)}
-.pilot-plane--launch{animation:pilotTakeoffV3 1.05s cubic-bezier(.16,.77,.35,1) both!important}
-.pilot-plane--cruise{left:0!important;top:0!important;animation:pilotCruiseV3 4.9s linear infinite!important}
-.pilot-plane--landing{animation:pilotTouchdownV3 1.65s cubic-bezier(.25,.68,.22,1) forwards!important;left:var(--p-from-x)!important;top:var(--p-from-y)!important}
-.pilot-plane--exit{animation:pilotExitV3 .55s ease-out forwards!important}
-.pilot-flight-status{z-index:5!important;top:max(16px,env(safe-area-inset-top))!important;padding:10px 18px!important;font-size:13px!important;letter-spacing:.02em!important;border:2px solid rgba(141,255,47,.72)!important;box-shadow:0 6px 30px rgba(91,174,17,.2)!important}
-.pilot-flight-status:after{content:" · ✈";color:#518415}
-@keyframes pilotTakeoffV3{
-  0%{opacity:.9;transform:translate(0,0) rotate(-10deg) scale(.65)}
-  35%{opacity:1;transform:translate(6vw,-5vh) rotate(-20deg) scale(1.1)}
-  100%{opacity:1;transform:translate(21vw,-15vh) rotate(-16deg) scale(1)}
-}
-@keyframes pilotCruiseV3{
-  0%{opacity:.55;transform:translate(-85px,43dvh) rotate(-19deg) scale(.85)}
-  8%{opacity:1;transform:translate(5vw,32dvh) rotate(-16deg) scale(1)}
-  30%{opacity:1;transform:translate(37vw,17dvh) rotate(-11deg) scale(1.12)}
-  50%{opacity:1;transform:translate(75vw,29dvh) rotate(10deg) scale(1)}
-  64%{opacity:1;transform:translate(calc(100vw - 55px),40dvh) rotate(154deg) scale(.95)}
-  81%{opacity:1;transform:translate(35vw,38dvh) rotate(163deg) scale(1.07)}
-  97%{opacity:1;transform:translate(-15px,25dvh) rotate(168deg) scale(.93)}
-  100%{opacity:.5;transform:translate(-85px,43dvh) rotate(-19deg) scale(.85)}
-}
-@keyframes pilotTouchdownV3{
-  0%{opacity:1;transform:translate(0,0) rotate(-15deg) scale(1.05)}
-  44%{opacity:1;transform:translate(var(--p-mid-x),var(--p-mid-y)) rotate(-17deg) scale(1.15)}
-  78%{opacity:1;transform:translate(var(--p-near-x),var(--p-near-y)) rotate(-6deg) scale(.98)}
-  100%{opacity:1;transform:translate(var(--p-dx),var(--p-dy)) rotate(0deg) scale(.91)}
-}
-@keyframes pilotExitV3{0%{opacity:1;transform:scale(.95)}100%{opacity:0;transform:translateY(-18px) scale(.55)}}
-.operation-panel.pilot-arrival-pending{position:relative;min-height:270px;isolation:isolate}
-.operation-panel.pilot-arrival-pending .command-card{opacity:0!important;visibility:hidden!important;pointer-events:none!important}
-.operation-panel.pilot-arrival-pending::after{content:"✈ PILOT IM ANFLUG · NÄCHSTE AKTION WIRD GELADEN";display:block;margin-top:24px;padding:28px 18px;border-radius:24px;border:2px dashed #a2ee72;background:linear-gradient(135deg,#f5ffe9,#fff8f1);font-size:12px;line-height:1.6;font-weight:900;letter-spacing:.09em;text-align:center;color:#557b2b;box-shadow:0 0 0 6px rgba(141,255,47,.10)}
-.operation-panel.pilot-action-landed .command-card{animation:pilotActionRevealV3 .68s cubic-bezier(.18,.76,.31,1) both;outline:3px solid rgba(141,255,47,.67);outline-offset:4px;box-shadow:0 0 0 10px rgba(141,255,47,.08),0 24px 46px rgba(31,56,23,.14)}
-.operation-panel.pilot-action-landed .command-card::before{content:"✈ PILOT GELANDET · AKTION BEREIT";display:block;color:#52841f;background:#efffe2;border:1px solid #c5f4a4;border-radius:999px;padding:7px 12px;margin-bottom:12px;font-size:11px;font-weight:950;letter-spacing:.07em}
-@keyframes pilotActionRevealV3{0%{opacity:0;transform:translateY(24px) scale(.97)}100%{opacity:1;transform:translateY(0) scale(1)}}
-@media(max-width:680px){.pilot-plane{width:65px!important;height:65px!important;font-size:38px!important}.pilot-plane::after{right:54px;width:90px}.pilot-flight-status{font-size:11px!important;max-width:min(92vw,350px)!important}}
-@media(prefers-reduced-motion:reduce){
- .pilot-plane--launch,.pilot-plane--cruise{animation:none!important;left:calc(100vw - 86px)!important;top:max(95px,env(safe-area-inset-top))!important;opacity:1!important;transform:none!important}
- .pilot-plane--landing{animation:none!important;left:var(--p-to-x)!important;top:var(--p-to-y)!important;opacity:1!important}
- .pilot-plane--exit{animation:none!important;opacity:0!important}
- .operation-panel.pilot-action-landed .command-card{animation:none!important}
-}
+/* Flight v4: one GPU-composited aircraft, no CSS position/animation handovers. */
+#pilotFlightLayer{position:fixed!important;inset:0!important;pointer-events:none!important;overflow:visible!important;z-index:2147483000!important;isolation:isolate}
+#pilotFlightLayer .pilot-plane{position:fixed!important;left:0!important;top:0!important;display:grid!important;place-items:center!important;width:66px!important;height:66px!important;border:3px solid #92fa29!important;border-radius:999px!important;background:radial-gradient(circle at 25% 20%,#fff 0%,#f3ffe7 65%,#e0ffc4 100%)!important;color:#28421b!important;font-size:40px!important;font-weight:900!important;box-shadow:0 0 0 7px rgba(142,255,45,.17),0 12px 30px rgba(42,74,22,.25),0 0 24px rgba(247,112,24,.17)!important;pointer-events:none!important;animation:none!important;will-change:transform,opacity!important;backface-visibility:hidden;-webkit-backface-visibility:hidden;transform-origin:center center!important;opacity:1!important}
+#pilotFlightLayer .pilot-plane::after{content:"";position:absolute;right:55px;top:50%;height:5px;width:105px;transform:translateY(-50%);background:linear-gradient(90deg,transparent,rgba(143,255,48,.78),rgba(255,120,24,.95));border-radius:99px;box-shadow:0 0 10px rgba(159,255,44,.2)}
+#pilotFlightLayer .pilot-flight-status{position:fixed!important;left:50%!important;top:max(14px,env(safe-area-inset-top))!important;transform:translateX(-50%)!important;z-index:4!important;width:max-content;max-width:min(92vw,390px)!important;border:1px solid rgba(147,237,90,.85)!important;border-radius:999px!important;background:rgba(255,255,255,.96)!important;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);padding:8px 14px!important;color:#385822!important;font-size:12px!important;font-weight:850!important;text-align:center;box-shadow:0 7px 22px rgba(36,83,17,.14)!important;pointer-events:none!important}
+.pilot-flight-preview{margin:2px 0 12px!important;min-height:36px!important;padding:8px 12px!important;border-radius:999px!important;border:1px solid #9ce75a!important;background:#f5ffec!important;color:#416c20!important;font-size:11px!important;font-weight:850!important}
+#pilotNextActionPanel.pilot-arrival-pending{position:relative!important;isolation:isolate}
+#pilotNextActionPanel.pilot-arrival-pending .command-card{opacity:1!important;visibility:visible!important;pointer-events:none!important}
+#pilotNextActionPanel.pilot-arrival-pending .command-card .command-title,
+#pilotNextActionPanel.pilot-arrival-pending .command-card p,
+#pilotNextActionPanel.pilot-arrival-pending .command-card .btns button:not(#executeAction){opacity:0!important;visibility:hidden!important}
+#pilotNextActionPanel.pilot-arrival-pending #executeAction{opacity:1!important;visibility:visible!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;min-height:54px!important;outline:3px dashed #8be92b!important;outline-offset:8px!important;box-shadow:0 0 0 9px rgba(148,255,53,.12)!important;pointer-events:none!important}
+#pilotNextActionPanel.pilot-arrival-pending::after{content:"✈ LANDEBAHN BEREIT · PILOT IM ANFLUG";display:block;margin-top:18px;padding:13px 12px;border:1px dashed #a6df7c;border-radius:18px;background:#f5ffeb;color:#5e8534;text-align:center;font-size:11px;letter-spacing:.08em;font-weight:900}
+#pilotNextActionPanel.pilot-action-landed #executeAction{outline:3px solid #8af52c!important;outline-offset:6px!important;box-shadow:0 0 0 11px rgba(144,255,39,.10)!important}
+#pilotNextActionPanel.pilot-action-landed .command-card{animation:pilotActionRevealV4 .65s ease-out both}
+#pilotNextActionPanel.pilot-action-landed .command-card::before{content:"✈ PILOT GELANDET · NÄCHSTE AKTION BEREIT";display:block;margin-bottom:12px;border-radius:99px;border:1px solid #c8f8ab;background:#f0ffe2;color:#427320;padding:7px 12px;font-size:11px;font-weight:880;letter-spacing:.05em}
+@keyframes pilotActionRevealV4{0%{filter:brightness(1.09);opacity:.88}100%{filter:brightness(1);opacity:1}}
+@media(max-width:680px){#pilotFlightLayer .pilot-plane{width:58px!important;height:58px!important;font-size:35px!important}#pilotFlightLayer .pilot-plane::after{right:49px;width:78px}#pilotFlightLayer .pilot-flight-status{font-size:11px!important;padding:7px 10px!important}}
+@media(prefers-reduced-motion:reduce){#pilotNextActionPanel.pilot-action-landed .command-card{animation:none!important}}
 
 </style></head>
 <body>
@@ -1999,7 +1972,7 @@ function nxOpenNext(){
   const mask=document.createElement("div");mask.className="nx-mask";
   const safe=esc;
   mask.innerHTML='<section class="nx-modal" role="dialog" aria-modal="true" aria-labelledby="nxTitle" aria-describedby="nxDesc">'+
-    '<div class="nx-top"><div class="nx-symbol" aria-hidden="true">✦</div><span class="nx-kicker">neXaro · PILOT · Alpha 2026.10.08.13</span><button type="button" class="nx-close" aria-label="Schließen">×</button></div>'+
+    '<div class="nx-top"><div class="nx-symbol" aria-hidden="true">✦</div><span class="nx-kicker">neXaro · PILOT · Alpha 2026.10.08.14</span><button type="button" class="nx-close" aria-label="Schließen">×</button></div>'+
     '<h2 id="nxTitle">'+safe(config.title||"Pilot fragt nach")+'</h2><p class="nx-description" id="nxDesc">'+safe(config.description||"Bitte ergänze die noch fehlenden Angaben.")+'</p>'+
     '<form novalidate><div class="nx-fields">'+fields.map((f,i)=>'<div class="nx-field"><label for="nxInput'+i+'">'+safe(f.label)+'</label>'+
       (f.short?'<input id="nxInput'+i+'" type="text" name="'+safe(f.key)+'" maxlength="500" placeholder="'+safe(f.placeholder||"")+'" data-required="'+(f.required?"1":"0")+'">':
@@ -2294,114 +2267,172 @@ async function runEvals(){PS.textContent="Prüfung läuft …";try{const r=await
 async function connectCanva(){pilotNotice("Das Gestaltungsmodul wird zentral durch Pilot verwaltet.")}
 async function designWithCanva(v){const [id,type]=v.split(":");const r=results.find(x=>x.id===id);if(!r)return;const brief=["Create a professional neXaro-branded "+type+" based on this approved result. Use a light, premium layout with neon green and neon orange accents, high readability, and restrained visual energy. Preserve facts and wording accuracy.","","Title: "+r.title,"","Content:",String(r.content||"").slice(0,4200)].join("\\n");PS.textContent="Gestaltung wird vorbereitet …";try{const x=await sb.functions.invoke("canva-execution",{body:{action:"generate",goal_id:goals[0]?.id||null,source_result_id:r.id,design_type:type,brief}});if(x.error&&x.data?.status!=="canva_connection_required")throw x.error;if(x.data?.status==="canva_connection_required"){pilotNotice("Das Gestaltungsmodul wird aktuell vorbereitet. Pilot führt dich nicht zu externen Diensten weiter.");return}await load();current="canva";render();PS.textContent="Pilot bereit"}catch(e){PS.textContent="Pilot bereit";pilotNotice(e.message||String(e))}}
 async function pollCanva(id){PS.textContent="Designauftrag wird geprüft …";try{const x=await sb.functions.invoke("canva-execution",{body:{action:"poll",design_job_id:id}});if(x.error)throw x.error;await load();render();PS.textContent="Pilot bereit"}catch(e){PS.textContent="Pilot bereit";pilotNotice(e.message||String(e))}}
+/* Flight v4: a single requestAnimationFrame-driven, compositor-only motion path.
+   Coordinates are viewport-relative, measured from the real buttons. */
 let activePilotFlight=null;
-function pilotWait(ms){return new Promise(done=>setTimeout(done,ms))}
-function startPilotFlight(btn){
+const pilotMotion={
+  clamp:(v,min,max)=>Math.min(max,Math.max(min,v)),
+  cubic:(p0,p1,p2,p3,t)=>{const u=1-t;return u*u*u*p0+3*u*u*t*p1+3*u*t*t*p2+t*t*t*p3},
+  cubicDerivative:(p0,p1,p2,p3,t)=>3*(1-t)*(1-t)*(p1-p0)+6*(1-t)*t*(p2-p1)+3*t*t*(p3-p2),
+  center:(rect,size)=>({x:rect.left+rect.width/2-size/2,y:rect.top+rect.height/2-size/2}),
+  smooth:(t)=>t*t*(3-2*t)
+};
+function pilotWait(ms){return new Promise(resolve=>setTimeout(resolve,ms))}
+function pilotButtonTarget(){
+  const action=document.getElementById("executeAction");
+  if(action&&action.getClientRects().length)return action;
+  return document.querySelector('[data-view="execution"]')||document.querySelector('[data-view="results"]');
+}
+function pilotShowFrame(f,x,y,vx,vy,scale=1,opacity=1){
+  if(!f.plane?.isConnected)return;
+  f.x=x;f.y=y;f.vx=vx;f.vy=vy;
+  // Angle follows flight vector, but caps on approach to avoid sudden spins on iPhone.
+  if(Math.hypot(vx,vy)>4)f.heading=pilotMotion.clamp(Math.atan2(vy,vx)*180/Math.PI,-32,32);
+  f.plane.style.transform="translate3d("+x.toFixed(2)+"px,"+y.toFixed(2)+"px,0) rotate("+f.heading.toFixed(1)+"deg) scale("+scale.toFixed(3)+")";
+  f.plane.style.opacity=String(opacity);
+}
+function pilotCruisePosition(f,elapsed){
+  const w=window.innerWidth,h=window.innerHeight;
+  const midX=w*.5-f.size/2,midY=h*.31-f.size/2;
+  const radiusX=Math.max(35,Math.min(w*.37,240)),radiusY=Math.max(28,Math.min(h*.16,130));
+  const omega=2*Math.PI/6200,theta=elapsed*omega;
+  return {x:midX+radiusX*Math.sin(theta),
+    y:midY+radiusY*Math.sin(2*theta),
+    vx:radiusX*omega*Math.cos(theta)*1000,
+    vy:2*radiusY*omega*Math.cos(2*theta)*1000};
+}
+function pilotAnimationFrame(now){
+  const f=activePilotFlight;
+  if(!f||!f.plane.isConnected)return;
+  if(!f.begunAt)f.begunAt=now;
+  const t=Math.max(0,now-f.begunAt),size=f.size;
+  const reduced=window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+  if(f.stage==="takeoff"){
+    const u=Math.min(1,t/1150),a=f.from;
+    const goal=pilotCruisePosition(f,0);
+    // Cubic take-off connects to the beginning of the cruise path with matching tangent.
+    const p1={x:a.x+Math.min(110,window.innerWidth*.20),y:a.y-90};
+    const p2={x:goal.x-goal.vx*.38,y:goal.y-goal.vy*.38};
+    const x=pilotMotion.cubic(a.x,p1.x,p2.x,goal.x,u);
+    const y=pilotMotion.cubic(a.y,p1.y,p2.y,goal.y,u);
+    pilotShowFrame(f,x,y,goal.vx,goal.vy,1,.98);
+    if(u===1){f.stage="cruise";f.cruiseStart=now}
+  }else if(f.stage==="cruise"){
+    const p=pilotCruisePosition(f,Math.max(0,now-f.cruiseStart));
+    if(reduced)pilotShowFrame(f,window.innerWidth-size-18,Math.max(75,window.innerHeight*.19),1,0,.95);
+    else pilotShowFrame(f,p.x,p.y,p.vx,p.vy,1);
+  }else if(f.stage==="landing"){
+    const u=Math.min(1,(now-f.landingAt)/f.landingDuration);
+    const a=f.approach,b=f.destination;
+    const x=pilotMotion.cubic(a.x,f.control1.x,f.control2.x,b.x,u);
+    const y=pilotMotion.cubic(a.y,f.control1.y,f.control2.y,b.y,u);
+    const vx=pilotMotion.cubicDerivative(a.x,f.control1.x,f.control2.x,b.x,u);
+    const vy=pilotMotion.cubicDerivative(a.y,f.control1.y,f.control2.y,b.y,u);
+    const scale=1-.24*pilotMotion.smooth(u);
+    pilotShowFrame(f,x,y,vx,vy,scale,1);
+    if(u===1){
+      f.stage="touchdown";
+      f.touchdownAt=now;
+      if(f.resolveLanding){const resolve=f.resolveLanding;f.resolveLanding=null;resolve(true)}
+    }
+  }else if(f.stage==="touchdown"){
+    const progress=Math.min(1,Math.max(0,now-f.touchdownAt)/700);
+    pilotShowFrame(f,f.destination.x,f.destination.y,0,0,.76-.12*pilotMotion.smooth(progress),1);
+  }else if(f.stage==="exit"){
+    const progress=Math.min(1,(now-f.exitAt)/480);
+    pilotShowFrame(f,f.x,f.y,0,0,.7-.24*progress,1-progress);
+    if(progress===1){pilotDestroyFlight(f);return}
+  }
+  f.frame=requestAnimationFrame(pilotAnimationFrame);
+}
+function startPilotFlight(button){
   const layer=document.getElementById("pilotFlightLayer");
-  if(!layer||!btn)return;
-  if(activePilotFlight?.plane?.isConnected)return;
+  if(!layer||!button||!button.isConnected)return false;
+  if(activePilotFlight?.plane?.isConnected)return true;
   layer.replaceChildren();
-  const rect=btn.getBoundingClientRect();
-  const plane=document.createElement("div");
-  plane.className="pilot-plane pilot-plane--launch";
-  plane.setAttribute("aria-hidden","true");
-  plane.textContent="✈";
-  plane.style.left=Math.max(8,Math.min(window.innerWidth-75,rect.left+rect.width*.48-33))+"px";
-  plane.style.top=Math.max(60,Math.min(window.innerHeight-85,rect.top+rect.height*.16-18))+"px";
-  const label=document.createElement("div");
-  label.className="pilot-flight-status";
-  label.textContent="Pilot hebt ab …";
+  const plane=document.createElement("div"),label=document.createElement("div");
+  const size=window.innerWidth<680?58:66;
+  plane.className="pilot-plane";plane.setAttribute("aria-hidden","true");plane.textContent="✈";
+  label.className="pilot-flight-status";label.textContent="Pilot hebt vom Startbutton ab …";
+  const from=pilotMotion.center(button.getBoundingClientRect(),size);
   layer.append(plane,label);
-  const flight={plane,label,startedAt:Date.now(),landing:false};
-  activePilotFlight=flight;
-  const cruise=()=>{
-    if(activePilotFlight!==flight||!plane.isConnected||flight.landing)return;
-    plane.classList.remove("pilot-plane--launch");
-    plane.classList.add("pilot-plane--cruise");
-  };
-  plane.addEventListener("animationend",event=>{
-    if(event.animationName==="pilotTakeoffV3")cruise();
-  });
-  setTimeout(cruise,1120); // iOS Safari fallback when animationend doesn't fire
+  const f={plane,label,size,from,x:from.x,y:from.y,vx:0,vy:0,heading:-14,stage:"takeoff",startedAt:performance.now(),begunAt:0,frame:null,resolveLanding:null};
+  activePilotFlight=f;
+  pilotShowFrame(f,from.x,from.y,1,-1,.76,1);
+  f.frame=requestAnimationFrame(pilotAnimationFrame);
+  return true;
 }
 function setPilotFlightPhase(message){
   if(activePilotFlight?.label?.isConnected)activePilotFlight.label.textContent=message;
 }
-function finishPilotFlight(){
-  const flight=activePilotFlight;
-  if(!flight)return;
-  activePilotFlight=null;
-  flight.label?.remove();
-  const plane=flight.plane;
-  if(!plane?.isConnected)return;
-  const rect=plane.getBoundingClientRect();
-  plane.classList.remove("pilot-plane--launch","pilot-plane--cruise","pilot-plane--landing");
-  plane.style.left=rect.left+"px";plane.style.top=rect.top+"px";
-  plane.classList.add("pilot-plane--exit");
-  const remove=()=>plane.remove();
-  plane.addEventListener("animationend",remove,{once:true});
-  setTimeout(remove,700);
+function pilotDestroyFlight(f){
+  if(f.frame!==null)cancelAnimationFrame(f.frame);
+  f.plane?.remove();f.label?.remove();
+  if(f.resolveLanding){const resolve=f.resolveLanding;f.resolveLanding=null;resolve(false)}
+  if(activePilotFlight===f)activePilotFlight=null;
 }
-async function landPilotAtNextAction({scroll=true,minCruise=1500}={}){
-  const flight=activePilotFlight;
-  const panel=document.querySelector(".operation-panel.pilot-arrival-pending");
-  const card=panel?.querySelector(".command-card");
-  if(!flight||!card||!panel){finishPilotFlight();return false;}
-  flight.transitioning=true;
-  setPilotFlightPhase("Pilot fliegt zur nächsten Aktion …");
+function finishPilotFlight(){
+  const f=activePilotFlight;
+  if(!f)return;
+  if(f.stage==="exit")return;
+  if(f.stage==="landing"||f.stage==="touchdown"){
+    // A completed landing may fade out; interruptions are cleaned up safely.
+    f.stage="exit";f.exitAt=performance.now();
+    if(f.resolveLanding){const resolve=f.resolveLanding;f.resolveLanding=null;resolve(false)}
+  }else{pilotDestroyFlight(f)}
+}
+async function landPilotAtNextAction({scroll=true,minCruise=1700}={}){
+  const f=activePilotFlight;
+  const panel=document.getElementById("pilotNextActionPanel");
+  if(!f)return false;
+  const target=pilotButtonTarget();
+  if(!target){finishPilotFlight();return false}
+  const pending=!!panel?.querySelector("#executeAction");
+  if(pending){panel.classList.remove("pilot-action-landed");panel.classList.add("pilot-arrival-pending")}
+  f.transitioning=true;
+  setPilotFlightPhase("Pilot fliegt zur nächsten Schaltfläche …");
   try{
-    if(scroll)panel.scrollIntoView({behavior:"smooth",block:"center"});
-    await pilotWait(Math.max(1150,minCruise-(Date.now()-flight.startedAt)));
-    if(activePilotFlight!==flight)return false;
-    // Scroll may still be settling on iOS: sample location AFTER the flight has continued over the new panel.
-    const destination=card.getBoundingClientRect();
-    const visibleTop=Math.max(75,Math.min(window.innerHeight-125,destination.top+55));
-    const visibleLeft=Math.max(24,Math.min(window.innerWidth-75,destination.left+Math.min(95,destination.width*.26)));
-    const plane=flight.plane,position=plane.getBoundingClientRect();
-    setPilotFlightPhase("✈ Pilot landet an deiner nächsten Aktion …");
-    flight.landing=true;
-    plane.classList.remove("pilot-plane--launch","pilot-plane--cruise");
-    plane.style.setProperty("--p-from-x",position.left+"px");
-    plane.style.setProperty("--p-from-y",position.top+"px");
-    plane.style.setProperty("--p-dx",(visibleLeft-position.left)+"px");
-    plane.style.setProperty("--p-dy",(visibleTop-position.top)+"px");
-    plane.style.setProperty("--p-mid-x",((visibleLeft-position.left)*.58)+"px");
-    plane.style.setProperty("--p-mid-y",(visibleTop-position.top-86)+"px");
-    plane.style.setProperty("--p-near-x",((visibleLeft-position.left)*.89)+"px");
-    plane.style.setProperty("--p-near-y",(visibleTop-position.top-30)+"px");
-    plane.style.setProperty("--p-to-x",visibleLeft+"px");
-    plane.style.setProperty("--p-to-y",visibleTop+"px");
-    plane.classList.add("pilot-plane--landing");
-    await pilotWait(1750);
-    if(activePilotFlight!==flight)return false;
-    // Reveal the operative action ONLY AFTER the aircraft has touched down.
-    panel.classList.remove("pilot-arrival-pending");
-    panel.classList.add("pilot-action-landed");
-    setPilotFlightPhase("Nächste operative Aktion bereit ✓");
-    await pilotWait(800);
-    if(activePilotFlight===flight)finishPilotFlight();
+    // Keep cruising while scrolling. Only begin approach when the runway is stable.
+    if(scroll){target.scrollIntoView({behavior:"smooth",block:"center",inline:"nearest"})}
+    await pilotWait(Math.max(850,minCruise-(performance.now()-f.startedAt)));
+    await pilotWait(320);
+    if(activePilotFlight!==f)return false;
+    const rect=target.getBoundingClientRect();
+    const end=pilotMotion.center(rect,f.size);
+    const now=performance.now();
+    // The current compositor position is retained, so the aircraft never teleports on phase change.
+    const origin={x:f.x,y:f.y};
+    const dx=end.x-origin.x,dy=end.y-origin.y;
+    const dist=Math.hypot(dx,dy);
+    const duration=pilotMotion.clamp(1550+dist*.65,1650,2600);
+    const dirX=pilotMotion.clamp(f.vx,-170,170),dirY=pilotMotion.clamp(f.vy,-170,170);
+    f.approach=origin;f.destination=end;
+    f.control1={x:origin.x+dirX*.35,y:origin.y+dirY*.35-24};
+    f.control2={x:end.x-dx*.20,y:end.y-70};
+    f.landingAt=now;f.landingDuration=duration;f.stage="landing";
+    setPilotFlightPhase("✈ Pilot im Landeanflug auf den Aktionsbutton …");
+    const landed=await new Promise(resolve=>{f.resolveLanding=resolve});
+    if(!landed||activePilotFlight!==f)return false;
+    if(pending){panel.classList.remove("pilot-arrival-pending");panel.classList.add("pilot-action-landed")}
+    setPilotFlightPhase("Pilot gelandet · nächste Aktion bereit ✓");
+    await pilotWait(620);
+    if(activePilotFlight===f)finishPilotFlight();
     return true;
   }finally{
-    panel.classList.remove("pilot-arrival-pending");
+    if(pending)panel.classList.remove("pilot-arrival-pending");
   }
 }
 async function previewPilotFlight(){
   const button=document.getElementById("pilotLandingPreview");
+  const target=document.getElementById("executeAction");
   const panel=document.getElementById("pilotNextActionPanel");
-  if(!button||!panel?.querySelector(".command-card")||activePilotFlight)return;
+  if(!button||!target||!panel||activePilotFlight)return;
   button.disabled=true;
-  startPilotFlight(button);
-  panel.classList.add("pilot-arrival-pending");
-  setPilotFlightPhase("Pilot testet den Anflug …");
-  try{
-    await landPilotAtNextAction({scroll:true,minCruise:2600});
-  }catch(error){
-    panel.classList.remove("pilot-arrival-pending");
-    console.warn("Pilot flight preview unavailable",String(error?.message||"unknown"));
-  }finally{
-    finishPilotFlight();
-    if(button.isConnected)button.disabled=false;
-  }
+  panel.classList.remove("pilot-action-landed");
+  if(!startPilotFlight(button)){button.disabled=false;return}
+  try{await landPilotAtNextAction({scroll:true,minCruise:2600})}
+  catch(err){console.warn("Pilot Flugtest beendet:",String(err?.message||"Fehler"))}
+  finally{finishPilotFlight();if(button.isConnected)button.disabled=false}
 }
 async function executeAction(){const n=actions.find(a=>a.status==="ready")||actions.find(a=>a.status==="pending");if(!n)return;const btn=document.getElementById("executeAction");btn?.classList.add("launching");startPilotFlight(btn);PS.textContent="Pilot hebt ab …";setTimeout(()=>{if(PS.textContent==="Pilot hebt ab …")PS.textContent="Pilot arbeitet …"},650);try{const r=await sb.functions.invoke("execution-engine",{body:{operation:"start",action_id:n.id}});if(r.error)throw await pilotApiError(r,"Ausführung wurde beendet.");await load();render();
   const target=document.getElementById("pilotNextActionPanel");
