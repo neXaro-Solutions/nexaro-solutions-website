@@ -109,8 +109,10 @@ try{
    });
    if(picker.position!=="fixed"||picker.left<0||picker.right>picker.screenWidth+2||(picker.screenWidth-picker.right)>40||picker.top<0||picker.top>90||picker.bottom>picker.screenHeight+2)
     throw Error("Pilot language choice must stay accessible top-right: "+JSON.stringify(picker));
+   await languagePicker.locator("#pilotLanguageToggle").click();
    await languagePicker.locator('[data-pilot-locale="en"]').click();
    await page.waitForFunction(()=>document.documentElement.lang==="en"&&document.getElementById("guestComposeTitle")?.textContent.includes("What can"),null,{timeout:4000});
+   await languagePicker.locator("#pilotLanguageToggle").click();
    await languagePicker.locator('[data-pilot-locale="de"]').click();
    await page.waitForFunction(()=>document.documentElement.lang==="de"&&document.getElementById("guestComposeTitle")?.textContent.includes("Was soll"),null,{timeout:4000});
    if(await page.locator(".pilot-value-item").count()!==3)throw Error("Pilot advantages must be visible on the first screen");
