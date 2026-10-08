@@ -188,6 +188,49 @@ async function saveMemoryUpdates(sb:any,goal:any,ownerId:string,updates:any){
   }
   return {saved,errors};
 }
+/* User decisions are authoritative. Detect an explicit request to replace a prior
+   choice, not ordinary background discussion of alternative options. */
+function explicitDecisionProposal(input:string,latest:Map<string,any>){
+  const request=String(input||"").normalize("NFKC").trim();
+  if(!request)return null;
+  const legal=latest.get("legal_form");
+  if(legal?.event_type==="set"){
+    const options:Array<[string,RegExp]>=[
+      ["einzelunternehmen",/\b(?:einzelunternehmen|einzelunternehmer(?:in)?)\b/i],
+      ["gmbh",/\bgmbh\b/i],
+      ["ug",/\bug\b(?:\s*\(haftungsbeschränkt\))?/i]
+    ];
+    const found=options.filter(([,pattern])=>pattern.test(request));
+    const changing=/\b(rechtsform|statt|anstelle|wechseln|wechsel|umwandeln|ändern|ändere|aendern|aendere|künftig|kuenftig|ab jetzt|doch lieber|entscheide mich|soll.*(?:werden|sein))\b/i.test(request);
+    // Two different legal forms in the same sentence may be a comparison, not a choice.
+    if(changing&&found.length===1&&found[0][0]!==legal.decision_value){
+      const mention=found[0][1].exec(request);
+      const beforeMention=request.slice(Math.max(0,(mention?.index||0)-16),mention?.index||0);
+      if(!/\b(?:keine?|nicht|ohne)\s*$/i.test(beforeMention))
+        return {decision_key:"legal_form",proposed_value:found[0][0],current:legal,
+          reason:"explicit_legal_form_change"};
+    }
+  }
+  const patterns:Array<[string,RegExp]>=[
+    ["company_name",/(?:unternehmensnamen|firmennamen|firma|unternehmen)\s+(?:auf|in|zu)\s+(.+?)\s+(?:ändern|aendern|umbenennen)(?:[.!?\n]|$)/i],
+    ["company_name",/(?:nenne|benenne)\s+(?:meine\s+)?(?:firma|unternehmen)\s+(?:jetzt\s+)?(.+?)(?:[.!?\n]|$)/i],
+    ["budget",/(?:budget|startkapital)\s+(?:auf|zu)\s+(.+?)\s+(?:ändern|aendern|setzen|festlegen)(?:[.!?\n]|$)/i],
+    ["industry",/(?:branche|geschäftsfeld)\s+(?:auf|zu)\s+(.+?)\s+(?:ändern|aendern|wechseln)(?:[.!?\n]|$)/i],
+    ["brand_style",/(?:gestaltungsstil|designstil|farbschema)\s+(?:auf|zu)\s+(.+?)\s+(?:ändern|aendern|umstellen)(?:[.!?\n]|$)/i]
+  ];
+  for(const [key,pattern] of patterns){
+    const existing=latest.get(key);
+    if(existing?.event_type!=="set")continue;
+    const hit=pattern.exec(request);
+    if(!hit)continue;
+    const proposed=hit[1].replace(/\s+/g," ").trim().slice(0,240);
+    if(proposed.length<2||proposed.length>200)continue;
+    if(proposed.toLocaleLowerCase("de-DE")===String(existing.decision_value).toLocaleLowerCase("de-DE"))continue;
+    return {decision_key:key,proposed_value:proposed,current:existing,
+      reason:"explicit_project_decision_change"};
+  }
+  return null;
+}
 /* Contextual follow-up routing: select an existing project only when its identity
    is independently clear; do not let model confidence invent ownership/context. */
 const GOAL_GENERIC_WORDS=new Set([
@@ -462,6 +505,20 @@ const pilotCorsHandler=async(req:Request)=>{
     const latestDecisions=new Map<string,any>();
     for(const entry of decisionsRead.data||[])
       if(!latestDecisions.has(entry.decision_key))latestDecisions.set(entry.decision_key,entry);
+    const conflicting=explicitDecisionProposal(input,latestDecisions);
+    if(conflicting){
+      const entry=conflicting.current;
+      return Response.json({
+        stage:"decision_conflict",intent,
+        goal:{id:existingGoal.id,title:existingGoal.title},
+        decision:{
+          key:conflicting.decision_key,old_value:entry.decision_value,
+          new_value:conflicting.proposed_value,revision_id:entry.id,
+          reason:conflicting.reason
+        },
+        question:"Der neue Auftrag würde eine bestätigte Projektentscheidung ändern. Welche Angabe gilt?"
+      },{headers:cors});
+    }
     const confirmedDecisions=[...latestDecisions.values()]
       .filter((entry:any)=>entry.event_type==="set")
       .map((entry:any)=>({key:entry.decision_key,value:entry.decision_value,
