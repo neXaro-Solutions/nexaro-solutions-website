@@ -368,7 +368,11 @@ Deno.serve(async(req:Request)=>{
  if(result.error)return respond({error:"background_start_failed",retryable:true},503);
  // EdgeRuntime's background lifecycle is a fast first dispatch; pg_cron is the
  // durable continuation path even after the mobile app has been closed.
- try{(globalThis as any).EdgeRuntime?.waitUntil?.(tick(sb).catch(e=>
-   console.error("PILOT_BACKGROUND_WAKE_FAILED",String(e?.message||e).slice(0,90))))}catch{}
+ // A specifically deferred start proves the independent cron dispatcher works
+ // after the browser closes. Ordinary user launches still wake immediately.
+ if(body.defer_initial_dispatch!==true){
+  try{(globalThis as any).EdgeRuntime?.waitUntil?.(tick(sb).catch(e=>
+    console.error("PILOT_BACKGROUND_WAKE_FAILED",String(e?.message||e).slice(0,90))))}catch{}
+ }
  return respond({status:"queued",job:result.data});
 });
