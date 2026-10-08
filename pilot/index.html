@@ -3174,6 +3174,39 @@ body{max-width:100%;overflow-x:clip}
 .pilot-bg-live-check .btn{min-height:44px}
 .pilot-bg-live-check .pilot-e2e-feedback{margin-bottom:7px}
 @media(max-width:420px){.pilot-bg-live-check .btns .btn{flex:1 1 100%;width:100%}}
+
+/* Pilot Market: result-first, source-attributed shopping assistant. */
+.pilot-market{max-width:890px;margin:0 auto;padding:8px 0 42px}
+.pilot-market-hero{position:relative;overflow:hidden;border:1px solid #d0e2d2;border-radius:27px;background:radial-gradient(circle at 92% -14%,#d4f5c8,transparent 55%),linear-gradient(145deg,#fff,#f4faf5);padding:29px;box-shadow:0 18px 60px #173d2411}
+.pilot-market-kicker{font-size:11px;letter-spacing:.15em;font-weight:850;color:#427357;text-transform:uppercase}
+.pilot-market-hero h2{font-size:clamp(24px,4vw,32px);letter-spacing:-.045em;line-height:1.13;color:#203b2e;margin:10px 0}
+.pilot-market-hero p,.pilot-market-note{font-size:13px;line-height:1.65;color:#617468}
+.pilot-market-form{display:flex;gap:9px;margin:22px 0 3px}
+.pilot-market-form input{flex:1;min-width:0;min-height:50px;font-size:16px;border-radius:15px;border:1px solid #cbded0;background:#fff;color:#1d3227}
+.pilot-market-form button{border:0;border-radius:14px;background:#84ed45;color:#17321c;font-weight:820;min-width:118px;min-height:50px;cursor:pointer}
+.pilot-market-form button:disabled{opacity:.55;cursor:wait}
+.pilot-market-answer{margin:20px 0 0}
+.pilot-market-answer-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:11px}
+.pilot-market-answer-head h3{font-size:18px;letter-spacing:-.02em;margin:0;color:#243d2d}
+.pilot-market-answer-head small{font-size:11px;color:#677969}
+.pilot-market-offer{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:16px;border:1px solid #dce9df;border-radius:19px;background:#fff;padding:16px 17px;margin:10px 0;box-shadow:0 6px 25px #1b432710}
+.pilot-market-offer:first-of-type{border-color:#a9dc9c}
+.pilot-market-offer strong{font-size:15px;line-height:1.35;display:block;color:#1b3726;overflow-wrap:anywhere}
+.pilot-market-meta{display:flex;gap:7px;flex-wrap:wrap;margin-top:7px;color:#61766b;font-size:11px}
+.pilot-market-tag{background:#f2f6ee;border:1px solid #e2ebe0;border-radius:99px;padding:4px 8px}
+.pilot-market-offer-price{text-align:right;min-width:125px}
+.pilot-market-offer-price b{font-size:19px;display:block;color:#1f4d31;font-variant-numeric:tabular-nums}
+.pilot-market-offer-price small{display:block;font-size:10px;color:#607064;margin:4px 0 12px}
+.pilot-market-offer-price a{display:inline-flex;align-items:center;justify-content:center;min-height:43px;padding:7px 13px;border-radius:13px;text-decoration:none;background:#eaffdc;color:#2b6133;font-size:12px;font-weight:800;border:1px solid #c5e8b6;white-space:nowrap}
+.pilot-market-offer-price a:focus-visible,.pilot-market-form :focus-visible{outline:3px solid #568e53;outline-offset:3px}
+.pilot-market-disclosure{font-size:11px;line-height:1.6;color:#627366;padding:12px 3px}
+.pilot-market-empty{background:#fff;border:1px solid #dce8de;border-radius:17px;padding:21px;font-size:13px;line-height:1.65;color:#526857}
+.pilot-market-loading{display:flex;gap:12px;align-items:center;padding:21px;color:#3d664b}
+.pilot-market-spinner{width:21px;height:21px;flex:none;border-radius:50%;border:3px solid #d9ecd5;border-top-color:#65bb3a;animation:pilotMarketSpin 1s linear infinite}
+@keyframes pilotMarketSpin{to{transform:rotate(360deg)}}
+@media(max-width:580px){.pilot-market{padding:0 0 28px}.pilot-market-hero{padding:23px 18px;border-radius:23px}.pilot-market-form{flex-direction:column}.pilot-market-form button{width:100%}.pilot-market-offer{grid-template-columns:1fr;gap:10px}.pilot-market-offer-price{display:grid;grid-template-columns:1fr auto;align-items:center;text-align:left;gap:5px 12px}.pilot-market-offer-price small{margin:0}.pilot-market-offer-price a{grid-column:2;grid-row:1/3}.pilot-market-offer-price b{font-size:18px}}
+@media(prefers-reduced-motion:reduce){.pilot-market-spinner{animation:none}}
+
 </style><style id="pilot-orbit-design">
 /* ORBIT — canonical product tokens and layouts. Legacy tooling keeps its selectors. */
 :root{--bg:#f2f6f3;--s:#ffffff;--t:#172d29;--m:#5b7068;--l:#dae5de;--g:#9aef55;--g2:#6cba3c;--o:#e99342;--sh:0 24px 70px #243f3010;--sh2:0 10px 30px #243f300b}
@@ -3374,7 +3407,7 @@ body:has(#auth:not(.hidden))::before{display:none!important}
 </div>
 
 <section id="app" class="shell hidden"><aside class="side"><div class="brand"><div class="brand-meta"><img src="/nexaro-transparent-logo.webp" class="brand-logo" alt="neXaro Solutions"><div class="ey">Dein intelligenter Mitarbeiter</div></div></div>
-<nav class="pilot-minimal-nav" aria-label="Hauptnavigation"><button class="nav active" data-view="home" aria-label="Pilot"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="m3 10 9-7 9 7"/><path d="M5 9v11h14V9"/><path d="M9.5 20v-7h5v7"/></svg></span><span>Pilot</span></button><button class="nav" data-view="goals" aria-label="Aufträge"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/></svg></span><span>Aufträge</span></button><button class="nav" data-view="results" aria-label="Ergebnisse"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="4"/><path d="m8 12 3 3 5-6"/></svg></span><span>Ergebnisse</span></button><details class="pilot-nav-more"><summary aria-label="Weitere Bereiche"><span class="pilot-nav-more-symbol">•••</span><span>Mehr</span></summary><div class="pilot-nav-more-content"><button class="nav" data-view="notifications" aria-label="Mitteilungen"><span class="pilot-nav-icon" aria-hidden="true">◉</span><span>Mitteilungen & Push</span></button><button class="nav" data-view="documents" aria-label="Dokumente"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M7 3.5h7l4 4V21H7a2 2 0 0 1-2-2V5.5a2 2 0 0 1 2-2Z"/><path d="M14 3.5V8h4"/><path d="M9 12h6M9 16h6"/></svg></span><span>Dokumente</span></button><button class="nav auxiliary-nav" data-view="canva" aria-label="Gestaltung"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="m12 2 2.8 7.2L22 12l-7.2 2.8L12 22l-2.8-7.2L2 12l7.2-2.8L12 2Z"/></svg></span><span>Gestaltung</span></button><button class="nav admin-only hidden" data-view="roadmap" aria-label="Entwicklungsplan"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M9 9v12"/></svg></span><span>Entwicklungsplan</span></button><button class="nav admin-only hidden" data-view="alpha" aria-label="Systemtest"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="m4 12 5 5L20 6"/><circle cx="12" cy="12" r="9"/></svg></span><span>Systemtest</span></button><button class="nav account-nav" data-view="me" aria-label="Einstellungen"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M10 2h4l.7 2.3 2.2 1.2 2.3-.8 2 3.4-1.7 1.7v2.5l1.7 1.7-2 3.4-2.3-.8-2.2 1.2L14 22h-4l-.7-2.3-2.2-1.2-2.3.8-2-3.4 1.7-1.7v-2.5L2.8 10l2-3.4 2.3.8 2.2-1.2L10 2Z"/><circle cx="12" cy="12" r="3"/></svg></span><span>Einstellungen</span></button><button class="nav admin-only hidden" data-view="admin">Administration</button></div></details></nav>
+<nav class="pilot-minimal-nav" aria-label="Hauptnavigation"><button class="nav active" data-view="home" aria-label="Pilot"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="m3 10 9-7 9 7"/><path d="M5 9v11h14V9"/><path d="M9.5 20v-7h5v7"/></svg></span><span>Pilot</span></button><button class="nav" data-view="goals" aria-label="Aufträge"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/></svg></span><span>Aufträge</span></button><button class="nav" data-view="results" aria-label="Ergebnisse"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="4"/><path d="m8 12 3 3 5-6"/></svg></span><span>Ergebnisse</span></button><details class="pilot-nav-more"><summary aria-label="Weitere Bereiche"><span class="pilot-nav-more-symbol">•••</span><span>Mehr</span></summary><div class="pilot-nav-more-content"><button class="nav" data-view="market" aria-label="Angebote vergleichen"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16M4 12h16M4 19h16"/><circle cx="8" cy="5" r="2" fill="white"/><circle cx="15" cy="12" r="2" fill="white"/><circle cx="11" cy="19" r="2" fill="white"/></svg></span><span>Angebote vergleichen</span></button><button class="nav" data-view="notifications" aria-label="Mitteilungen"><span class="pilot-nav-icon" aria-hidden="true">◉</span><span>Mitteilungen & Push</span></button><button class="nav" data-view="documents" aria-label="Dokumente"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M7 3.5h7l4 4V21H7a2 2 0 0 1-2-2V5.5a2 2 0 0 1 2-2Z"/><path d="M14 3.5V8h4"/><path d="M9 12h6M9 16h6"/></svg></span><span>Dokumente</span></button><button class="nav auxiliary-nav" data-view="canva" aria-label="Gestaltung"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="m12 2 2.8 7.2L22 12l-7.2 2.8L12 22l-2.8-7.2L2 12l7.2-2.8L12 2Z"/></svg></span><span>Gestaltung</span></button><button class="nav admin-only hidden" data-view="roadmap" aria-label="Entwicklungsplan"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M9 9v12"/></svg></span><span>Entwicklungsplan</span></button><button class="nav admin-only hidden" data-view="alpha" aria-label="Systemtest"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="m4 12 5 5L20 6"/><circle cx="12" cy="12" r="9"/></svg></span><span>Systemtest</span></button><button class="nav account-nav" data-view="me" aria-label="Einstellungen"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M10 2h4l.7 2.3 2.2 1.2 2.3-.8 2 3.4-1.7 1.7v2.5l1.7 1.7-2 3.4-2.3-.8-2.2 1.2L14 22h-4l-.7-2.3-2.2-1.2-2.3.8-2-3.4 1.7-1.7v-2.5L2.8 10l2-3.4 2.3.8 2.2-1.2L10 2Z"/><circle cx="12" cy="12" r="3"/></svg></span><span>Einstellungen</span></button><button class="nav admin-only hidden" data-view="admin">Administration</button></div></details></nav>
 <button id="logout" class="btn logout">Abmelden</button></aside>
 <main class="main"><div class="head"><div><div class="ey">PILOT · DEIN KI-MITARBEITER</div><h1 id="title">Pilot</h1></div><div class="head-actions"><button id="adminSystem" class="head-tool admin-only hidden" data-view="admin">Admin</button><button id="customerPreviewToggle" class="head-tool admin-preview hidden" type="button">Kundenansicht</button><button id="accountButton" class="head-tool" data-view="me">Profil</button><div class="status"><span class="dot"></span><span id="pilotStatus">Pilot bereit</span></div></div></div><div id="view"><section class="pilot-initial-fallback" role="status" aria-live="polite"><span class="pilot-initial-beacon" aria-hidden="true">✈</span><div><strong>Pilot wird geladen</strong><p>Dein Auftrag und deine Ergebnisse bleiben gespeichert.</p></div></section></div></main></section><div id="pilotFlightLayer" aria-hidden="true"></div>
 
@@ -4372,7 +4405,40 @@ async function pilotOpenArtifact(id,download=false){
   const node=document.querySelector('[data-artifact-preview="'+CSS.escape(id)+'"]');if(!node)return;
   if(file.kind==='presentation'){node.innerHTML=(file.slides||[]).map((s,i)=>'<section style="background:#f4f7f3;padding:28px;margin:12px 0;border-left:4px solid #617b65;border-radius:12px"><small>Folie '+(i+1)+'</small><h3>'+esc(s.title)+'</h3><p style="white-space:pre-wrap">'+esc(s.body)+'</p></section>').join('');return}
   const frame=document.createElement('iframe');frame.setAttribute('sandbox','');frame.title='Fertiges Pilot-Ergebnis';frame.style='width:100%;height:520px;border:1px solid #dae5db;border-radius:16px;background:white';
-  frame.srcdoc=file.kind==='image'?'<html><head><meta http-equiv="Content-Security-Policy" content="default-src \'none\'; style-src \'unsafe-inline\'"><style>body{margin:0;display:grid;place-items:center;height:100vh}svg{max-width:90%;max-height:90vh}</style></head><body>'+await d.data.text()+'</body></html>':await d.data.text();node.replaceChildren(frame);
+  frame.srcdoc=file.kind==='image'?'<html><head><meta http-equiv="Content-Security-Policy" content="default-src \'none\'; style-src \'unsafe-inline\'"><style>body{margin:0;display:grid;place-items:center;height:100vh}svg{max-width:90%;max-height:90vh}
+/* Pilot Market: result-first, source-attributed shopping assistant. */
+.pilot-market{max-width:890px;margin:0 auto;padding:8px 0 42px}
+.pilot-market-hero{position:relative;overflow:hidden;border:1px solid #d0e2d2;border-radius:27px;background:radial-gradient(circle at 92% -14%,#d4f5c8,transparent 55%),linear-gradient(145deg,#fff,#f4faf5);padding:29px;box-shadow:0 18px 60px #173d2411}
+.pilot-market-kicker{font-size:11px;letter-spacing:.15em;font-weight:850;color:#427357;text-transform:uppercase}
+.pilot-market-hero h2{font-size:clamp(24px,4vw,32px);letter-spacing:-.045em;line-height:1.13;color:#203b2e;margin:10px 0}
+.pilot-market-hero p,.pilot-market-note{font-size:13px;line-height:1.65;color:#617468}
+.pilot-market-form{display:flex;gap:9px;margin:22px 0 3px}
+.pilot-market-form input{flex:1;min-width:0;min-height:50px;font-size:16px;border-radius:15px;border:1px solid #cbded0;background:#fff;color:#1d3227}
+.pilot-market-form button{border:0;border-radius:14px;background:#84ed45;color:#17321c;font-weight:820;min-width:118px;min-height:50px;cursor:pointer}
+.pilot-market-form button:disabled{opacity:.55;cursor:wait}
+.pilot-market-answer{margin:20px 0 0}
+.pilot-market-answer-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:11px}
+.pilot-market-answer-head h3{font-size:18px;letter-spacing:-.02em;margin:0;color:#243d2d}
+.pilot-market-answer-head small{font-size:11px;color:#677969}
+.pilot-market-offer{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:16px;border:1px solid #dce9df;border-radius:19px;background:#fff;padding:16px 17px;margin:10px 0;box-shadow:0 6px 25px #1b432710}
+.pilot-market-offer:first-of-type{border-color:#a9dc9c}
+.pilot-market-offer strong{font-size:15px;line-height:1.35;display:block;color:#1b3726;overflow-wrap:anywhere}
+.pilot-market-meta{display:flex;gap:7px;flex-wrap:wrap;margin-top:7px;color:#61766b;font-size:11px}
+.pilot-market-tag{background:#f2f6ee;border:1px solid #e2ebe0;border-radius:99px;padding:4px 8px}
+.pilot-market-offer-price{text-align:right;min-width:125px}
+.pilot-market-offer-price b{font-size:19px;display:block;color:#1f4d31;font-variant-numeric:tabular-nums}
+.pilot-market-offer-price small{display:block;font-size:10px;color:#607064;margin:4px 0 12px}
+.pilot-market-offer-price a{display:inline-flex;align-items:center;justify-content:center;min-height:43px;padding:7px 13px;border-radius:13px;text-decoration:none;background:#eaffdc;color:#2b6133;font-size:12px;font-weight:800;border:1px solid #c5e8b6;white-space:nowrap}
+.pilot-market-offer-price a:focus-visible,.pilot-market-form :focus-visible{outline:3px solid #568e53;outline-offset:3px}
+.pilot-market-disclosure{font-size:11px;line-height:1.6;color:#627366;padding:12px 3px}
+.pilot-market-empty{background:#fff;border:1px solid #dce8de;border-radius:17px;padding:21px;font-size:13px;line-height:1.65;color:#526857}
+.pilot-market-loading{display:flex;gap:12px;align-items:center;padding:21px;color:#3d664b}
+.pilot-market-spinner{width:21px;height:21px;flex:none;border-radius:50%;border:3px solid #d9ecd5;border-top-color:#65bb3a;animation:pilotMarketSpin 1s linear infinite}
+@keyframes pilotMarketSpin{to{transform:rotate(360deg)}}
+@media(max-width:580px){.pilot-market{padding:0 0 28px}.pilot-market-hero{padding:23px 18px;border-radius:23px}.pilot-market-form{flex-direction:column}.pilot-market-form button{width:100%}.pilot-market-offer{grid-template-columns:1fr;gap:10px}.pilot-market-offer-price{display:grid;grid-template-columns:1fr auto;align-items:center;text-align:left;gap:5px 12px}.pilot-market-offer-price small{margin:0}.pilot-market-offer-price a{grid-column:2;grid-row:1/3}.pilot-market-offer-price b{font-size:18px}}
+@media(prefers-reduced-motion:reduce){.pilot-market-spinner{animation:none}}
+
+</style></head><body>'+await d.data.text()+'</body></html>':await d.data.text();node.replaceChildren(frame);
  }catch{pilotNotice('Die Ergebnisdatei konnte nicht geöffnet werden. Bitte erneut versuchen.')}
 }
 document.addEventListener('click',e=>{const b=e.target.closest?.('[data-download-result],[data-artifact-open],[data-artifact-download]');if(!b)return;if(b.dataset.downloadResult)pilotDownloadText(b.dataset.downloadResult);else pilotOpenArtifact(b.dataset.artifactOpen||b.dataset.artifactDownload,!!b.dataset.artifactDownload)});
@@ -4698,7 +4764,66 @@ function pilotSyncFlightScreen(){
      void pilotLandAtAttention(goalId,"Hier ist deine Handlung erforderlich");
  });
 }
-function render(){if(!effectiveAdmin()&&["roadmap","alpha","admin"].includes(current))current="home";applyRoleUI();document.querySelectorAll("[data-view]").forEach(b=>b.classList.toggle("active",b.dataset.view===current));T.textContent={home:"Pilot",goals:"Aufträge",documents:"Dokumente",results:"Ergebnisse",notifications:"Mitteilungen",execution:"Ausführung",canva:"Gestaltung",roadmap:"Entwicklungsplan",alpha:"Systemtest",admin:"Admin-Cockpit",me:"Einstellungen"}[current];V.dataset.screen=current;APP.dataset.screen=current;V.innerHTML={home:home,goals:goalsView,documents:documentsView,results:resultsView,notifications:pilotNotificationsView,execution:executionView,canva:canvaView,roadmap:roadmap,alpha:alphaView,admin:adminView,me:me}[current]();document.querySelectorAll(".side .nav[data-view]").forEach(b=>{if(b.dataset.view===current)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current")});bind();pilotBindSpatialUI();pilotSyncFlightScreen();pilotUpdateDock()}
+
+/* Market intelligence — real source records only, no fabricated prices or affiliate URLs. */
+let pilotMarketState={query:"",loading:false,offers:[],searched:false,error:"",notice:"",checked:""};
+const pilotMarketMoney=v=>new Intl.NumberFormat("de-DE",{style:"currency",currency:"EUR"}).format(Number(v));
+function pilotMarketSafeLink(value){try{const u=new URL(String(value));return u.protocol==="https:"?u.href:null}catch{return null}}
+function pilotMarketView(){
+ const p=pilotMarketState;
+ const intro='<section class="pilot-market-hero"><span class="pilot-market-kicker">PILOT · ANGEBOTSINTELLIGENZ</span>'+
+ '<h2>Finden. Vergleichen. Besser entscheiden.</h2>'+
+ '<p>Ich prüfe verfügbare Angebote verbundener Anbieter und zeige dir den tatsächlichen Preis. Quellen ohne Freigabe werden nicht als aktiv ausgegeben.</p>'+
+ '<form class="pilot-market-form" id="pilotMarketForm"><input name="q" id="pilotMarketInput" type="search" autocomplete="off" minlength="3" maxlength="120" required aria-label="Produkt oder Angebot suchen" placeholder="Was möchtest du vergleichen?" value="'+esc(p.query)+'">'+
+ '<button type="submit" '+(p.loading?'disabled':'')+'>'+(p.loading?'Suche läuft …':'Angebote finden →')+'</button></form>'+
+ '</section>';
+ let answer="";
+ if(p.loading)answer='<div class="pilot-market-loading" role="status"><span class="pilot-market-spinner" aria-hidden="true"></span> Ich suche verfügbare Angebote …</div>';
+ else if(p.error)answer='<div class="pilot-market-empty" role="alert">'+esc(p.error)+'</div>';
+ else if(p.searched&&p.offers.length){
+  answer='<div class="pilot-market-answer-head"><h3>'+p.offers.length+' verfügbare Angebote</h3><small>Sortiert nach Gesamtpreis, sofern Versand bekannt</small></div>'+
+  p.offers.map((o,i)=>{
+    const url=pilotMarketSafeLink(o.url);if(!url)return "";
+    const known=o.total_eur!==null&&Number.isFinite(Number(o.total_eur));
+    const price=known?o.total_eur:o.price_eur;
+    const shipping=o.shipping_eur===null?'Versand noch nicht angegeben':Number(o.shipping_eur)===0?'Versand inklusive':'Versand '+pilotMarketMoney(o.shipping_eur);
+    return '<article class="pilot-market-offer">'+
+     '<div><strong>'+esc(o.name||"Angebot")+'</strong><div class="pilot-market-meta">'+
+     '<span class="pilot-market-tag">'+esc(o.source||"Quelle")+'</span>'+
+     '<span>'+esc(o.merchant||"Händler")+'</span>'+
+     (o.condition?'<span>· '+esc(o.condition)+'</span>':'')+
+     (o.affiliate?'<span class="pilot-market-tag">Werbelink</span>':'')+
+     '</div></div><div class="pilot-market-offer-price"><b>'+pilotMarketMoney(price)+'</b>'+
+     '<small>'+(known?'Gesamtpreis · '+shipping:'Artikelpreis · '+shipping)+'</small>'+
+     '<a href="'+esc(url)+'" target="_blank" rel="'+(o.affiliate?'sponsored ':'')+'noopener noreferrer" aria-label="Angebot bei '+esc(o.merchant||o.source)+' öffnen">Zum Angebot ↗</a></div></article>';
+  }).join("");
+ }else if(p.searched)answer='<div class="pilot-market-empty"><strong>Derzeit keine belegten Angebote verfügbar.</strong><p>'+esc(p.notice||"Die geprüften Partnerquellen liefern momentan keinen Treffer. Sobald Zugänge und Produktfeeds verbunden sind, erscheinen hier echte Preise.")+'</p></div>';
+ return '<div class="pilot-market">'+intro+
+ (p.searched||p.loading?'<section class="pilot-market-answer" aria-live="polite">'+answer+'</section>':'')+
+ '<p class="pilot-market-disclosure">Hinweis: Preise, Versandkosten und Verfügbarkeit können sich beim Händler ändern. Werbelinks sind gekennzeichnet. Pilot kann bei qualifizierten Käufen eine Provision erhalten; die Sortierung richtet sich nicht nach der Provision. Ein Kauf erfolgt ausschließlich beim jeweiligen Anbieter.</p></div>';
+}
+async function pilotMarketSearch(query){
+ const q=String(query||"").trim().replace(/\s+/g," ").slice(0,120);
+ if(q.length<3){pilotMarketState.error="Bitte beschreibe das gesuchte Produkt genauer.";pilotMarketState.searched=true;render();return}
+ pilotMarketState={query:q,loading:true,offers:[],searched:true,error:"",notice:"",checked:""};
+ current="market";render();
+ try{
+  const response=await sb.functions.invoke("pilot-market",{body:{operation:"search",query:q}});
+  if(response.error)throw new Error(response.data?.error||"Angebotsuche vorübergehend nicht verfügbar.");
+  if(response.data?.error)throw Error(response.data.error);
+  const offers=Array.isArray(response.data?.offers)?response.data.offers:[];
+  pilotMarketState={query:q,loading:false,offers:offers.filter(x=>pilotMarketSafeLink(x.url)),searched:true,error:"",notice:String(response.data?.notice||""),checked:String(response.data?.checked_at||"")};
+ }catch(e){pilotMarketState={query:q,loading:false,offers:[],searched:true,error:e?.message||"Die Suche ist gerade nicht erreichbar.",notice:"",checked:""}}
+ if(current==="market")render();
+}
+function pilotMarketFromHome(text){
+ const t=String(text||"").trim();
+ if(!/^(?:finde|suche|vergleiche|zeige|ermittle|was kostet|wo (?:gibt es|finde ich))/i.test(t))return null;
+ if(!/(?:preis(?:e|vergleich)?|angebote?|günstig|kaufen)/i.test(t))return null;
+ return t.replace(/^(?:(?:finde|suche|vergleiche|zeige|ermittle)(?:\s+(?:mir|bitte|die|den|das|einen|eine|günstigste[nrms]?|beste[nrms]?|angebote?|preise?))*\s+(?:für\s+)?|was kostet\s+|wo (?:gibt es|finde ich)\s+)/i,"").replace(/[?.!]$/,"").trim()||t;
+}
+
+function render(){if(!effectiveAdmin()&&["roadmap","alpha","admin"].includes(current))current="home";applyRoleUI();document.querySelectorAll("[data-view]").forEach(b=>b.classList.toggle("active",b.dataset.view===current));T.textContent={home:"Pilot",goals:"Aufträge",documents:"Dokumente",results:"Ergebnisse",market:"Angebote",notifications:"Mitteilungen",execution:"Ausführung",canva:"Gestaltung",roadmap:"Entwicklungsplan",alpha:"Systemtest",admin:"Admin-Cockpit",me:"Einstellungen"}[current];V.dataset.screen=current;APP.dataset.screen=current;V.innerHTML={home:home,goals:goalsView,documents:documentsView,results:resultsView,market:pilotMarketView,notifications:pilotNotificationsView,execution:executionView,canva:canvaView,roadmap:roadmap,alpha:alphaView,admin:adminView,me:me}[current]();document.querySelectorAll(".side .nav[data-view]").forEach(b=>{if(b.dataset.view===current)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current")});bind();pilotBindSpatialUI();pilotSyncFlightScreen();pilotUpdateDock()}
 
 function formatBytes(n){const v=Number(n||0);if(v<1024)return v+" B";if(v<1024*1024)return (v/1024).toFixed(1)+" KB";return (v/1024/1024).toFixed(1)+" MB"}
 function renderAttachmentTray(){
@@ -4809,6 +4934,7 @@ async function processPendingAttachments(goalId,taskText){
 }
 
 function bind(){
+  document.getElementById("pilotMarketForm")?.addEventListener("submit",e=>{e.preventDefault();void pilotMarketSearch(document.getElementById("pilotMarketInput")?.value||"")});
   document.querySelectorAll("[data-view]").forEach(b=>b.onclick=async()=>{current=b.dataset.view;const menu=b.closest(".pilot-nav-more");if(menu)menu.open=false;if(current==="admin"&&isAdmin){try{await loadAdminConsole()}catch(e){pilotNotice(e.message||String(e))}}render();if(current==="alpha")void pilotBackgroundLiveCall("status")});
   document.querySelectorAll("[data-jump]").forEach(b=>b.onclick=()=>{current=b.dataset.jump;render();if(current==="alpha")void pilotBackgroundLiveCall("status")});
    document.querySelectorAll("[data-open-goal]").forEach(b=>b.onclick=async()=>{if(activePilotFlight&&pilotFlightState.goalId&&pilotFlightState.goalId!==b.dataset.openGoal){pilotDestroyFlight(activePilotFlight);pilotSetFlightState(null,"idle","")}activeGoalId=b.dataset.openGoal;pilotPinnedGoalId=activeGoalId;pilotForceNewGoal=false;try{localStorage.setItem("nexaro_pilot_goal_"+user.id,activeGoalId)}catch{}await load();current="home";render()});
@@ -5197,6 +5323,8 @@ function pilotClearPendingCommand(id){
 async function createGoal(){
   const text=document.getElementById("goalText").value.trim();
   if(!text||!org)return;
+  const marketQuery=pendingAttachments.length===0?pilotMarketFromHome(text):null;
+  if(marketQuery){pilotComposerDraft="";void pilotMarketSearch(marketQuery);return;}
   pilotComposerDraft=text;
   const requestId=pilotPendingCommandId(text);
 
