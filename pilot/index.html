@@ -4661,6 +4661,64 @@ async function createGoal(){
       data=r.data;
     }
 
+    // Explicit confirmed decisions take precedence over an inconsistent new request.
+    // The user sees one short choice; no action is created until it is resolved.
+    let conflictCount=0;
+    while(data.stage==="decision_conflict" && conflictCount++<5){
+      const d=data.decision||{};
+      const key=String(d.key||"");
+      const goalId=String(data.goal?.id||"");
+      if(!goalId||!Object.hasOwn(pilotJournalKeys,key)||!d.revision_id)
+        throw new Error("Die Entscheidung konnte nicht eindeutig zugeordnet werden.");
+      const label=pilotJournalKeys[key];
+      const formNames={einzelunternehmen:"Einzelunternehmen",ug:"UG (haftungsbeschränkt)",gmbh:"GmbH"};
+      const display=v=>key==="legal_form"?(formNames[v]||v):v;
+      PS.textContent="Pilot prüft eine bestehende Entscheidung …";
+      const choice=await nxDialog({
+        pilotFlightHandoff:true,
+        pilotFlightMessage:"Bitte prüfe deine bisherige Projektentscheidung.",
+        title:"Projektentscheidung abgleichen",
+        description:"Projekt: "+String(data.goal.title||"Dein Auftrag")+
+          "\n"+label+" bisher: "+display(String(d.old_value||""))+
+          "\nNeue Angabe: "+display(String(d.new_value||""))+
+          "\n\nPilot übernimmt keinen widersprüchlichen Wert ohne deine Bestätigung.",
+        buttons:[{value:"keep",label:"Bisherige Entscheidung behalten",primary:true},
+                 {value:"replace",label:"Neue Entscheidung übernehmen",orange:true}]
+      });
+      if(choice===null){
+        PS.textContent="Pilot bereit";btn.disabled=false;btn.textContent="✈ Pilot jetzt starten";
+        btn.classList.remove("launching");return;
+      }
+      if(choice==="keep"){
+        // The request contradicts a confirmed value. Rather than generate a
+        // misleading deliverable, keep the existing work and do not enqueue it.
+        activeGoalId=goalId;
+        try{localStorage.setItem("nexaro_pilot_goal_"+user.id,goalId)}catch{}
+        await load();current="home";render();
+        pilotSetFlightState(null,"idle","");
+        finishPilotFlight();
+        PS.textContent="Deine bisherige Entscheidung bleibt erhalten.";
+        pilotNotice("Deine bestätigte Entscheidung bleibt gültig. Der widersprüchliche Folgeauftrag wurde nicht angelegt.");
+        return;
+      }
+      if(choice!=="replace")throw new Error("Die Auswahl ist nicht mehr gültig.");
+      // Server-side compare-and-set prevents lost updates from other devices.
+      await pilotJournalAPI({
+        operation:"set",goal_id:goalId,
+        decision_key:key,decision_value:d.new_value,
+        expected_revision_id:d.revision_id
+      });
+      resolutionPayload={existing_goal_id:goalId};
+      setPilotFlightPhase("Pilot übernimmt deine neue Entscheidung …");
+      r=await sb.functions.invoke("pilot-intelligence",{
+        body:{input:text,intent:data.intent,...resolutionPayload}
+      });
+      if(r.error)throw await pilotApiError(r,"Pilot konnte die neue Entscheidung nicht übernehmen.");
+      data=r.data;
+    }
+    if(data.stage==="decision_conflict")
+      throw new Error("Bitte prüfe weitere widersprüchliche Angaben in deinem Auftrag.");
+
     if(data.stage!=="ready")throw new Error("Pilot konnte den Plan nicht abschließen.");
 
     setPilotFlightPhase("Pilot öffnet deinen Arbeitsbereich …");
