@@ -9,11 +9,13 @@ const uuid=async(id:string)=>{
  const s=Array.from(b.slice(0,16),v=>v.toString(16).padStart(2,"0")).join("");
  return s.slice(0,8)+"-"+s.slice(8,12)+"-"+s.slice(12,16)+"-"+s.slice(16,20)+"-"+s.slice(20);
 };
-async function check(s:any,id:string,owner:string){
+async function check(s:any,id:string,owner:string,createdAt:string){
  const job=await s.from("pilot_background_jobs").select("*").eq("goal_id",id).maybeSingle();
  if(job.error)return answer({error:"job_lookup_unavailable"},503);
  const j=job.data;
- if(!j||["queued","running"].includes(j.status))
+ const overdue=Date.now()-new Date(createdAt).getTime()>20*60*1000;
+ const leased=j?.status==="running"&&j.lease_until&&new Date(j.lease_until).getTime()>Date.now();
+ if((!j||["queued","running"].includes(j.status))&&(!overdue||leased))
   return answer({status:"running",stage:j?.stage||"starting",steps:j?.steps_completed||0});
  const [actions,results,execs,miles]=await Promise.all([
   s.from("actions").select("id,status").eq("goal_id",id),
@@ -70,7 +72,7 @@ const handler=async(req:Request)=>{
  const old=await s.from("goals").select("id,created_at").eq("pilot_request_id",receipt)
   .eq("owner_id",owner).maybeSingle();
  if(old.error)return answer({error:"existing_test_unavailable"},503);
- if(old.data)return check(s,old.data.id,owner);
+ if(old.data)return check(s,old.data.id,owner,old.data.created_at);
  if(body.operation==="status")return answer({status:"not_running"});
  const member=await s.from("organization_members").select("organization_id")
   .eq("user_id",owner).eq("active",true).limit(1).single();
@@ -127,7 +129,14 @@ const handler=async(req:Request)=>{
   if(accepted.data&&["queued","running"].includes(accepted.data.status))
    return answer({status:"running",stage:accepted.data.status},202);
   await s.from("goals").delete().eq("id",gid).eq("owner_id",owner);
-  return answer({error:String((e as Error).message||e).slice(0,90)},503);
+  const message=String((e as Error).message||e).slice(0,90);
+  await s.from("alpha_readiness_checks").upsert({
+   check_key:KEY,category:"execution",required:true,status:"failed",
+   description:"Realtest: browserunabhängiger Hintergrundauftrag mit gespeichertem Ergebnis und Verifikation",
+   evidence:{owner_id:owner,failed_at:new Date().toISOString(),error:message},
+   updated_at:new Date().toISOString()
+  },{onConflict:"check_key"});
+  return answer({status:"failed",error:message},503);
  }
 };
 const C={"access-control-allow-origin":"*","access-control-allow-methods":"POST,OPTIONS",
