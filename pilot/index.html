@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><meta name="referrer" content="same-origin">
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><meta name="referrer" content="same-origin"><meta name="color-scheme" content="light">
 <title>neXaro Pilot · Zukunft operativer KI</title>
 <style>
 :root{--bg:#f7f8f5;--s:#fff;--l:#e2e6de;--t:#151715;--m:#737973;--g:#7dff00;--o:#ff6a00;--sh:0 16px 45px rgba(28,34,27,.08)}
@@ -3063,6 +3063,60 @@ body{background:radial-gradient(ellipse 72vw 60vw at 92% -10%,rgba(145,255,62,.1
   animation:none!important;will-change:auto!important;
  }
 }
+
+/* Pilot platform-responsiveness baseline v1: Windows/macOS/iOS/Android browsers. */
+html{max-width:100%;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{max-width:100%;overflow-x:clip}
+.shell,.main,#view,.pilot-screen,.pilot-home,.pilot-simple,
+.pilot-project-list,.pilot-simple-results,.pilot-admin-screen{
+ min-width:0;max-width:100%;
+}
+#view :where(.card,.item,.pilot-simple-card,.pilot-project-card,
+.pilot-report-section,.pilot-review-card,.pilot-admin-screen){min-width:0}
+#view :where(p,strong,small,h1,h2,h3,.pilot-simple-preview,.pilot-project-document-body){
+ overflow-wrap:anywhere;
+}
+#view :where(img,video,canvas){max-width:100%;height:auto}
+#view pre{max-width:100%;overflow-x:auto;overscroll-behavior-x:contain}
+#view :where(.admin-user-table,.pilot-project-document-body){-webkit-overflow-scrolling:touch}
+:where(button,a,input,textarea,select,summary):focus-visible{
+ outline:3px solid #f99631;outline-offset:2px;
+}
+:where(button,summary){touch-action:manipulation}
+@media(max-width:760px){
+ .main{width:100%!important;min-width:0;padding-left:max(12px,env(safe-area-inset-left))!important;
+  padding-right:max(12px,env(safe-area-inset-right))!important}
+ .main .head{flex-wrap:wrap;gap:8px!important;min-width:0}
+ .main .head>div:first-child{min-width:0}
+ .main .head-actions{min-width:0;max-width:100%;flex-wrap:wrap;gap:6px}
+ .main .head .status{max-width:100%;min-width:0}
+ .main .head .status span:last-child{overflow-wrap:anywhere}
+ .side{padding-left:max(8px,env(safe-area-inset-left))!important;
+  padding-right:max(8px,env(safe-area-inset-right))!important}
+ .side nav.pilot-minimal-nav .pilot-nav-more-content{
+  max-height:min(55dvh,calc(100dvh - 95px))!important;overscroll-behavior:contain;
+ }
+ /* iOS Safari keeps the page at its current zoom with >=16px focused inputs. */
+ input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+ textarea,select,.nx-modal input,.nx-modal textarea,
+ .auth-modal-card input{font-size:16px!important}
+ .auth-modal{max-height:100dvh;overflow-y:auto;-webkit-overflow-scrolling:touch}
+ .auth-modal-card{max-width:100%;max-height:calc(100dvh - 16px);overflow-y:auto;
+  overscroll-behavior:contain}
+}
+@media(any-pointer:coarse){
+ .pilot-nav-more-content .nav{min-height:44px!important}
+ .pilot-nav-more>summary{min-height:44px!important}
+ .pilot-demo-close,.pilot-home .btn,.pilot-simple-entry-footer>.btn{min-height:44px}
+}
+@media(max-width:760px) and (orientation:landscape) and (max-height:520px){
+ .main{padding-bottom:calc(86px + env(safe-area-inset-bottom))!important}
+ .auth-modal-card{max-height:calc(100dvh - 8px)}
+}
+@media(prefers-reduced-motion:reduce){
+ html{scroll-behavior:auto!important}
+ .side .nav,.auth-modal-card,.pilot-home .btn{transition:none!important}
+}
 </style></head>
 <body>
 <section id="auth" class="auth"><div class="box">
@@ -3094,9 +3148,9 @@ body{background:radial-gradient(ellipse 72vw 60vw at 92% -10%,rgba(145,255,62,.1
       <div class="ey" id="authModalEy">SICHERER SYSTEMZUGANG</div>
       <h2 id="authModalTitle">Pilot öffnen</h2>
       <p id="authModalText">Melde dich mit deinem bestehenden Zugang an.</p>
-      <div class="field"><label>E-Mail</label><input id="modalEmail" type="email" autocomplete="email"></div>
-      <div class="field"><label>Passwort</label><input id="modalPassword" type="password" minlength="8" autocomplete="current-password"></div>
-      <div class="field hidden" id="repeatPasswordWrap"><label>Passwort wiederholen</label><input id="modalPassword2" type="password" minlength="8" autocomplete="new-password"></div>
+      <div class="field"><label for="modalEmail">E-Mail</label><input id="modalEmail" type="email" autocomplete="email"></div>
+      <div class="field"><label for="modalPassword">Passwort</label><input id="modalPassword" type="password" minlength="8" autocomplete="current-password"></div>
+      <div class="field hidden" id="repeatPasswordWrap"><label for="modalPassword2">Passwort wiederholen</label><input id="modalPassword2" type="password" minlength="8" autocomplete="new-password"></div>
       <label class="privacy-check hidden" id="privacyWrap"><input id="acceptPrivacy" type="checkbox"><span>Ich habe die <a href="/datenschutz.html" target="_blank" rel="noopener">Datenschutzhinweise</a> gelesen.</span></label>
       <button id="submitAuth" class="btn primary modal-submit">Pilot öffnen</button>
       <button id="switchAuthMode" class="text-button">Noch kein Konto? Konto erstellen</button>
@@ -4114,7 +4168,7 @@ async function processPendingAttachments(goalId,taskText){
 }
 
 function bind(){
-  document.querySelectorAll("[data-view]").forEach(b=>b.onclick=async()=>{current=b.dataset.view;if(current==="admin"&&isAdmin){try{await loadAdminConsole()}catch(e){pilotNotice(e.message||String(e))}}render()});
+  document.querySelectorAll("[data-view]").forEach(b=>b.onclick=async()=>{current=b.dataset.view;const menu=b.closest(".pilot-nav-more");if(menu)menu.open=false;if(current==="admin"&&isAdmin){try{await loadAdminConsole()}catch(e){pilotNotice(e.message||String(e))}}render()});
   document.querySelectorAll("[data-jump]").forEach(b=>b.onclick=()=>{current=b.dataset.jump;render()});
    document.querySelectorAll("[data-open-goal]").forEach(b=>b.onclick=async()=>{if(activePilotFlight&&pilotFlightState.goalId&&pilotFlightState.goalId!==b.dataset.openGoal){pilotDestroyFlight(activePilotFlight);pilotSetFlightState(null,"idle","")}activeGoalId=b.dataset.openGoal;try{localStorage.setItem("nexaro_pilot_goal_"+user.id,activeGoalId)}catch{}await load();current="home";render()});
   document.querySelectorAll("details[data-project]").forEach(project=>project.addEventListener("toggle",()=>{
@@ -5457,14 +5511,16 @@ let authMode="login";
 const AUTHM=document.getElementById("authModal"),ME=document.getElementById("modalEmail"),MP=document.getElementById("modalPassword"),MP2=document.getElementById("modalPassword2"),MW=document.getElementById("repeatPasswordWrap"),PW=document.getElementById("privacyWrap"),AP=document.getElementById("acceptPrivacy"),SM=document.getElementById("submitAuth"),SW=document.getElementById("switchAuthMode"),RC=document.getElementById("resendConfirmation"),MM=document.getElementById("modalMessage"),CS=document.getElementById("confirmationState"),CE=document.getElementById("confirmationEmail"),CR=document.getElementById("confirmationResend"),CL=document.getElementById("confirmationLogin");
 function modalMessage(s,ok=false){MM.innerHTML='<div class="msg '+(ok?'ok':'')+'">'+esc(s)+'</div>'}
 function setAuthMode(mode){authMode=mode;const reg=mode==="register";document.querySelector(".modal-form-panel")?.classList.remove("auth-complete");CS.classList.add("hidden");document.getElementById("authModalEy").textContent=reg?"SICHERES KONTO ERSTELLEN":"SICHERER SYSTEMZUGANG";document.getElementById("authModalTitle").textContent=reg?"Dein Pilot-Zugang":"Pilot öffnen";document.getElementById("authModalText").textContent=reg?"Lege deinen Zugang fest. Der Schutz deiner Daten beginnt bereits bei der Registrierung.":"Melde dich mit deinem bestehenden Zugang an.";MW.classList.toggle("hidden",!reg);PW.classList.toggle("hidden",!reg);MP.autocomplete=reg?"new-password":"current-password";SM.textContent=reg?"Sicheren Zugang erstellen":"Pilot öffnen";SW.textContent=reg?"Bereits registriert? Pilot öffnen":"Noch kein Konto? Konto erstellen";RC.classList.add("hidden");MM.innerHTML=""}
-function openAuth(mode){setAuthMode(mode);AUTHM.classList.remove("hidden");document.body.style.overflow="hidden";AUTHM.scrollTop=0;setTimeout(()=>{AUTHM.scrollTop=0},50)}
-function closeAuth(){AUTHM.classList.add("hidden");document.body.style.overflow=""}
+let pilotAuthPreviousFocus=null;
+function openAuth(mode){pilotAuthPreviousFocus=document.activeElement;setAuthMode(mode);AUTHM.classList.remove("hidden");document.body.style.overflow="hidden";AUTHM.scrollTop=0;requestAnimationFrame(()=>{if(!AUTHM.classList.contains("hidden")){AUTHM.scrollTop=0;ME.focus({preventScroll:true})}})}
+function closeAuth(){AUTHM.classList.add("hidden");document.body.style.overflow="";if(pilotAuthPreviousFocus?.isConnected)pilotAuthPreviousFocus.focus({preventScroll:true});pilotAuthPreviousFocus=null}
 document.getElementById("openLogin").onclick=()=>openAuth("login");
 document.getElementById("openRegister").onclick=()=>openAuth("register");
 document.getElementById("closeAuth").onclick=closeAuth;
 document.getElementById("closeAuthBackdrop").onclick=closeAuth;
 document.getElementById("scrollToAccess").onclick=()=>document.getElementById("accessForm")?.scrollIntoView({behavior:"smooth",block:"start"});
 SW.onclick=()=>setAuthMode(authMode==="login"?"register":"login");
+[ME,MP,MP2].forEach(input=>input.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.isComposing){e.preventDefault();SM.click()}}));
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!AUTHM.classList.contains("hidden"))closeAuth()});
 SM.onclick=async()=>{const email=ME.value.trim(),password=MP.value;if(!email)return modalMessage("Bitte gib deine E-Mail-Adresse ein.");if(password.length<8)return modalMessage("Das Passwort muss mindestens 8 Zeichen enthalten.");SM.disabled=true;try{if(authMode==="login"){const r=await sb.auth.signInWithPassword({email,password});if(r.error)throw r.error;closeAuth();await enter(r.data.session);return}if(password!==MP2.value)return modalMessage("Die beiden Passwörter stimmen nicht überein.");if(!AP.checked)return modalMessage("Bitte bestätige die Datenschutzhinweise.");const r=await sb.functions.invoke("pilot-register",{body:{email,password,accepted_privacy:true,full_name:email.split("@")[0]}});if(r.error)throw new Error(r.data?.error||r.error.message||"Registrierung fehlgeschlagen");if(!r.data?.ok)throw new Error(r.data?.error||"Registrierung fehlgeschlagen");CE.textContent=email;document.querySelector(".modal-form-panel")?.classList.add("auth-complete");CS.classList.remove("hidden");document.getElementById("authModalEy").textContent="BESTÄTIGUNG ERFORDERLICH";document.getElementById("authModalTitle").textContent="E-Mail bestätigen";setTimeout(()=>CS.scrollIntoView({behavior:"smooth",block:"center"}),80)}catch(e){modalMessage(e.message||String(e))}finally{SM.disabled=false}}
 async function resendConfirmationMail(){const email=ME.value.trim(),password=MP.value;if(!email)return modalMessage("Bitte gib zuerst deine E-Mail-Adresse ein.");if(password.length<8)return modalMessage("Bitte gib dein Passwort erneut ein.");CR.disabled=true;try{const r=await sb.functions.invoke("pilot-register",{body:{email,password,accepted_privacy:true,full_name:email.split("@")[0]}});if(r.error)throw new Error(r.data?.error||r.error.message||"E-Mail konnte nicht gesendet werden");const old=CR.textContent;CR.textContent="E-Mail erneut gesendet ✓";setTimeout(()=>CR.textContent=old,2400)}catch(e){modalMessage(e.message||String(e))}finally{CR.disabled=false}}
