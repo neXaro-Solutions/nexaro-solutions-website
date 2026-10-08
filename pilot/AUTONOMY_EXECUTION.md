@@ -32,3 +32,15 @@ Bereits simuliert: Start-/Review-/Stop-Zustände in Zentrale und Ausführung, dr
 **Noch offen und nicht als erledigt behaupten:** Ein echter Ausführungslauf mit dem angemeldeten Pilot-Konto (erstes Ergebnis), die Bestätigung mit verifiziertem `goal_memories`- und Fortschrittseintrag sowie die tatsächlich ausgeführte sichere Folgeaktion. Ohne Zugriff auf die authentifizierte Sitzung wird kein Nutzerkonto impersoniert und kein Live-Ergebnis vorgetäuscht.
 
 **Releaseprinzip:** Sobald alle Pflichtverifikationen live bestanden und gespeichert sind, darf die Roadmap-Funktion auf Grün (`ready`) wechseln. Neue autonome Fähigkeiten müssen immer die gleichen Sicherheits- und Qualitätsgrenzen erfüllen.
+
+
+## Live-Debugging 2026-10-08 – korrektives Release LUMEN .22
+
+- **09:22:** Recherche-Gateway verwendete undefinierte `base`-Variable → HTTP 500 statt JSON; interne Fehlermeldung erschien auf dem iPhone. Recherche-Gateway v13, Recherche-Intelligenz v11 und Ausführungs-Engine v20 haben Fehlerbehandlung und sichere Rückgaben erhalten.
+- **09:27:** Zweiter Live-Test ergab `no_usable_sources`: Der gesamte Text aus Aktionstitel plus einer fachlich **unpassenden** Objective-Notiz wurde als lange Suchanfrage verwendet. Backend korrekt angehalten, kein fertiges Resultat erzeugt.
+- **Quellensuche:** `research-gateway v16` verwendet kurze thematische Abfragen, Wikipedia REST mit Action-API-Rückfall, topic-diverse Source-Scoring und als letzte Option eine unabhängige Websuche. Letztere akzeptiert ausschließlich tatsächlich abrufbare öffentliche Seiten erlaubter vertrauenswürdiger Domains, nie frei erfundene URLs oder KI-Ausgabepassagen als Beleg. Fällt die Beschaffung aus, bleibt die Qualitätsprüfung gesperrt.
+- **Planungsfehler:** `pilot-intelligence v30` überschrieb im ersten Geschäftsschritt den Aktionstitel mit einem generischen First-Action-Namen, obwohl Ziel und Meilenstein eine andere Arbeitsphase beschrieben. **Ab v31** wird bei inhaltlich abweichendem First-Action-Titel ein eigener Fundament-Schritt mit passendem Meilenstein erstellt, alle ursprünglichen Phasen bleiben getrennt erhalten.
+- **Bestehender Pilot-Testauftrag:** Die eigene Aufgabe „Zielgruppe und konkreten Kundennutzen in einem Satz festlegen“ wurde mit passendem Ziel, Meilenstein und `ready`-Status angelegt. Die ursprüngliche Rechtsform-/Anmeldungsprüfung wurde auf ihren tatsächlichen Titel korrigiert und bleibt `pending`. Es gibt jetzt sieben statt sechs fachlich unterscheidbare Aktionen. Kein ursprünglicher Meilenstein ging verloren.
+- **KI-Stabilität:** `best-of-ai v14` verarbeitet nicht-jsonförmige Modell-Gateway-Antworten kontrolliert und verlangt die erforderlichen Ergebnisfelder.
+- **Frontend:** `LUMEN 2026.10.08.22` zeigt nur Fehler der *aktuell auszuführenden* Aktion als Retry-Hinweis und vermeidet, dass alte Fehlversuche den Status des gesamten Unternehmensziels als „fehlgeschlagen“ anzeigen.
+- **Verifikation:** Produktionsfunktionen sind installiert und Code/DB-Konsistenz geprüft. Erneuter authentifizierter iPhone-Live-Test ist **noch offen**. Der Entwicklungsblock darf erst nach einer real gespeicherten und bestätigten Lieferung grün werden.
