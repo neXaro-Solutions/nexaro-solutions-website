@@ -26,7 +26,10 @@ for(const s of [
  '(actionList.data||[]).length===2',
  'const clean=!deleted.error&&!!deleted.data&&!remaining.error&&!remaining.data',
  'if(clean)goalId=null',
- 'checks.every(c=>c.passed)'
+ 'checks.every(c=>c.passed)',
+ 'check_key:"private_alpha_continuity_e2e"',
+ 'continuityChecks.length===7&&continuityChecks.every(x=>x.passed)',
+ 'if(passed&&continuityPassed&&!continuityRecord.error)'
 ])assert(code.includes(s),"Missing live E2E guard: "+s);
 assert(ui.includes("Live-Auftragskette prüfen"));
 assert(ui.includes("pilotE2ELastReportHTML"),
