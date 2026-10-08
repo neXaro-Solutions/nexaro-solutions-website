@@ -4458,6 +4458,9 @@ function pilotFlyingFromCurrentWork(){
 }
 function pilotEnsureContinuousFlight(goalId){
  if(!goalId||goals[0]?.id!==goalId)return;
+ if(activePilotFlight?.phase==="parked"){
+   pilotDestroyFlight(activePilotFlight);
+ }
  if(!activePilotFlight?.plane?.isConnected){
    const origin=pilotFlyingFromCurrentWork();
    if(origin)startPilotFlight(origin);
@@ -4627,7 +4630,7 @@ async function confirmPilotResult(){
  if(!legalForm)draft.text=editedText;
  const btn=document.getElementById("confirmPilotResult");
  if(btn)btn.disabled=true;
- startPilotFlight(btn);
+ // The worker stays beside the parked aircraft until the server confirms the decision.
  PS.textContent="Pilot übernimmt dein bestätigtes Ergebnis …";
  try{
    const response=await sb.functions.invoke("execution-engine",{body:{
@@ -4639,6 +4642,7 @@ async function confirmPilotResult(){
    if(response.data?.status!=="completed")throw new Error("Die Bestätigung ist noch nicht abgeschlossen.");
    await load();
    render();
+   await pilotAvatarReboard(ctx.ex.goal_id);
    pilotEnsureContinuousFlight(ctx.ex.goal_id);
    PS.textContent="Pilot startet die nächsten sicheren Schritte …";
    void pilotContinueSafely(ctx.ex.goal_id,32);
@@ -4830,7 +4834,9 @@ async function executeAction(){
  pilotExecutionRequestActive=true;
  if(btn){btn.disabled=true;btn.classList.add("launching");}
  document.getElementById("pilotNextActionPanel")?.classList.remove("pilot-action-landed");
- startPilotFlight(btn);
+ // Joint work first opens the real decision. The avatar waits until that decision is given.
+ if(!(activePilotFlight?.phase==="parked"&&
+      (n.owner_type==="joint"||n.recommended_mode==="together")))startPilotFlight(btn);
  const watcher=pilotWatchExecution({actionId:n.id});
  try{
    const r=await sb.functions.invoke("execution-engine",{body:{operation:"start",action_id:n.id}});
@@ -4841,6 +4847,7 @@ async function executeAction(){
    const status=r.data?.status;
    const goalId=n.goal_id||goals[0]?.id;
    if(shouldAutoContinue){
+     await pilotAvatarReboard(goalId);
      pilotEnsureContinuousFlight(goalId);
      PS.textContent="Pilot führt die nächsten sicheren Schritte selbstständig aus …";
      void pilotContinueSafely(goalId,32);
@@ -4867,7 +4874,28 @@ async function executeAction(){
    },450);
  }
 }
-async function decideExecution(v,approved){const [execution_id,step_id]=v.split(":");const reason=approved?null:await pilotAskText("Warum möchtest du diese Aktion ablehnen?",{title:"Freigabe ablehnen",placeholder:"Optionaler Grund …"});if(!approved&&reason===null)return;PS.textContent=approved?"Freigabe wird verarbeitet …":"Aktion wird abgebrochen …";try{const r=await sb.functions.invoke("execution-engine",{body:{operation:"approve",execution_id,step_id,approved,reason}});if(r.error&&r.data?.status!=="blocked")throw r.error;await load();render();PS.textContent="Pilot bereit";if(r.data?.status==="blocked")pilotNotice("Freigabe wurde erfasst. Die externe Capability ist noch nicht verbunden; Pilot hat deshalb nicht ausgeführt.")}catch(e){PS.textContent="Pilot bereit";pilotNotice(e.message||String(e))}}
+async function decideExecution(v,approved){
+ const [execution_id,step_id]=v.split(":");
+ const ex=executions.find(x=>x.id===execution_id),goalId=ex?.goal_id||goals[0]?.id;
+ const reason=approved?null:await pilotAskText("Warum möchtest du diese Aktion ablehnen?",{title:"Freigabe ablehnen",placeholder:"Optionaler Grund …"});
+ if(!approved&&reason===null)return;
+ PS.textContent=approved?"Freigabe wird verarbeitet …":"Aktion wird abgebrochen …";
+ try{
+   const r=await sb.functions.invoke("execution-engine",{body:{operation:"approve",execution_id,step_id,approved,reason}});
+   if(r.error&&r.data?.status!=="blocked")throw await pilotApiError(r,"Freigabe konnte nicht verarbeitet werden.");
+   await load();render();
+   if(r.data?.status==="completed"){
+     await pilotAvatarReboard(goalId);
+     pilotEnsureContinuousFlight(goalId);
+     void pilotContinueSafely(goalId,32);
+   }else if(r.data?.status==="blocked"){
+     pilotEndContinuousFlight(goalId,"Die externe Funktion ist noch nicht verbunden");
+     pilotNotice("Die Freigabe wurde gespeichert. Die externe Aktion ist technisch noch nicht ausführbar und wurde nicht durchgeführt.");
+   }else if(r.data?.status==="cancelled"){
+     pilotEndContinuousFlight(goalId,"Freigabe abgelehnt");
+   }
+ }catch(e){PS.textContent="Pilot benötigt deine Aufmerksamkeit";pilotNotice(e.message||String(e),"error")}
+}
 async function enter(session){user=session.user;try{activeGoalId=localStorage.getItem("nexaro_pilot_goal_"+user.id)||null}catch{}A.classList.add("hidden");APP.classList.remove("hidden");try{await load();await pilotEnsureJourney();render();if(goals[0]){
    void startGoalResearch(goals[0].id);
    void pilotResumeApprovedWork();
