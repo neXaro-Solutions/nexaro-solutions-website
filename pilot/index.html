@@ -3191,7 +3191,6 @@ function home(){
  const n=actions.find(a=>a.status==="ready")||actions.find(a=>a.status==="pending");
  const approval=pilotReviewContext();
  const interrupt=executions.find(x=>["running","waiting_approval","review_required","blocked"].includes(x.status));
- const latest=pilotShortResult();
  const inProgress=!!pilotAutoSession?.active;
  const done=actions.filter(x=>x.status==="completed").length;
  const count=actions.length;
@@ -3223,25 +3222,13 @@ function home(){
  '<button type="button" data-jump="execution" class="btn">Prüfung öffnen</button></div>':
  n?'<div class="command-card pilot-simple-action"><p><strong>Als Nächstes:</strong> '+esc(currentTask)+'</p>'+
  '<div class="pilot-home-action-buttons"><button type="button" id="executeAction" class="btn ai" data-action="'+esc(n.id)+'">'+(n.owner_type==="joint"||n.recommended_mode==="together"?"Entscheidung prüfen":"✈ Pilot weiterarbeiten lassen")+'</button></div></div>':
- '<p class="pilot-simple-count">Pilot zeigt dir das Ergebnis unten. Offene Folgeaufgaben bleiben dem Ziel zugeordnet.</p>')+
+ '<p class="pilot-simple-count">Die vorbereiteten Schritte sind bearbeitet. Den tatsächlichen Abschluss prüft Pilot weiterhin.</p>')+
  '<details class="pilot-simple-details"><summary>Arbeitsdetails anzeigen</summary>'+
  '<p>Die technische Planung läuft im Hintergrund. Du musst diese Schritte nicht einzeln verwalten.</p>'+
  '<button type="button" data-jump="goals" class="btn">Alle Ziele</button> '+
  '<button type="button" data-jump="execution" class="btn">Ausführungsverlauf</button>'+
  '</details></section>';
- const ready=!!latest,provisional=latest?.quality_status==="provisional"||latest?.quality_status==="review_required";
- const title=ready?pilotFriendlyActionTitle(latest.title||"Dein Ergebnis"):"Dein erstes Ergebnis";
- const raw=ready?String(latest.content||"").replace(/\\n/g,"\n"):"";
- const body=raw.replace(/^VORLÄUFIG[^\n]*\n*/i,"").trim();
- const clip=body.length>240?body.slice(0,237).trim()+" …":body;
- const outcome='<section class="pilot-simple-card pilot-simple-outcome" aria-labelledby="pilotSimpleResult">'+
- '<div class="pilot-simple-outcome-head"><span class="pilot-simple-kicker">ERGEBNIS</span>'+
- (ready?'<span class="pilot-simple-tag '+(provisional?"pending":"")+'">'+(provisional?"Vorläufig":"Erarbeitet")+'</span>':'')+'</div>'+
- '<h2 id="pilotSimpleResult">'+esc(title)+'</h2>'+
- '<p class="pilot-simple-preview">'+(ready?esc(clip):"Hier erscheint dein konkretes Ergebnis, sobald Pilot den ersten Schritt abgeschlossen hat.")+'</p>'+
- (ready?'<button type="button" class="pilot-simple-link" data-jump="goals">Ergebnisse im Auftrag ansehen <span aria-hidden="true">→</span></button>':'')+
- '</section>';
- return '<div class="pilot-simple">'+entry+status+outcome+'</div>';
+ return '<div class="pilot-simple">'+entry+status+'</div>';
 }
 
 /** LUMEN: shared scene header for every customer-facing Pilot screen. */
@@ -4337,7 +4324,7 @@ async function previewPilotFlight(){
 }
 /* A client-initiated, bounded Autopilot batch. Every iteration is separately authorized by the
    backend; it can never override a joint decision, external approval, or quality review. */
-async function pilotContinueSafely(goalId,maxSteps=8){
+async function pilotContinueSafely(goalId,maxSteps=32){
  if(!goalId||pilotAutoSession?.active)return;
  const session={active:true,cancelRequested:false,count:0,max:maxSteps,label:"Pilot prüft den nächsten sicheren Schritt …"};
  pilotAutoSession=session;pilotAutoSummary=null;render();
@@ -4346,7 +4333,7 @@ async function pilotContinueSafely(goalId,maxSteps=8){
  try{
    for(let i=0;i<maxSteps;i++){
      if(session.cancelRequested){stopped="Auf deinen Wunsch nach dem laufenden Schritt angehalten.";break}
-     session.label="Prüfung und Ausführung "+(i+1)+" / "+maxSteps+" …";
+     session.label="Pilot bearbeitet den nächsten sicheren Arbeitsschritt …";
      render();
      const autoWatch=pilotWatchExecution({goalId});
     let response;
@@ -4374,7 +4361,7 @@ async function pilotContinueSafely(goalId,maxSteps=8){
      session.count++;
      await load();
      if(session.cancelRequested){stopped="Auf deinen Wunsch nach "+session.count+" Schritt(en) angehalten.";break}
-     if(i===maxSteps-1)stopped=maxSteps+" Folgeschritte bearbeitet. Weitere Aufgaben kannst du erneut starten.";
+     if(i===maxSteps-1)stopped="Die Sicherheitsgrenze dieses Laufs ist erreicht; dein Fortschritt bleibt erhalten.";
    }
  }catch(e){
    stopKind="error";
@@ -4391,7 +4378,7 @@ async function pilotContinueSafely(goalId,maxSteps=8){
    if(pilotAutoSession===session)pilotAutoSession=null;
    render();
    if(launchCreated && !session.cancelRequested && goals[0]?.id===goalId){
-     setTimeout(()=>{if(!pilotAutoSession?.active && goals[0]?.id===goalId)void pilotContinueSafely(goalId,8)},250);
+     setTimeout(()=>{if(!pilotAutoSession?.active && goals[0]?.id===goalId)void pilotContinueSafely(goalId,32)},250);
    }
  }
 }
@@ -4431,7 +4418,7 @@ async function confirmPilotResult(){
    // Land the aircraft for the completed user decision; continue follow-up jobs independently.
    finishPilotFlight();
    PS.textContent="Pilot startet die nächsten sicheren Schritte …";
-   void pilotContinueSafely(ctx.ex.goal_id,8);
+   void pilotContinueSafely(ctx.ex.goal_id,32);
  }catch(e){
    PS.textContent="Pilot benötigt eine Prüfung";
    await load().catch(()=>{});
@@ -4636,7 +4623,7 @@ async function executeAction(){
    if(shouldAutoContinue){
      finishPilotFlight();
      PS.textContent="Pilot führt die nächsten sicheren Schritte selbstständig aus …";
-     void pilotContinueSafely(n.goal_id||goals[0]?.id,8);
+     void pilotContinueSafely(n.goal_id||goals[0]?.id,32);
    }
  }catch(e){
    PS.textContent="Pilot benötigt eine Prüfung";
