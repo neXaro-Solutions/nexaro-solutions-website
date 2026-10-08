@@ -1911,7 +1911,7 @@ function nxOpenNext(){
   const mask=document.createElement("div");mask.className="nx-mask";
   const safe=esc;
   mask.innerHTML='<section class="nx-modal" role="dialog" aria-modal="true" aria-labelledby="nxTitle" aria-describedby="nxDesc">'+
-    '<div class="nx-top"><div class="nx-symbol" aria-hidden="true">✦</div><span class="nx-kicker">neXaro · PILOT · Alpha 2026.10.08.4</span><button type="button" class="nx-close" aria-label="Schließen">×</button></div>'+
+    '<div class="nx-top"><div class="nx-symbol" aria-hidden="true">✦</div><span class="nx-kicker">neXaro · PILOT · Alpha 2026.10.08.6</span><button type="button" class="nx-close" aria-label="Schließen">×</button></div>'+
     '<h2 id="nxTitle">'+safe(config.title||"Pilot fragt nach")+'</h2><p class="nx-description" id="nxDesc">'+safe(config.description||"Bitte ergänze die noch fehlenden Angaben.")+'</p>'+
     '<form novalidate><div class="nx-fields">'+fields.map((f,i)=>'<div class="nx-field"><label for="nxInput'+i+'">'+safe(f.label)+'</label>'+
       (f.short?'<input id="nxInput'+i+'" type="text" name="'+safe(f.key)+'" maxlength="500" placeholder="'+safe(f.placeholder||"")+'" data-required="'+(f.required?"1":"0")+'">':
@@ -1993,9 +1993,29 @@ async function pilotSafetyDiagnostic({show=true}={}){
   if(!isAdmin)return null;
   let result;
   try{
-    const resp=await sb.functions.invoke("safety-gate",{body:{operation:"diagnostic"}});
-    if(resp.error)throw await pilotApiError(resp,"Verbindungsdiagnose derzeit nicht erreichbar.");
-    result=resp.data||{};
+    const sessionResult=await sb.auth.getSession();
+    const accessToken=sessionResult.data?.session?.access_token;
+    if(!accessToken)throw new Error("Keine gültige Anmeldesitzung. Bitte melde dich erneut an. (Code: SESSION_MISSING)");
+    const endpoint=sb.supabaseUrl+"/functions/v1/safety-gate";
+    let response;
+    try{
+      response=await fetch(endpoint,{
+        method:"POST",
+        mode:"cors",
+        cache:"no-store",
+        headers:{"apikey":sb.supabaseKey,"Authorization":"Bearer "+accessToken,"Content-Type":"application/json"},
+        body:JSON.stringify({operation:"diagnostic"})
+      });
+    }catch(networkError){
+      throw new Error("Die Sicherheitsfunktion kann nicht erreicht werden. Verbindung oder Browserfreigabe prüfen. (Code: SAFETY_NETWORK_ERROR)");
+    }
+    const responseText=await response.text();
+    try{result=JSON.parse(responseText||"{}")}catch{result={error:"invalid_json_response"}}
+    if(!response.ok){
+      const reason=String(result?.reason_code||result?.error||"unbekannt");
+      const sbCode=String(response.headers.get("sb-error-code")||"").slice(0,90);
+      throw new Error("HTTP "+response.status+" · "+reason+(sbCode?" · Supabase: "+sbCode:"")+" (Code: SAFETY_DIAGNOSTIC_HTTP_"+response.status+")");
+    }
   }catch(e){
     if(show)await nxDialog({title:"Sicherheitsverbindung prüfen",description:"Die Diagnosefunktion ist aktuell nicht erreichbar. "+String(e.message||e),buttons:[{value:"submit",label:"Verstanden",primary:true}]});
     return null;
