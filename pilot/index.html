@@ -2710,6 +2710,45 @@ body{background:radial-gradient(ellipse 72vw 60vw at 92% -10%,rgba(145,255,62,.1
 .pilot-flight-attention{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;padding:10px 12px;background:#fff7ea;border:1px solid #f2d9b4;border-radius:11px;color:#765229;font-size:12px;line-height:1.5;margin:9px 0}
 .pilot-flight-attention strong{font-size:12px;color:#7e4e15}
 @media(prefers-reduced-motion:reduce){#pilotFlightLayer .pilot-plane{transition:none!important}}
+
+/* Miniatur-Arbeitsavatar: Branchenkleidung, klarer Hinweis, Ausstieg/Wiedereinstieg. */
+.pilot-worker-avatar{position:fixed;display:flex;gap:5px;align-items:flex-start;width:210px;height:120px;pointer-events:none!important;z-index:2147483001;--uniform:#628d4a;--uniform-dark:#365a35;--hat:#668945;--trim:#ddfb78;--skin:#d9a57c;transform-origin:15% 72%;filter:drop-shadow(0 5px 9px rgba(37,58,31,.17))}
+.pilot-worker-avatar[data-job="garden"]{--uniform:#5d9843;--uniform-dark:#396b2c;--hat:#507b2c;--trim:#d4f67f}
+.pilot-worker-avatar[data-job="construction"]{--uniform:#fc9b22;--uniform-dark:#74522b;--hat:#f7bd20;--trim:#f7edb4}
+.pilot-worker-avatar[data-job="kitchen"]{--uniform:#f6f6ec;--uniform-dark:#9fa9a4;--hat:#fff;--trim:#ccd8cf}
+.pilot-worker-avatar[data-job="logistics"]{--uniform:#e9a63c;--uniform-dark:#525a40;--hat:#efaa43;--trim:#ffea73}
+.pilot-worker-avatar[data-job="creative"]{--uniform:#9567b8;--uniform-dark:#634681;--hat:#b899da;--trim:#d6eaff}
+.pilot-worker-avatar[data-job="technical"]{--uniform:#4f8ec2;--uniform-dark:#305875;--hat:#3d668c;--trim:#a7dcff}
+.pilot-worker-avatar[data-job="business"]{--uniform:#536e8b;--uniform-dark:#283f55;--hat:#5e748f;--trim:#f5f5e8}
+.pilot-worker-figure{position:relative;flex:0 0 55px;width:55px;height:110px;transform-origin:40% 90%}
+.pilot-worker-face{position:absolute;top:18px;left:18px;width:25px;height:27px;border-radius:45% 45% 44% 44%;border:1px solid #98654b;background:linear-gradient(120deg,#f1c99d,var(--skin));z-index:6}
+.pilot-worker-eyes{position:absolute;top:11px;left:6px;width:3px;height:3px;border-radius:50%;background:#273a27;box-shadow:10px 0 #273a27}
+.pilot-worker-smile{position:absolute;top:17px;left:10px;width:9px;height:4px;border-bottom:1.5px solid #8c5037;border-radius:50%}
+.pilot-worker-hat{position:absolute;z-index:8;top:11px;left:15px;width:31px;height:12px;border:1px solid #42613a;border-radius:12px 12px 3px 3px;background:var(--hat)}
+.pilot-worker-hat:after{content:"";position:absolute;right:-7px;bottom:-2px;width:13px;height:3px;border-radius:4px;background:var(--hat)}
+.pilot-worker-avatar[data-job="kitchen"] .pilot-worker-hat{top:-2px;height:28px;border-radius:45% 45% 13% 13%;border-color:#ddd}
+.pilot-worker-avatar[data-job="construction"] .pilot-worker-hat{top:9px;height:13px;border-radius:50% 50% 4px 4px}
+.pilot-worker-body{position:absolute;z-index:5;top:43px;left:12px;width:36px;height:37px;border:1px solid var(--uniform-dark);border-radius:9px 10px 5px 5px;background:linear-gradient(115deg,var(--uniform),var(--uniform-dark))}
+.pilot-worker-body:after{content:"";position:absolute;left:16px;top:3px;width:4px;height:26px;border-radius:3px;background:var(--trim)}
+.pilot-worker-arm{position:absolute;z-index:4;top:47px;width:11px;height:29px;border-radius:7px;background:var(--uniform);border:1px solid var(--uniform-dark);transform-origin:top center}
+.pilot-worker-arm--wave{left:5px;transform:rotate(25deg);animation:pilotWorkerWave 1.5s ease-in-out infinite}
+.pilot-worker-arm--rest{right:3px;transform:rotate(-18deg)}
+.pilot-worker-leg{position:absolute;top:76px;width:12px;height:26px;border-radius:3px;background:#3d4b36;z-index:3}
+.pilot-worker-leg--left{left:15px}.pilot-worker-leg--right{left:34px}
+.pilot-worker-boot{position:absolute;top:97px;width:17px;height:9px;border-radius:4px 4px 3px 3px;background:#353b2e;z-index:4}
+.pilot-worker-boot--left{left:12px}.pilot-worker-boot--right{left:32px}
+.pilot-worker-speech{min-width:0;max-width:148px;margin-top:4px;background:rgba(255,255,255,.97);border:1px solid #d5e7c7;border-radius:11px;padding:7px 9px;box-shadow:0 5px 15px #314c2615;font-size:11px;line-height:1.32;color:#3b5531}
+.pilot-worker-speech strong{display:block;font-size:11px;color:#477731;margin-bottom:4px}
+.pilot-worker-speech span{display:block;font-weight:740}
+.pilot-worker--exit{animation:pilotWorkerExit .65s cubic-bezier(.2,.7,.25,1) both}
+.pilot-worker--boarding{animation:pilotWorkerBoard .44s ease-in both}
+.pilot-worker--boarding .pilot-worker-speech{opacity:0;transition:opacity .12s}
+.pilot-worker--boarding .pilot-worker-arm--wave{animation:none}
+@keyframes pilotWorkerExit{0%{opacity:0;transform:translate3d(-25px,-25px,0) scale(.43)}65%{opacity:1}100%{opacity:1;transform:translate3d(0,0,0) scale(1)}}
+@keyframes pilotWorkerBoard{0%{opacity:1;transform:translate3d(0,0,0) scale(1)}100%{opacity:0;transform:translate3d(-24px,-24px,0) scale(.3)}}
+@keyframes pilotWorkerWave{0%,100%{transform:rotate(18deg)}50%{transform:rotate(-42deg)}}
+@media(max-width:420px){.pilot-worker-avatar{width:194px;gap:3px}.pilot-worker-speech{max-width:137px;padding:6px 7px;font-size:10px}.pilot-worker-speech strong{font-size:10px}}
+@media(prefers-reduced-motion:reduce){.pilot-worker--exit,.pilot-worker--boarding,.pilot-worker-arm--wave{animation:none!important}.pilot-worker--boarding{opacity:0}}
 </style></head>
 <body>
 <section id="auth" class="auth"><div class="box">
@@ -4240,7 +4279,7 @@ function setPilotFlightPhase(message){
 function pilotDestroyFlight(f){
  if(f.animation)try{f.animation.cancel()}catch{}
  if(f.fallbackFrame!==null&&f.fallbackFrame!==undefined)cancelAnimationFrame(f.fallbackFrame);
- f.plane?.remove();f.label?.remove();
+ f.worker?.remove();f.worker=null;f.plane?.remove();f.label?.remove();
  if(f.resolveLanding){const resolve=f.resolveLanding;f.resolveLanding=null;resolve(false)}
  if(activePilotFlight===f)activePilotFlight=null;
 }
@@ -4336,6 +4375,7 @@ async function landPilotAtNextAction({scroll=true,minCruise=1700,keepLanded=fals
      f.phase="parked";
      f.plane.classList.add("pilot-plane--parked");
      setPilotFlightPhase(landingMessage||"✈ Gelandet · Hier ist deine Handlung erforderlich");
+     pilotAvatarDisembark(f);
      return true;
    }
    setPilotFlightPhase(landingMessage||"Pilot gelandet · nächster Arbeitsschritt ✓");
@@ -4425,6 +4465,52 @@ function pilotEnsureContinuousFlight(goalId){
  pilotSetFlightState(goalId,"flying","Pilot arbeitet selbstständig weiter");
  setPilotFlightPhase("✈ Pilot ist unterwegs · Dein Auftrag wird bearbeitet");
 }
+
+/* Branchentypischer Avatar zur tatsächlich erforderlichen Nutzerentscheidung. */
+function pilotWorkerProfile(goalId){
+ const g=goals.find(x=>x.id===goalId)||goals[0]||{};
+ const t=[g.title,g.description,g.desired_outcome,g.domain?.primary].filter(Boolean).join(" ").toLowerCase();
+ if(/garten|landschaft|rasen|baum|pflanz|grünpflege|gruenpflege/.test(t))return {id:"garden",label:"Gartenbau-Pilot"};
+ if(/bauunternehmen|baugewerbe|baustelle|handwerk|elektriker|sanitär|dachdecker/.test(t))return {id:"construction",label:"Handwerks-Pilot"};
+ if(/restaurant|gastronom|caf[eé]|küche|kueche|bäckerei|koch/.test(t))return {id:"kitchen",label:"Gastro-Pilot"};
+ if(/transport|logistik|spedition|lager|lieferdienst/.test(t))return {id:"logistics",label:"Logistik-Pilot"};
+ if(/design|logo|kreativ|agentur|mode|illustration|kunst/.test(t))return {id:"creative",label:"Kreativ-Pilot"};
+ if(/software|digital|informatik|programm|technik|entwickl/.test(t))return {id:"technical",label:"Tech-Pilot"};
+ if(/unternehmen|gründ|gruend|beratung|büro|buero|business/.test(t))return {id:"business",label:"Business-Pilot"};
+ return {id:"general",label:"Dein Pilot"};
+}
+function pilotPositionWorker(worker,plane){
+ const r=plane.getBoundingClientRect(),w=window.innerWidth,h=window.innerHeight;
+ const right=r.right+9,fit=right+210<w-8;
+ worker.style.left=Math.round(fit?right:Math.max(8,r.left-210))+"px";
+ worker.style.top=Math.round(Math.max(90,Math.min(h-161,r.top-30)))+"px";
+ worker.classList.toggle("pilot-worker--left",!fit);
+}
+function pilotAvatarDisembark(f){
+ if(!f||activePilotFlight!==f||f.phase!=="parked"||!f.plane?.isConnected)return;
+ f.worker?.remove();
+ const p=pilotWorkerProfile(pilotFlightState.goalId||goals[0]?.id),worker=document.createElement("div");
+ worker.className="pilot-worker-avatar pilot-worker--exit";
+ worker.dataset.job=p.id;worker.setAttribute("aria-hidden","true");
+ worker.innerHTML='<div class="pilot-worker-figure">'+
+ '<i class="pilot-worker-hat"></i><i class="pilot-worker-face"><i class="pilot-worker-eyes"></i><i class="pilot-worker-smile"></i></i>'+
+ '<i class="pilot-worker-body"></i><i class="pilot-worker-arm pilot-worker-arm--wave"></i><i class="pilot-worker-arm pilot-worker-arm--rest"></i>'+
+ '<i class="pilot-worker-leg pilot-worker-leg--left"></i><i class="pilot-worker-leg pilot-worker-leg--right"></i>'+
+ '<i class="pilot-worker-boot pilot-worker-boot--left"></i><i class="pilot-worker-boot pilot-worker-boot--right"></i></div>'+
+ '<div class="pilot-worker-speech"><strong>'+esc(p.label)+'</strong><span>Hier ist deine Handlung erforderlich.</span></div>';
+ pilotPositionWorker(worker,f.plane);
+ document.getElementById("pilotFlightLayer")?.appendChild(worker);
+ f.worker=worker;
+}
+async function pilotAvatarReboard(goalId){
+ const f=activePilotFlight;
+ if(!f?.plane?.isConnected||f.phase!=="parked"||(goalId&&pilotFlightState.goalId!==goalId))return;
+ if(!f.worker?.isConnected){pilotDestroyFlight(f);return}
+ f.worker.classList.remove("pilot-worker--exit");f.worker.classList.add("pilot-worker--boarding");
+ if(!window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches)await pilotWait(450);
+ if(activePilotFlight===f)pilotDestroyFlight(f);
+}
+
 async function pilotLandAtAttention(goalId,message){
  if(!goalId||goals[0]?.id!==goalId)return;
  pilotSetFlightState(goalId,"attention",message||"Hier ist deine Handlung erforderlich");
@@ -4437,7 +4523,7 @@ async function pilotLandAtAttention(goalId,message){
    const origin=pilotFlyingFromCurrentWork();
    if(origin)startPilotFlight(origin);
  }
- if(activePilotFlight?.phase==="parked"){setPilotFlightPhase("✈ Gelandet · Hier ist deine Handlung erforderlich");return}
+ if(activePilotFlight?.phase==="parked"){setPilotFlightPhase("✈ Gelandet · Hier ist deine Handlung erforderlich");pilotAvatarDisembark(activePilotFlight);return}
  if(activePilotFlight?.plane?.isConnected&&target)
    await landPilotAtNextAction({scroll:false,minCruise:350,keepLanded:true,targetElement:target,
      landingMessage:"✈ Gelandet · Hier ist deine Handlung erforderlich"});
