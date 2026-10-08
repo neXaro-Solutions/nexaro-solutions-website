@@ -67,7 +67,7 @@ try{
    await switcher.waitFor({state:"visible",timeout:8000});
    const rootBounds=await corporate.evaluate(()=>{
     const r=document.querySelector(".top .top-inner > .nx-language-toggle, body > .nx-language-toggle").getBoundingClientRect();
-    return {left:r.left,right:r.right,viewport:innerWidth,scroll:document.documentElement.scrollWidth,
+    return {left:r.left,right:r.right,bottom:r.bottom,viewportHeight:innerHeight,position:getComputedStyle(document.querySelector(".top .top-inner > .nx-language-toggle, body > .nx-language-toggle")).position,viewport:innerWidth,scroll:document.documentElement.scrollWidth,
      payment:!!document.querySelector('a[href="./sumup-beratung.html"]'),
      crm:!!document.querySelector('a[href="./crm/"]'),
      vape:!!document.querySelector('a[href="./b2b-handel.html"]'),
@@ -75,6 +75,7 @@ try{
      overflow:[...document.querySelectorAll("body *")].map(el=>{const rect=el.getBoundingClientRect();return {tag:el.tagName.toLowerCase(),className:String(el.className||"").slice(0,50),right:Math.round(rect.right),width:Math.round(rect.width)}}).filter(el=>el.right>innerWidth+3 && el.width>0).slice(0,9)};
    });
    if(rootBounds.left<0||rootBounds.right>rootBounds.viewport+2||rootBounds.scroll>rootBounds.viewport+2||
+    (rootBounds.position==="fixed"&&(rootBounds.left>35||rootBounds.bottom>rootBounds.viewportHeight+2))||
     !rootBounds.payment||!rootBounds.crm||!rootBounds.vape||rootBounds.promo)
     throw Error("Corporate root language or service links broken: "+JSON.stringify(rootBounds));
    await switcher.click();
@@ -100,6 +101,18 @@ try{
    if(!first.landingVisible||first.docWidth>first.viewport+2||first.boxLeft< -2||first.boxRight>first.viewport+2){
     throw Error("Landing overflow or hidden: "+JSON.stringify(first));
    }
+   const languagePicker=page.locator("#pilotLanguageSwitcher");
+   await languagePicker.waitFor({state:"visible",timeout:5000});
+   const picker=await languagePicker.evaluate(el=>{
+    const r=el.getBoundingClientRect();
+    return {left:r.left,right:r.right,bottom:r.bottom,position:getComputedStyle(el).position,screenWidth:innerWidth,screenHeight:innerHeight};
+   });
+   if(picker.position!=="fixed"||picker.left<0||picker.left>35||picker.right>picker.screenWidth+2||picker.bottom>picker.screenHeight+2)
+    throw Error("Pilot language choice must stay accessible bottom-left: "+JSON.stringify(picker));
+   await languagePicker.locator('[data-pilot-locale="en"]').click();
+   await page.waitForFunction(()=>document.documentElement.lang==="en"&&document.getElementById("guestComposeTitle")?.textContent.includes("What can"),null,{timeout:4000});
+   await languagePicker.locator('[data-pilot-locale="de"]').click();
+   await page.waitForFunction(()=>document.documentElement.lang==="de"&&document.getElementById("guestComposeTitle")?.textContent.includes("Was soll"),null,{timeout:4000});
    if(await page.locator(".pilot-value-item").count()!==3)throw Error("Pilot advantages must be visible on the first screen");
    if(!await page.locator(".pilot-value-lead").isVisible())throw Error("Clear customer value proposition missing");
    if(await page.locator("#guestTask").count()!==1)throw Error("Landing must retain exactly one task composer");
@@ -157,6 +170,17 @@ try{
       Math.abs(popup.menuCenter-popup.dockCenter)>14||popup.top<0||
       popup.bottom>popup.height+2)
     throw Error("More menu not centered, readable, or within viewport: "+JSON.stringify(popup));
+   await page.evaluate(()=>{
+    document.querySelector('.pilot-more-menu-label.admin-only')?.classList.remove("hidden");
+    document.querySelector('.pilot-nav-more-content [data-view="admin"]')?.classList.remove("hidden");
+   });
+   const adminRow=await page.evaluate(()=>{
+    const b=document.querySelector('.pilot-nav-more-content [data-view="admin"]');
+    const t=b?.querySelector("span:last-child");
+    return {width:b?.getBoundingClientRect().width,height:b?.getBoundingClientRect().height,labelWidth:t?.getBoundingClientRect().width,label:t?.textContent};
+   });
+   if(adminRow.label!=="Administration"||adminRow.width<150||adminRow.labelWidth<105||adminRow.height>66)
+    throw Error("Administration must not collapse into vertical letters: "+JSON.stringify(adminRow));
    await page.locator(".pilot-nav-more>summary").click();
 
    // Mock only the visual admin elements: ensure long statuses never collapse into 4-letter columns.
