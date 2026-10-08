@@ -1789,8 +1789,32 @@ function bindAttachments(){
   [photo,doc,file].forEach(input=>input?.addEventListener("change",()=>{addAttachments(input.files);input.value=""}));
   renderAttachmentTray();
 }
+async function preflightFile(file,goalId){
+  const mime=String(file.type||"").toLowerCase();
+  const medical=(goals.find(g=>g.id===goalId)||goals[0])?.domain?.primary==="medical_documentation";
+  let payload=null;
+  if(mime.startsWith("image/")&&!medical){
+    if(file.size>6*1024*1024)throw pilotApiError({data:{reason_code:"unsupported_image"}},"Bild zu groß für Sicherheitsprüfung");
+    const dataUrl=await new Promise((resolve,reject)=>{
+      const reader=new FileReader();
+      reader.onload=()=>resolve(reader.result);
+      reader.onerror=()=>reject(new Error("Bild konnte nicht geprüft werden"));
+      reader.readAsDataURL(file);
+    });
+    payload={phase:"attachment",text:String(file.name||"Bild"),image_url:dataUrl};
+  } else if(mime.startsWith("text/")||/\.(txt|md|csv|json|xml)$/i.test(file.name||"")){
+    payload={phase:"attachment",text:String(file.name||"Dokument")+"\n"+await file.text()};
+  }
+  if(payload){
+    const result=await sb.functions.invoke("safety-gate",{body:payload});
+    if(result.error||result.data?.allowed!==true)
+      throw pilotApiError(result,"Anhang konnte nicht sicher geprüft werden");
+  }
+}
+
 async function processCommandAttachment(item,goalId,taskText){
   const f=item.file;
+  await preflightFile(f,goalId);
   const safe=f.name.replace(/[^a-zA-Z0-9._-]/g,"_");
   const path=user.id+"/"+crypto.randomUUID()+"-"+safe;
   const up=await sb.storage.from("documents").upload(path,f,{contentType:f.type||"application/octet-stream",upsert:false});
