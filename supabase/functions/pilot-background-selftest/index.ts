@@ -23,25 +23,25 @@ async function check(s:any,id:string,owner:string,createdAt:string){
   s.from("executions").select("id,status").eq("goal_id",id),
   s.from("milestones").select("status").eq("goal_id",id)
  ]);
- const result=results.data?.find((r:any)=>r.id===j.last_result_id);
+ const result=results.data?.find((r:any)=>r.id===j?.last_result_id);
  const verify=result?await s.from("verification_records").select("status,verification_type")
   .eq("result_id",result.id):{data:[],error:null};
  const tests=[
-  ["background_completed",j.status==="completed"&&j.steps_completed===1],
+  ["background_completed",j?.status==="completed"&&j?.steps_completed===1],
   ["action_completed",!actions.error&&actions.data?.length===1&&actions.data[0].status==="completed"],
   ["result_persisted",!results.error&&!!result&&result.goal_id===id&&result.status==="final"&&result.quality_status==="ready"],
   ["genuine_text_worker",result?.structured_content?.background_worker===true],
   ["execution_linked",!execs.error&&execs.data?.length===1&&execs.data[0].status==="completed"&&execs.data[0].id===result?.execution_id],
   ["verified",!verify.error&&verify.data?.some((v:any)=>v.status==="passed"&&v.verification_type==="creative_text")===true],
   ["milestone_completed",!miles.error&&miles.data?.length===1&&miles.data[0].status==="completed"],
-  ["cost_capped",Number(j.cost_spent_usd)>=0&&Number(j.cost_spent_usd)<=Number(j.max_cost_usd)]
+  ["cost_capped",!!j&&Number(j.cost_spent_usd)>=0&&Number(j.cost_spent_usd)<=Number(j.max_cost_usd)]
  ].map(([check,passed])=>({check,passed:passed===true}));
  const removed=await s.from("goals").delete().eq("id",id).eq("owner_id",owner).select("id").maybeSingle();
  const remaining=await s.from("goals").select("id").eq("id",id).maybeSingle();
  tests.push({check:"test_goal_removed",passed:!removed.error&&!!removed.data&&!remaining.error&&!remaining.data});
  const passed=tests.every(x=>x.passed);
  const evidence={owner_id:owner,verified_at:new Date().toISOString(),
-  worker_status:j.status,last_error:String(j.last_error||"").slice(0,120),checks:tests};
+  worker_status:j?.status||"missing",last_error:String(j?.last_error||"").slice(0,120),checks:tests};
  const rec=await s.from("alpha_readiness_checks").upsert({
   check_key:KEY,category:"execution",required:true,status:passed?"passed":"failed",
   description:"Realtest: browserunabhängiger Hintergrundauftrag mit gespeichertem Ergebnis und Verifikation",
@@ -49,7 +49,7 @@ async function check(s:any,id:string,owner:string,createdAt:string){
  },{onConflict:"check_key"});
  if(rec.error)return answer({status:"unavailable",error:"readiness_not_saved",checks:tests},503);
  return answer({status:passed?"passed":"failed",checks:tests,
-  error:passed?undefined:j.last_error||"verification_failed"},passed?200:422);
+  error:passed?undefined:j?.last_error||"verification_failed"},passed?200:422);
 }
 const handler=async(req:Request)=>{
  if(req.method!=="POST")return answer({error:"method_not_allowed"},405);
