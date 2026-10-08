@@ -1506,6 +1506,16 @@ input,textarea{border-radius:var(--radius-input)}.btn{border-radius:var(--radius
   .goal-success-item{grid-template-columns:1fr;gap:10px}
   .success-gauge.compact{min-width:0;width:100%}
 }
+
+/* Goal continuity decision v22 */
+.goal-resolution-overlay{position:fixed;inset:0;z-index:120;display:grid;place-items:center;padding:18px;background:rgba(238,243,240,.78);backdrop-filter:blur(18px)}
+.goal-resolution-card{width:min(560px,100%);padding:26px;border-radius:26px;background:#fff;border:1px solid #e1e7e4;box-shadow:0 28px 90px rgba(18,24,33,.18)}
+.goal-resolution-card h3{font-size:28px;letter-spacing:-.04em;margin:7px 0 14px}
+.goal-resolution-target{padding:16px;border-radius:18px;background:linear-gradient(135deg,rgba(141,255,47,.09),rgba(255,255,255,.96),rgba(255,116,23,.05));border:1px solid #e1e8e2}
+.goal-resolution-target strong{font-size:16px}.goal-resolution-target p{margin:6px 0 0;color:#6f7880;font-size:11px;line-height:1.5}
+.goal-resolution-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:18px}
+.goal-resolution-actions .btn{min-height:48px}
+@media(max-width:560px){.goal-resolution-card{padding:20px;border-radius:22px}.goal-resolution-card h3{font-size:24px}.goal-resolution-actions{grid-template-columns:1fr}}
 </style></head>
 <body>
 <section id="auth" class="auth"><div class="box">
@@ -1833,11 +1843,80 @@ function bind(){
   document.getElementById("customerPreviewToggle")?.addEventListener("click",()=>{customerPreview=!customerPreview;if(customerPreview&&["roadmap","alpha","admin"].includes(current))current="home";render()});
   bindAttachments();
 }
+function askGoalResolution(candidate){
+  return new Promise(resolve=>{
+    const overlay=document.createElement("div");
+    overlay.className="goal-resolution-overlay";
+    overlay.innerHTML='<div class="goal-resolution-card"><div class="ey">PILOT IST SICH NICHT SICHER</div><h3>Geht es um dieses bestehende Ziel?</h3><div class="goal-resolution-target"><strong>'+esc(candidate?.title||"Bestehendes Ziel")+'</strong><p>'+esc(candidate?.desired_outcome||candidate?.description||"")+'</p></div><p class="muted">Wenn du ein neues Ziel startest, beginnt Pilot bewusst bei Null und baut Ziel, Plan und Kontext neu auf.</p><div class="goal-resolution-actions"><button class="btn primary" data-resolution="existing">Ja, dieses Ziel</button><button class="btn" data-resolution="new">Neues Ziel erstellen</button></div></div>';
+    document.body.appendChild(overlay);
+    overlay.querySelector('[data-resolution="existing"]').onclick=()=>{overlay.remove();resolve("existing")};
+    overlay.querySelector('[data-resolution="new"]').onclick=()=>{overlay.remove();resolve("new")};
+  });
+}
 async function createGoal(){
-  const text=document.getElementById("goalText").value.trim();if(!text||!org)return;const btn=document.getElementById("createGoal");btn.classList.add("launching");startPilotFlight(btn);btn.disabled=true;btn.textContent="✈ Pilot startet …";PS.textContent="Pilot hebt ab …";setTimeout(()=>{if(PS.textContent==="Pilot hebt ab …")PS.textContent="Pilot versteht …"},650);
+  const text=document.getElementById("goalText").value.trim();if(!text||!org)return;
+  const btn=document.getElementById("createGoal");btn.classList.add("launching");startPilotFlight(btn);btn.disabled=true;btn.textContent="✈ Pilot startet …";PS.textContent="Pilot hebt ab …";
+  setTimeout(()=>{if(PS.textContent==="Pilot hebt ab …")PS.textContent="Pilot versteht …"},650);
   try{
-    let r=await sb.functions.invoke("pilot-intelligence",{body:{input:text}});if(r.error)throw r.error;let data=r.data;
-    if(data.stage==="clarification"){const answers={};for(const q of data.questions||[]){const ans=window.prompt(q.question_de||q.question_en||"Weitere Angabe");if(ans)answers[q.key]=ans}PS.textContent="Pilot plant …";r=await sb.functions.invoke("pilot-intelligence",{body:{input:text,intent:data.intent,answers}});if(r.error)throw r.error;data=r.data}
+    let r=await sb.functions.invoke("pilot-intelligence",{body:{input:text}});
+    if(r.error)throw new Error(r.data?.error||r.error.message||"Pilot konnte den Auftrag nicht einordnen.");
+    let data=r.data;
+
+    if(data.stage==="goal_resolution"){
+      PS.textContent="Pilot prüft den Zusammenhang …";
+      const choice=await askGoalResolution(data.candidate_goal);
+      if(choice==="existing"){
+        r=await sb.functions.invoke("pilot-intelligence",{body:{input:text,existing_goal_id:data.candidate_goal.id}});
+      }else{
+        r=await sb.functions.invoke("pilot-intelligence",{body:{input:text,force_new_goal:true}});
+      }
+      if(r.error)throw new Error(r.data?.error||r.error.message||"Pilot konnte die Zielentscheidung nicht übernehmen.");
+      data=r.data;
+    }
+
+    if(data.stage==="clarification"){
+      const answers={};
+      for(const q of data.questions||[]){
+        const ans=window.prompt(q.question_de||q.question_en||"Weitere Angabe");
+        if(ans)answers[q.key]=ans;
+      }
+      PS.textContent="Pilot plant …";
+      r=await sb.functions.invoke("pilot-intelligence",{body:{input:text,intent:data.intent,answers,force_new_goal:true}});
+      if(r.error)throw new Error(r.data?.error||r.error.message||"Pilot konnte den Plan nicht erstellen.");
+      data=r.data;
+    }
+
+    if(data.stage!=="ready")throw new Error("Pilot konnte den Plan nicht abschließen.");
+
+    await load();
+    const targetGoalId=data.goal?.id||goals[0]?.id;
+    const targetGoal=goals.find(g=>g.id===targetGoalId)||goals[0];
+    if(!targetGoal)throw new Error("Das Ziel konnte nicht geladen werden.");
+
+    if(pendingAttachments.length)await processPendingAttachments(targetGoal.id,text);
+    await load();
+
+    PS.textContent=data.continuity?.mode==="existing_goal"?"Pilot arbeitet am bestehenden Ziel weiter":"Pilot bereit";
+    telemetry("event",{
+      goal_id:targetGoal.id,
+      event_name:data.continuity?.mode==="existing_goal"?"goal_continued":"goal_created",
+      event_category:"activation",
+      properties:{
+        domain:targetGoal.domain?.primary||"general",
+        continuity_mode:data.continuity?.mode||"new_goal",
+        attachments:documents.filter(d=>d.metadata?.goal_id===targetGoal.id).length
+      }
+    });
+    render();
+  }catch(e){
+    PS.textContent="Pilot bereit";
+    alert(e.message||String(e));
+    btn.disabled=false;
+    btn.textContent="✈ Pilot jetzt starten";
+    btn.classList.remove("launching");
+  }
+}
+(const q of data.questions||[]){const ans=window.prompt(q.question_de||q.question_en||"Weitere Angabe");if(ans)answers[q.key]=ans}PS.textContent="Pilot plant …";r=await sb.functions.invoke("pilot-intelligence",{body:{input:text,intent:data.intent,answers}});if(r.error)throw r.error;data=r.data}
     if(data.stage!=="ready")throw new Error("Pilot konnte den Plan nicht abschließen.");
     await load();
     const createdGoal=goals[0];
