@@ -1986,6 +1986,22 @@ body{background:radial-gradient(ellipse 72vw 60vw at 92% -10%,rgba(145,255,62,.1
 .pilot-execution-retry-note strong{display:block;font-size:13px;color:#855027}
 .pilot-execution-retry-note small{display:block;margin-top:4px;font-size:12px;line-height:1.5;color:#866c55}
 
+
+/* LUMEN decision cockpit: edit on the spot, one decisive primary action. */
+.pilot-review-editable{padding:clamp(18px,3.1vw,27px)!important;background:radial-gradient(ellipse at 100% 0%,rgba(168,255,106,.16),transparent 48%),#fff!important}
+.pilot-review-editable h3{margin:12px 0 8px!important;font-size:clamp(21px,3.8vw,28px)!important;letter-spacing:-.045em!important;color:#213d25}
+.pilot-review-editable>p{font-size:14px!important;line-height:1.55!important;margin:0 0 19px!important;color:#657565!important}
+.pilot-review-editable>p strong{color:#29472a}
+.pilot-decision-label{display:block;font-size:12px;font-weight:900;color:#405f37;margin:18px 0 9px}
+.pilot-review-editable .pilot-decision-editor{display:block;width:100%;box-sizing:border-box;min-height:214px;max-height:470px;resize:vertical;border:1px solid rgba(148,215,102,.65)!important;outline:0;border-radius:20px!important;background:linear-gradient(155deg,#fff,#fafff8)!important;box-shadow:inset 0 3px 12px rgba(63,119,38,.025)!important;color:#253c2b!important;padding:18px 19px!important;font:inherit;font-size:15.5px!important;line-height:1.68!important;letter-spacing:0!important;-webkit-appearance:none;appearance:none;white-space:pre-wrap;overflow:auto}
+.pilot-review-editable .pilot-decision-editor:focus{border-color:#76de22!important;box-shadow:0 0 0 4px rgba(157,244,71,.17),0 7px 23px rgba(85,156,43,.09)!important;background:#fff!important}
+.pilot-decision-editor-meta{display:flex;justify-content:space-between;gap:14px;margin:9px 1px 18px;color:#778875;font-size:11px;line-height:1.5}
+#pilotDecisionCount{white-space:nowrap;font-weight:800;color:#6d8d61;font-variant-numeric:tabular-nums}
+.pilot-review-editable .pilot-decision-go{display:block!important;width:100%;min-height:61px!important;height:auto!important;padding:15px 12px!important;text-align:center!important;white-space:normal!important;line-height:1.3!important;font-size:clamp(14px,3.4vw,18px)!important;letter-spacing:-.02em!important;box-shadow:0 12px 30px rgba(115,209,40,.2),inset 0 1px 0 rgba(255,255,255,.55)!important}
+.pilot-review-editable .pilot-decision-go:disabled{filter:grayscale(.25);opacity:.6}
+.pilot-review-editable .pilot-review-hint{display:block!important;margin:13px 2px 0!important;font-size:11px!important;line-height:1.55!important;color:#748371!important}
+@media(max-width:680px){.pilot-review-editable .pilot-decision-editor{font-size:16px!important;padding:16px!important;min-height:245px}.pilot-review-editable .pilot-decision-go{font-size:16px!important}.pilot-review-editable{padding:18px!important}}
+
 </style></head>
 <body>
 <section id="auth" class="auth"><div class="box">
@@ -2115,16 +2131,44 @@ function pilotReviewContext(){
  const result=results.find(r=>r.execution_id===ex.id&&r.id===ex.output_reference?.result_id);
  return result?{ex,result}:null;
 }
+/* A compact editable decision rather than an opaque full AI report. */
+let pilotDecisionDraft=null;
+function pilotDecisionPlainText(raw){
+ const text=String(raw||"").replace(/\\n/g,"\n").trim();
+ const matchAudience=text.match(/\*\*Zielgruppe:\*\*\s*([\s\S]*?)(?=\s*\*\*Kundennutzen(?:-Satz)?\b|---|\*\*Offene Annahmen|$)/i);
+ const matchPromise=text.match(/\*\*Kundennutzen(?:-Satz)?(?:\s*\([^)]*\))?:\*\*\s*([\s\S]*?)(?=\s*(?:---|\*\*Offene Annahmen|\*\*Alternative Zielgruppe|$))/i);
+ const clean=x=>String(x||"").replace(/\*\*/g,"").replace(/^\s*["„“]+|["„“]+\s*$/g,"").replace(/\s+/g," ").trim();
+ if(matchAudience&&matchPromise){
+   const audience=clean(matchAudience[1]),promise=clean(matchPromise[1]);
+   if(audience.length>16&&promise.length>16)
+     return "Für wen arbeiten wir?\n"+audience+"\n\nDas versprechen wir unseren Kunden:\n"+promise;
+ }
+ // Other domains: keep the usable deliverable, not raw Markdown headings or long notes.
+ const main=text.split(/\n\s*---\s*\n|(?:\n|^)\*\*(?:Offene Annahmen|Risiken|Quellen):?\*\*/i)[0]
+   .replace(/\*\*/g,"").replace(/^\s*#+\s*/gm,"").trim();
+ return (main||text.replace(/\*\*/g,"")).slice(0,2500);
+}
+function pilotDecisionFor(ctx){
+ if(!pilotDecisionDraft||pilotDecisionDraft.executionId!==ctx.ex.id){
+   pilotDecisionDraft={executionId:ctx.ex.id,text:pilotDecisionPlainText(ctx.result.content),changed:false};
+ }
+ return pilotDecisionDraft;
+}
 function pilotReviewCard(ctx){
  if(!ctx)return "";
- const title=ctx.result.title||"Pilot hat einen Vorschlag vorbereitet";
- const text=String(ctx.result.content||"");
- return '<div class="command-card pilot-review-card"><div class="pilot-review-label">✦ DEINE ENTSCHEIDUNG</div>'+
-   '<h3>'+esc(title)+'</h3><p>Pilot hat einen überprüften Vorschlag erstellt. Bitte prüfe ihn, bevor diese gemeinsame Aufgabe als erledigt gilt.</p>'+
-   '<div class="pilot-review-text">'+esc(text.slice(0,2600))+(text.length>2600?' …':'')+'</div>'+
-   '<div class="pilot-home-action-buttons"><button type="button" class="btn ai pilot-home-action-start" id="confirmPilotResult" data-execution="'+esc(ctx.ex.id)+'" '+(pilotAutoSession?.active?'disabled':'')+'>✓ Ergebnis bestätigen & weiterarbeiten</button>'+
-   '<button type="button" class="btn" data-jump="results">Vollständiges Ergebnis ansehen ↗</button></div>'+
-   '<p class="pilot-review-hint">Mit deiner Bestätigung wird dieser Schritt abgeschlossen. Danach arbeitet Pilot an bis zu drei freigegebenen, risikoarmen Folgeschritten weiter.</p></div>';
+ const decision=pilotDecisionFor(ctx);
+ const length=decision.text.length;
+ return '<div class="command-card pilot-review-card pilot-review-editable">'+
+  '<div class="pilot-review-label">✦ DEINE ENTSCHEIDUNG</div>'+
+  '<h3>So könnte dein Ergebnis aussehen.</h3>'+
+  '<p>Pilot hat einen Vorschlag vorbereitet. <strong>Du entscheidest:</strong> Ändere den Text direkt, bis er zu deinem Vorhaben passt.</p>'+
+  '<label class="pilot-decision-label" for="pilotDecisionText">Dein Text – direkt bearbeitbar</label>'+
+  '<textarea id="pilotDecisionText" class="pilot-decision-editor" rows="8" maxlength="2500" spellcheck="true" aria-describedby="pilotDecisionHint">'+esc(decision.text)+'</textarea>'+
+  '<div class="pilot-decision-editor-meta"><span id="pilotDecisionHint">Hier kannst du Wörter ändern, ergänzen oder streichen.</span>'+
+  '<span id="pilotDecisionCount">'+length+' / 2500</span></div>'+
+  '<button type="button" class="btn ai pilot-home-action-start pilot-decision-go" id="confirmPilotResult" data-execution="'+esc(ctx.ex.id)+'" '+(pilotAutoSession?.active||length<35?'disabled':'')+'>⚡ Entscheidung steht. Pilot übernimmt.</button>'+
+  '<p class="pilot-review-hint">Pilot speichert genau deinen Text als Entscheidung und bearbeitet danach die nächsten sicheren Schritte. Noch ungeprüfte Annahmen gelten dabei nicht als nachgewiesene Fakten.</p>'+
+ '</div>';
 }
 function pilotAutoStatusCard(){
  if(pilotAutoSession?.active)return '<div class="pilot-auto-status" role="status" aria-live="polite"><span class="pilot-auto-orbit" aria-hidden="true">✦</span><div><strong>Pilot arbeitet selbstständig</strong><small>'+esc(pilotAutoSession.label||"Arbeitsschritt wird bearbeitet …")+'</small></div>'+
@@ -2600,6 +2644,16 @@ function bind(){
   document.getElementById("diagnoseSafety")?.addEventListener("click",()=>pilotSafetyDiagnostic({show:true}));
   document.getElementById("executeAction")?.addEventListener("click",executeAction);
   document.getElementById("confirmPilotResult")?.addEventListener("click",confirmPilotResult);
+  document.getElementById("pilotDecisionText")?.addEventListener("input",event=>{
+    const field=event.currentTarget,ctx=pilotReviewContext();
+    if(!ctx)return;
+    const draft=pilotDecisionFor(ctx);
+    draft.text=field.value;draft.changed=true;
+    const counter=document.getElementById("pilotDecisionCount");
+    if(counter)counter.textContent=field.value.length+" / 2500";
+    const confirm=document.getElementById("confirmPilotResult");
+    if(confirm)confirm.disabled=pilotAutoSession?.active||field.value.trim().length<35;
+  });
   document.getElementById("pausePilotAutopilot")?.addEventListener("click",()=>{if(pilotAutoSession?.active){pilotAutoSession.cancelRequested=true;pilotAutoSession.label="Der laufende Schritt wird sicher beendet; danach hält Pilot an.";render()}});
   document.getElementById("uploadDoc")?.addEventListener("click",uploadDocument);
   document.getElementById("completeAction")?.addEventListener("click",()=>completeAction(false,false));
@@ -2634,7 +2688,7 @@ function nxOpenNext(){
   const mask=document.createElement("div");mask.className="nx-mask";
   const safe=esc;
   mask.innerHTML='<section class="nx-modal" role="dialog" aria-modal="true" aria-labelledby="nxTitle" aria-describedby="nxDesc">'+
-    '<div class="nx-top"><div class="nx-symbol" aria-hidden="true">✦</div><span class="nx-kicker">neXaro · PILOT · LUMEN 2026.10.08.22</span><button type="button" class="nx-close" aria-label="Schließen">×</button></div>'+
+    '<div class="nx-top"><div class="nx-symbol" aria-hidden="true">✦</div><span class="nx-kicker">neXaro · PILOT · LUMEN 2026.10.08.23</span><button type="button" class="nx-close" aria-label="Schließen">×</button></div>'+
     '<h2 id="nxTitle">'+safe(config.title||"Pilot fragt nach")+'</h2><p class="nx-description" id="nxDesc">'+safe(config.description||"Bitte ergänze die noch fehlenden Angaben.")+'</p>'+
     '<form novalidate><div class="nx-fields">'+fields.map((f,i)=>'<div class="nx-field"><label for="nxInput'+i+'">'+safe(f.label)+'</label>'+
       (f.short?'<input id="nxInput'+i+'" type="text" name="'+safe(f.key)+'" maxlength="500" placeholder="'+safe(f.placeholder||"")+'" data-required="'+(f.required?"1":"0")+'">':
@@ -2706,6 +2760,12 @@ async function pilotApiError(response,fallback){
   if(/unexpected token|not valid json|internal server error|response\.json|failed to fetch/i.test(String(response?.error?.message||""))){
     return new Error("Pilot hat eine ungültige Serverantwort erhalten. Dein Auftrag bleibt gespeichert und kann erneut ausgeführt werden. Bitte versuche es noch einmal.");
   }
+  if(extracted?.error==="decision_text_invalid")
+    return new Error("Dein Text ist zu kurz oder zu lang. Bitte beschreibe deine Entscheidung in mindestens zwei aussagekräftigen Sätzen (maximal 2500 Zeichen).");
+  if(extracted?.error==="decision_safety_unavailable")
+    return new Error("Pilot konnte deine Änderungen noch nicht sicher prüfen. Dein Text bleibt erhalten; bitte versuche die Freigabe gleich erneut.");
+  if(extracted?.error==="decision_rejected_by_safety")
+    return new Error("Pilot kann den bearbeiteten Inhalt nicht übernehmen. Bitte formuliere die entsprechende Stelle anders.");
   if(extracted?.error==="invalid_session"||extracted?.error==="auth_required")
     return new Error("Deine Anmeldung ist nicht mehr gültig. Bitte melde dich erneut an.");
   if(extracted?.error==="request_blocked_by_policy"&&!extracted?.reason_code)
@@ -3202,12 +3262,19 @@ async function pilotContinueSafely(goalId,maxSteps=3){
 async function confirmPilotResult(){
  const ctx=pilotReviewContext();
  if(!ctx||pilotAutoSession?.active)return;
+ const decision=document.getElementById("pilotDecisionText");
+ const editedText=String(decision?.value||pilotDecisionFor(ctx).text||"").trim();
+ if(editedText.length<35||editedText.length>2500){
+   pilotNotice("Bitte schreibe mindestens zwei aussagekräftige Sätze und bleibe unter 2500 Zeichen.","error");
+   decision?.focus();return;
+ }
+ pilotDecisionFor(ctx).text=editedText;
  const btn=document.getElementById("confirmPilotResult");
  if(btn)btn.disabled=true;
  startPilotFlight(btn);
  PS.textContent="Pilot übernimmt dein bestätigtes Ergebnis …";
  try{
-   const response=await sb.functions.invoke("execution-engine",{body:{operation:"confirm",execution_id:ctx.ex.id,approved:true}});
+   const response=await sb.functions.invoke("execution-engine",{body:{operation:"confirm",execution_id:ctx.ex.id,approved:true,edited_content:editedText}});
    if(response.error)throw await pilotApiError(response,"Der Vorschlag konnte nicht bestätigt werden.");
    if(response.data?.status!=="completed")throw new Error("Die Bestätigung ist noch nicht abgeschlossen.");
    await load();
