@@ -8,7 +8,7 @@ const css=readFileSync(resolve(root,"site-shell.css"),"utf8");
 const lang=readFileSync(resolve(root,"nx-language.js"),"utf8");
 const b2b=readFileSync(resolve(root,"b2b-handel.html"),"utf8");
 const pilot=readFileSync(resolve(root,"pilot/index.html"),"utf8");
-assert.match(site,/<title>neXaro Solutions \\| Payment-Beratung, CRM & B2B für Unternehmen<\\/title>/,"Restore latest bilingual neXaro business homepage");
+assert(site.includes('<title>neXaro Solutions | Payment-Beratung, CRM & B2B für Unternehmen</title>'),"Restore latest bilingual neXaro business homepage");
 assert(site.includes('id="welten"')&&site.includes('href="./sumup-beratung.html"'),"Company homepage directly links SumUp and payment advice");
 assert(site.includes('Vape & B2B')&&site.includes('href="./b2b-handel.html"'),"Vape and B2B contact is visible from homepage");
 assert(b2b.includes("Vape-")&&b2b.includes("Fachhandel"),"Age-restricted Vape inquiries remain limited to specialist B2B trade");
