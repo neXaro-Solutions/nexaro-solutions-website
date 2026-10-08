@@ -2877,10 +2877,10 @@ function home(){
     '<input id="attachmentFileInput" class="hidden-file" type="file" accept="image/*,.pdf,.docx,.txt,.md,.csv,.json,.xml" multiple>';
   const composer='<section class="pilot-home-card pilot-home-compose" aria-labelledby="homeComposeTitle">'+
       '<div class="pilot-home-card-head"><div class="pilot-home-mark" aria-hidden="true">✦</div><div>'+
-      '<h2 id="homeComposeTitle">Auftrag beginnen</h2><p>Beschreibe, was Pilot für dich erledigen soll.</p></div></div>'+
+      '<h2 id="homeComposeTitle">Was kann Pilot für dich erledigen?</h2><p>Beschreibe deinen Wunsch. Pilot übernimmt die Umsetzung.</p></div></div>'+
       '<label class="pilot-home-input-label" for="goalText">Dein Auftrag</label>'+
       '<textarea id="goalText" rows="4" maxlength="3000" placeholder="z. B. Ich möchte ein Garten- und Landschaftsbauunternehmen gründen."></textarea>'+
-      '<div class="pilot-home-input-meta"><span>Du kannst auch einen Folgeauftrag zu deinem bestehenden Ziel eingeben.</span><span id="goalTextCount">0 / 3000</span></div>'+
+      '<div class="pilot-home-input-meta"><span>Pilot erkennt, wenn dein Auftrag zu einem bestehenden Ziel gehört.</span><span id="goalTextCount">0 / 3000</span></div>'+
       '<div class="pilot-home-controls"><div class="command-attachments"><div class="attachment-actions">'+
       '<button class="attach-btn pilot-home-upload" type="button" data-attach-kind="file">＋ Foto / Dokument</button>'+
       '<span class="attachment-note">Optional</span></div>'+attachmentInputs+'<div id="attachmentTray" class="attachment-tray" aria-live="polite"></div></div>'+
@@ -3563,7 +3563,7 @@ async function pilotAskText(label,{title="Eine kurze Rückfrage",placeholder="",
   return answer?.value??null;
 }
 async function pilotAskQuestions(questions){
-  const qs=(questions||[]).slice(0,3);
+  const qs=(questions||[]).filter(q=>q.required!==false).slice(0,1);
   const business=qs[0]?.key==="business_idea";
   const answer=await nxDialog({
     title:qs[0]?.dialog_title_de||(business?"Welche Geschäftsidee hast du?":"Pilot hat noch eine Frage"),
@@ -3659,6 +3659,14 @@ async function createGoal(){
       await landPilotAtNextAction({scroll:true,minCruise:1800});
     }
     void startGoalResearch(targetGoal.id);
+    // The initial start click must also execute the first actionable step.
+    // Never execute a step from a different goal when continuing prior work.
+    if(goals[0]?.id===targetGoal.id && !pilotReviewContext() &&
+       !executions.some(x=>["running","waiting_approval","review_required","blocked"].includes(x.status)) &&
+       actions.some(a=>a.status==="ready"&&a.goal_id===targetGoal.id)){
+      PS.textContent="Pilot erstellt dein erstes Ergebnis …";
+      await executeAction();
+    }
   }catch(e){
     PS.textContent="Pilot bereit";
     let details=String(e.message||e);
