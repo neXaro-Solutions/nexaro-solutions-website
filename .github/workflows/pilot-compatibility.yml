@@ -1,0 +1,52 @@
+name: Pilot cross-platform smoke tests
+
+on:
+  push:
+    paths:
+      - "pilot/index.html"
+      - "pilot/tests/**"
+      - ".github/workflows/pilot-compatibility.yml"
+  pull_request:
+    paths:
+      - "pilot/index.html"
+      - "pilot/tests/**"
+      - ".github/workflows/pilot-compatibility.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  responsive:
+    name: "${{ matrix.os }} · ${{ matrix.browser }}"
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            browser: chromium
+          - os: ubuntu-latest
+            browser: firefox
+          - os: ubuntu-latest
+            browser: webkit
+          - os: windows-latest
+            browser: chromium
+          - os: macos-latest
+            browser: webkit
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install pinned Playwright
+        run: npm install --no-save --no-audit --no-fund playwright@1.56.1
+      - name: Install browser on Linux
+        if: runner.os == 'Linux'
+        run: npx playwright install --with-deps ${{ matrix.browser }}
+      - name: Install browser on macOS / Windows
+        if: runner.os != 'Linux'
+        run: npx playwright install ${{ matrix.browser }}
+      - name: Check JavaScript syntax and responsive UI
+        run: node pilot/tests/platform-smoke.mjs --browser=${{ matrix.browser }}
