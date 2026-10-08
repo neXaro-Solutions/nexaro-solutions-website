@@ -46,7 +46,7 @@ function createScenario({actions,executions=[],failSteps=false,goalDomain="gener
     actions:actions.map(x=>({...x})),
     executions:executions.map(x=>({...x,goal_id:GOAL})),
     goal_memories:[],context_items:[],results:[],pilot_internal_knowledge:[],
-    execution_steps:[],audit_events:[]
+    execution_steps:[],audit_events:[],execution_approvals:[],verification_records:[]
   };
   const state={records,failSteps,fetchCount:0,handler:null};
   class Query{
