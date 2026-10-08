@@ -43,8 +43,9 @@ api.set({...common,offers:[{name:"Artikel",merchant:"Test",source:"eBay",url:"ht
 const noShip=api.view();
 assert(noShip.includes("Artikelpreis"),"Unknown shipping must not present a total");
 assert(!noShip.includes('rel="sponsored noopener noreferrer"'),"Non-affiliate links are not sponsored");
-assert(html.includes('data-view="market"')&&html.includes("market:pilotMarketView"),"Navigation works");
-assert(html.includes("pilotMarketFromHome(text)"),"Direct intents route to search");
+assert(!html.includes('data-view="market"'),"No customer-facing comparison menu");
+assert(html.includes('data-jump="market"')&&html.includes("market:pilotMarketView"),"Partner management remains reachable to admins");
+assert(html.includes("pilotShoppingAsk(text)"),"Questions route through private advice, not a comparison tab");
 assert(edge.includes('auth.getUser(')&&edge.includes('pilot_market_allow_search'),"Auth and throttling");
 assert(edge.includes('itemAffiliateWebUrl')&&edge.includes('EBAY_EPN_CAMPAIGN_ID'),"EPN tracking from provider");
 assert(edge.includes('operation==="import"')&&edge.includes('role!=="admin"'),"Admin-only feed ingestion");
