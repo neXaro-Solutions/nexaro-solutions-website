@@ -29,7 +29,11 @@ assert(adminApi.view().includes('id="pilotMarketFeedForm"'),"Only admins receive
 assert(adminApi.view().includes("https://www.adcell.de/affiliates"),"Admin sees verified publisher registration link");
 assert(adminApi.view().includes("partnernetwork.ebay.com"),"Official eBay signup guide is linked");
 assert(!affiliate.includes("partnernetwork.ebay.com"),"Customer does not see signup tooling");
-assert(adminApi.view().includes("Zugang noch nicht bestätigt"),"Registration links do not imply activation");
+assert(adminApi.view().includes("Noch nicht eingereicht"),"Prepared accounts are not marked as submitted");
+assert(!html.includes("Sebastian Pötschke"),"Personal publisher profile must never be hardcoded in public Pilot HTML");
+assert(html.includes("sb.from(\"pilot_partner_profiles\")"),"Profile must be fetched from an authenticated table");
+assert(html.includes("application_status:\"submitted\""),"Explicit user confirmation is required for submissions");
+assert(adminApi.view().includes("Registrierungsdaten"),"Admin-only profile panel available");
 assert(affiliate.includes("103,00"),"Known total displayed");
 assert(affiliate.includes('rel="sponsored noopener noreferrer"'),"Affiliate disclosure in link");
 assert(affiliate.includes("Werbelink"),"Visible affiliate label");
