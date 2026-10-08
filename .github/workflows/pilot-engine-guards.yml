@@ -5,12 +5,14 @@ on:
     paths:
       - "supabase/functions/execution-engine/**"
       - "supabase/functions/pilot-intelligence/**"
+      - "supabase/functions/alpha-e2e-selftest/**"
       - "supabase/functions/pilot-decision-journal/**"
       - "supabase/functions/pilot-background/**"
       - "supabase/functions/pilot-background/**"
       - "pilot/tests/engine-contract.mjs"
       - "pilot/tests/continuity-contract.mjs"
       - "pilot/tests/journal-contract.mjs"
+      - "pilot/tests/live-e2e-contract.mjs"
       - "pilot/tests/background-contract.mjs"
       - "pilot/tests/background-contract.mjs"
       - "pilot/index.html"
@@ -19,12 +21,14 @@ on:
     paths:
       - "supabase/functions/execution-engine/**"
       - "supabase/functions/pilot-intelligence/**"
+      - "supabase/functions/alpha-e2e-selftest/**"
       - "supabase/functions/pilot-decision-journal/**"
       - "supabase/functions/pilot-background/**"
       - "supabase/functions/pilot-background/**"
       - "pilot/tests/engine-contract.mjs"
       - "pilot/tests/continuity-contract.mjs"
       - "pilot/tests/journal-contract.mjs"
+      - "pilot/tests/live-e2e-contract.mjs"
       - "pilot/tests/background-contract.mjs"
       - "pilot/tests/background-contract.mjs"
       - "pilot/index.html"
@@ -56,3 +60,5 @@ jobs:
         run: node pilot/tests/background-contract.mjs
       - name: Run scheduled-background security and budget tests
         run: node pilot/tests/background-contract.mjs
+      - name: Check live mission test isolation and authorization
+        run: node pilot/tests/live-e2e-contract.mjs

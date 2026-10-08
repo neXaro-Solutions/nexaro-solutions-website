@@ -95,8 +95,10 @@ try{
    await page.locator("#modalPassword").press("Enter");
    await page.waitForFunction(()=>document.querySelector("#modalMessage")?.textContent?.includes("mindestens"),{timeout:3000});
    await page.locator("#closeAuth").click();
-   if(!await page.locator("#authModal").evaluate(el=>el.classList.contains("hidden")))
-    throw Error("Login modal fails to close");
+   // Wait for the user-visible closed state on narrow Firefox touch emulation.
+   try{
+    await page.waitForFunction(()=>document.getElementById("authModal")?.classList.contains("hidden"),{timeout:3000});
+   }catch{throw Error("Login modal fails to close after close-button click");}
    await page.evaluate(()=>{
     document.getElementById("auth").classList.add("hidden");
     document.getElementById("app").classList.remove("hidden");
