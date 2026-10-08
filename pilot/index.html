@@ -3726,7 +3726,8 @@ function home(){
  '<p>Mit „Pilot starten“ erlaubst du bis zu 6 risikoarme Kreativtext-Schritte innerhalb von 24 Stunden; maximales geschätztes KI-Budget: 0,25 USD. Externe Aktionen, Rechts- und Finanzfragen benötigen weiterhin eine separate Prüfung.</p></details>'+
  '</section>';
  if(!g)return '<div class="pilot-simple">'+entry+'<p class="pilot-simple-footnote">Pilot fragt nur nach, wenn eine entscheidende Information fehlt. Externe Aktionen benötigen deine Freigabe.</p></div>';
- const needsHuman=!inProgress&&(!!approval||
+ const backgroundAttention=pilotBackgroundJob?.goal_id===g.id&&pilotBackgroundJob.status==="waiting_user";
+ const needsHuman=!inProgress&&(backgroundAttention||!!approval||
    !!(interrupt&&["waiting_approval","review_required"].includes(interrupt.status))||
    !!(n&&n.status==="ready"&&(n.owner_type==="joint"||n.owner_type==="user"||n.recommended_mode==="together"||n.blocking===true)));
  let label=inProgress?"✈ Pilot ist unterwegs":needsHuman?"Hier ist deine Handlung erforderlich":interrupt?"Pilot benötigt Aufmerksamkeit":n?"Pilot bereitet den nächsten Schritt vor":"Aktueller Arbeitsabschnitt bearbeitet";
@@ -5231,6 +5232,16 @@ async function pilotResumeApprovedWork(attempt=0){
   }else pilotAutoRunPreference(goalId,false);
  }catch(e){console.warn("Pilot-Fortsetzung derzeit nicht verfügbar",String(e?.message||e).slice(0,160))}
 }
+
+/* Mobile browsers suspend timers. Refresh read-only background status when
+   returning to iOS, Android, Windows or macOS without starting paid work. */
+function pilotBackgroundWake(){
+ const id=goals[0]?.id;
+ if(user&&id&&pilotBackgroundJob?.goal_id===id)void pilotBackgroundObserve(id);
+}
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)pilotBackgroundWake()});
+window.addEventListener("online",pilotBackgroundWake);
+window.addEventListener("pageshow",event=>{if(event.persisted)pilotBackgroundWake()});
 
 /* One aircraft per user-started run. A review parks it instead of clearing it. */
 let pilotFlightState={goalId:null,mode:"idle",message:""};
