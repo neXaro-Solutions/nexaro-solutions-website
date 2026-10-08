@@ -4676,7 +4676,7 @@ async function pilotContinueSafely(goalId,maxSteps=32){
      const data=response.data||{};
      if(data.status!=="completed"){
        const reasons={
-         collaboration_required:"Der nächste Schritt wird gemeinsam mit dir bearbeitet. Starte ihn unten, wenn du bereit bist.",
+         collaboration_required:"Hier ist deine Handlung erforderlich. Nach deiner Entscheidung arbeitet Pilot weiter.",
          attention_required:"Freigabe oder Prüfung erforderlich. Pilot hat angehalten.",
          review_required:"Ergebnis benötigt eine Prüfung.",
          waiting_approval:"Eine externe Aktion benötigt deine Freigabe.",
@@ -4710,9 +4710,13 @@ async function pilotContinueSafely(goalId,maxSteps=32){
    pilotAutoSummary={completed:session.count,kind:stopKind,text:doneNote+stopped};
    if(pilotAutoSession===session)pilotAutoSession=null;
    render();
-   const waitingForHuman=stopKind==="waiting"||!!pilotReviewContext()||
-      actions.some(a=>(a.status==="ready"||a.status==="pending")&&
-        (a.owner_type==="joint"||a.recommended_mode==="together")&&!session.cancelRequested);
+   // A future joint step is not a present intervention. Land only when the
+   // NEXT actionable step really requires the user, or a current review is open.
+   const nextReady=actions.find(a=>a.status==="ready");
+   const actualUserStep=!!nextReady&&(nextReady.owner_type==="joint"||nextReady.recommended_mode==="together");
+   const activeReview=!!pilotReviewContext()||
+     executions.some(x=>["waiting_approval","review_required"].includes(x.status));
+   const waitingForHuman=!session.cancelRequested&&(stopKind==="waiting"||activeReview||actualUserStep);
    if(launchCreated&&!session.cancelRequested&&goals[0]?.id===goalId&&stopKind==="completed"){
      pilotEnsureContinuousFlight(goalId);
      setTimeout(()=>{if(!pilotAutoSession?.active&&goals[0]?.id===goalId)void pilotContinueSafely(goalId,32)},250);
