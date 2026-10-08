@@ -188,84 +188,152 @@ async function saveMemoryUpdates(sb:any,goal:any,ownerId:string,updates:any){
   }
   return {saved,errors};
 }
+/* Contextual follow-up routing: select an existing project only when its identity
+   is independently clear; do not let model confidence invent ownership/context. */
+const GOAL_GENERIC_WORDS=new Set([
+  "projekt","projekte","auftrag","aufträge","unternehmen","firma","firmen","business",
+  "gründung","gründen","gruenden","gruendung","aufbauen","erstellen","erstelle",
+  "website","webseite","logo","branding","marke","gestaltung","marketing",
+  "geschäft","geschaeft","startup","neues","neue","neuer","meine","meinen",
+  "meiner","meinem","einen","einem","einer","eines","für","fuer",
+  "bitte","macht","machen","eine","einer","einem","mein","dein","deine",
+  "unser","unsere","beim","dazu","dieses","diesem","darauf","und","oder"
+]);
+function distinctiveGoalWords(value:string){
+  return [...tokenSet(value)].filter(w=>w.length>=4&&!GOAL_GENERIC_WORDS.has(w));
+}
+function goalChoices(items:any[]){
+  return items.slice(0,6).map((g:any)=>({
+    id:g.id,title:String(g.title||"Projekt").slice(0,110),
+    status:g.status,
+    description:String(g.desired_outcome||g.description||"").slice(0,190)
+  }));
+}
 async function resolveGoalContinuity(sb:any,base:string,pub:string,auth:string,userId:string,input:string,intent:Intent,body:any){
-  if(body.force_new_goal===true) return {decision:"new",confidence:"high",reason:"user_forced_new_goal"};
+  if(body.force_new_goal===true)return {decision:"new",confidence:"high",reason:"user_forced_new_goal"};
   if(/\b(neues? (unternehmen|business|projekt|ziel)|andere firma|neue firma|unabhängiges projekt)\b/i.test(input))
     return {decision:"new",confidence:"high",reason:"explicit_new_project"};
-  if(body.existing_goal_id) return {decision:"existing",confidence:"high",goal_id:String(body.existing_goal_id),reason:"user_selected_existing_goal"};
+  if(body.existing_goal_id)return {
+    decision:"existing",confidence:"high",goal_id:String(body.existing_goal_id),
+    reason:"user_selected_existing_goal"
+  };
 
-  const gr=await sb.from("goals").select("id,title,description,desired_outcome,domain,status,created_at,updated_at").eq("owner_id",userId).in("status",["active","achieved"]).order("updated_at",{ascending:false}).limit(8);
-  if(gr.error||!gr.data?.length) return {decision:"new",confidence:"high",reason:"no_existing_goals"};
-  const candidates=gr.data;
-  const requestedIndustry=industryOf(input);
-  const isFoundingRequest=/\b(gründen|gruenden|gründe|gründe|gründung|aufbauen|eröffnen)\b/i.test(input);
-  if(requestedIndustry && isFoundingRequest){
-    const candidate=candidates.find((g:any)=>{
-      const previous=[g.title,g.description,g.desired_outcome].filter(Boolean).join(" ");
-      return ["business","marketing"].includes(g.domain?.primary) && !industryOf(previous);
+  const gr=await sb.from("goals")
+    .select("id,title,description,desired_outcome,domain,status,created_at,updated_at")
+    .eq("owner_id",userId).in("status",["active","achieved"])
+    .order("updated_at",{ascending:false}).limit(16);
+  if(gr.error)return {decision:"unavailable",confidence:"low",reason:"goal_lookup_unavailable"};
+  const candidates=gr.data||[];
+  if(!candidates.length)return {decision:"new",confidence:"high",reason:"no_existing_goals"};
+
+  const active=candidates.filter((g:any)=>g.status==="active");
+  const requestWords=tokenSet(input);
+  // An explicit project/brand name is stronger evidence than a model guess.
+  const names=candidates.map((g:any)=>({
+    goal:g,matching:distinctiveGoalWords(String(g.title||""))
+      .filter(word=>requestWords.has(word))
+  })).filter((item:any)=>item.matching.length>0)
+    .sort((a:any,b:any)=>b.matching.length-a.matching.length);
+  if(names.length===1||(
+    names.length>1&&names[0].matching.length>=2&&
+    names[0].matching.length>names[1].matching.length
+  )){
+    const goal=names[0].goal;
+    return {decision:"existing",confidence:"high",goal_id:goal.id,goal,
+      reason:"explicit_project_name",matching_terms:names[0].matching.length};
+  }
+  const followup=/\b(logo|logos|branding|brand|website|webseite|landingpage|visitenkarte|flyer|anzeige|kampagne|rechnung|angebot|präsentation|praesentation|design|entwurf|broschüre|broschuere|texte|grafik|farbschema|social.media)\b/i.test(input);
+  const branding=/\b(logo|logos|branding|brand|website|webseite|landingpage|visitenkarte|flyer|anzeige|kampagne|design|grafik|farbschema|social.media)\b/i.test(input);
+  const matchingIndustry=industryOf(input);
+  const isFounding=/\b(gründen|gruenden|gründe|gründung|aufbauen|eröffnen)\b/i.test(input);
+  const byNameAmbiguous=names.length>1;
+  // "Logo" with just one live project: use its existing brief and decisions.
+  // Multiple project candidates: ask once and never silently choose the most recent.
+  const eligible=branding?active.filter((g:any)=>["business","marketing"].includes(g.domain?.primary)):active;
+  const plausible=eligible.length?eligible:active;
+  if(followup&&!byNameAmbiguous){
+    if(plausible.length===1){
+      const goal=plausible[0];
+      return {decision:"existing",confidence:"high",goal_id:goal.id,goal,
+        reason:"unique_active_followup"};
+    }
+    if(plausible.length>1){
+      return {decision:"ask",confidence:"medium",goal_id:plausible[0].id,
+        goal:plausible[0],candidates:goalChoices(plausible),
+        reason:"multiple_plausible_projects"};
+    }
+  }
+  if(byNameAmbiguous){
+    const matches=names.map((item:any)=>item.goal);
+    return {decision:"ask",confidence:"medium",goal_id:matches[0].id,
+      goal:matches[0],candidates:goalChoices(matches),
+      reason:"ambiguous_project_name"};
+  }
+  if(matchingIndustry&&isFounding){
+    const general=active.filter((g:any)=>{
+      const old=[g.title,g.description,g.desired_outcome].filter(Boolean).join(" ");
+      return ["business","marketing"].includes(g.domain?.primary)&&!industryOf(old);
     });
-    if(candidate){
-      return {decision:"ask",confidence:"medium",goal_id:candidate.id,goal:candidate,
+    if(general.length){
+      return {decision:"ask",confidence:"medium",goal_id:general[0].id,
+        goal:general[0],candidates:goalChoices(general),
         reason:"specific_industry_vs_existing_general_business_goal"};
     }
   }
+
+  // For complex requests not identifiable as a follow-up, preserve the AI-assisted
+  // matching path, but never permit semantic "high" confidence alone to pick
+  // among multiple plausible active projects.
   const memoryRes=await sb.from("goal_memories")
     .select("goal_id,memory_key,memory_type,content,importance")
     .eq("owner_id",userId).in("goal_id",candidates.map((g:any)=>g.id))
     .eq("active",true).order("importance",{ascending:false}).limit(120);
-  const candidateMemories=memoryRes.data||[];
-  const taskFollowup=/\b(logo|branding|webseite|website|landingpage|visitenkarte|flyer|anzeige|kampagne|rechnung|angebot|präsentation|design)\b/i.test(input);
-
+  const memories=memoryRes.data||[];
   const heuristic=candidates.map((g:any)=>{
-    const memoryText=candidateMemories.filter((m:any)=>m.goal_id===g.id)
+    const memoryText=memories.filter((m:any)=>m.goal_id===g.id)
       .map((m:any)=>JSON.stringify(m.content).slice(0,600)).join(" ");
     let score=overlapScore(input,[g.title,g.description,g.desired_outcome,memoryText].filter(Boolean).join(" "));
-    // Nur bei genau einem aktiven Unternehmensziel dürfen typische Folgeaufträge ohne Namensnennung automatisch zugeordnet werden.
-    if(candidates.length===1 && g.status==="active" && ["business","marketing"].includes(g.domain?.primary)
-       && taskFollowup && candidateMemories.some((m:any)=>m.goal_id===g.id && m.memory_type==="goal_brief"))
-      score=Math.max(score,0.66);
-    if(g.domain?.primary&&g.domain.primary===intent.domain.primary) score+=0.18;
-    if(g.status==="active") score+=0.12;
-    if(/logo|website|webseite|visitenkarte|branding|marke|flyer|angebot|vertrieb|marketing|kampagne|rechnung|landingpage|landing page/i.test(input)
-      && g.domain?.primary==="business") score+=0.24;
+    if(g.domain?.primary&&g.domain.primary===intent.domain.primary)score+=0.18;
+    if(g.status==="active")score+=0.12;
     return {goal_id:g.id,score:Math.min(1,score),title:g.title};
   }).sort((a:any,b:any)=>b.score-a.score);
-
+  const top=heuristic[0],second=heuristic[1];
+  if(top?.score>=0.72&&(!second||top.score-second.score>=0.32)){
+    const goal=candidates.find((g:any)=>g.id===top.goal_id);
+    return {decision:"existing",confidence:"high",goal_id:goal.id,goal,
+      reason:"strong_context_match",score:top.score};
+  }
   let aiMatch:any=null;
   try{
-    const rr=await fetch(base+"/functions/v1/ai-gateway",{method:"POST",headers:{"content-type":"application/json","apikey":pub,"authorization":auth},body:JSON.stringify({
-      task_type:"goal_match",
-      input:{
-        new_request:input,
-        interpreted_domain:intent.domain,
-        candidates:candidates.map((g:any)=>({id:g.id,title:g.title,description:g.description,desired_outcome:g.desired_outcome,domain:g.domain,status:g.status}))
-      },
-      quality_level:"high",sensitivity:"standard",
-      required_fields:["goal_id","confidence","relationship","reason"]
-    })});
-    if(rr.ok){const x=await rr.json();aiMatch=x.output||null}
+    const rr=await fetch(base+"/functions/v1/ai-gateway",{
+      method:"POST",headers:{"content-type":"application/json","apikey":pub,"authorization":auth},
+      body:JSON.stringify({task_type:"goal_match",input:{
+        new_request:input,interpreted_domain:intent.domain,
+        candidates:candidates.map((g:any)=>({id:g.id,title:g.title,
+          description:g.description,desired_outcome:g.desired_outcome,domain:g.domain,status:g.status}))
+      },quality_level:"high",sensitivity:"standard",
+      required_fields:["goal_id","confidence","relationship","reason"]})
+    });
+    if(rr.ok){const answer=await rr.json();aiMatch=answer.output||null}
   }catch{}
-
   const aiGoal=candidates.find((g:any)=>g.id===aiMatch?.goal_id);
   const aiConfidence=String(aiMatch?.confidence||"").toLowerCase();
-  if(aiGoal && ["high","very_high"].includes(aiConfidence)){
-    return {decision:"existing",confidence:"high",goal_id:aiGoal.id,goal:aiGoal,reason:aiMatch?.reason||"semantic_match"};
+  if(aiGoal&&["high","very_high"].includes(aiConfidence)&&
+     (active.length<=1||(top?.goal_id===aiGoal.id&&top.score>=0.64&&
+       (!second||top.score-second.score>=0.26)))){
+    return {decision:"existing",confidence:"high",goal_id:aiGoal.id,goal:aiGoal,
+      reason:"semantic_and_context_match"};
   }
-  if(aiGoal && ["medium","moderate"].includes(aiConfidence)){
-    return {decision:"ask",confidence:"medium",goal_id:aiGoal.id,goal:aiGoal,reason:aiMatch?.reason||"semantic_ambiguous"};
-  }
-
-  const top=heuristic[0];
-  const second=heuristic[1];
-  if(top?.score>=0.58 && (!second || top.score-second.score>=0.16)){
-    const goal=candidates.find((g:any)=>g.id===top.goal_id);
-    return {decision:"existing",confidence:"high",goal_id:top.goal_id,goal,reason:"heuristic_high_confidence",score:top.score};
-  }
-  if(top?.score>=0.30){
-    const goal=candidates.find((g:any)=>g.id===top.goal_id);
-    return {decision:"ask",confidence:"medium",goal_id:top.goal_id,goal,reason:"heuristic_ambiguous",score:top.score};
+  if(aiGoal||top?.score>=0.30||followup){
+    const selected=aiGoal||candidates.find((g:any)=>g.id===top?.goal_id)||plausible[0]||candidates[0];
+    const possible=active.length>1?active:possibleGoals(selected,candidates);
+    return {decision:"ask",confidence:"medium",goal_id:selected.id,goal:selected,
+      candidates:goalChoices(possible),reason:"goal_context_ambiguous"};
   }
   return {decision:"new",confidence:"high",reason:"no_meaningful_match"};
+}
+function possibleGoals(selected:any,candidates:any[]){
+  return [selected,...candidates.filter((g:any)=>g.id!==selected.id)].slice(0,6);
 }
 
 const pilotCorsHandler=async(req:Request)=>{
@@ -305,6 +373,9 @@ const pilotCorsHandler=async(req:Request)=>{
   }
 
   const continuity=await resolveGoalContinuity(sb,base,pub,auth,user.id,input,intent,body);
+  if(continuity.decision==="unavailable")
+    return Response.json({error:"goal_context_unavailable",retryable:true},
+      {status:503,headers:cors});
   if(continuity.decision==="ask"){
     return Response.json({
       stage:"goal_resolution",
@@ -315,7 +386,11 @@ const pilotCorsHandler=async(req:Request)=>{
         description:continuity.goal?.description||null,
         desired_outcome:continuity.goal?.desired_outcome||null
       },
-      question:"Geht es bei diesem Auftrag um dein bestehendes Ziel „"+(continuity.goal?.title||"Bestehendes Ziel")+"“ oder soll ein neues Ziel erstellt werden?"
+      candidate_goals:continuity.candidates||goalChoices([continuity.goal]),
+      reason:continuity.reason,
+      question:(continuity.candidates?.length||0)>1?
+        "Zu welchem bestehenden Projekt gehört dieser Auftrag?":
+        "Gehört das zu deinem bestehenden Projekt oder soll ein neues entstehen?"
     },{headers:cors});
   }
   const foundingIndustry=industryOf(input)&&/\b(gründen|gruenden|gründe|gründung|aufbauen|eröffnen)\b/i.test(input);
