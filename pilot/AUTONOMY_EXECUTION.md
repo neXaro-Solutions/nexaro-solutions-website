@@ -58,3 +58,17 @@ Verbindliche UX-/Backend-Regel: Bei **gemeinsamen Entscheidungen** muss Pilot di
 - **Persistenz:** Resultat und `goal_memories` speichern die letztendlich freigegebene Fassung; die originale KI-Fassung bleibt zur Historie/Prüfung erhalten. Danach Progress Engine und begrenzte Folgeautonomie.
 - **Fehlerbehebung v22:** Ein ursprünglich bestandener KI-Quality-Gate wurde bei gemeinsamer Entscheidung fälschlich als `quality_status=failed` gespeichert. Künftig wird daraus `review_required`; die konkret bereits verifizierte Live-Entscheidung vom 2026-10-08 09:40 wurde anhand ihrer sechs bestandenen Prüfkriterien gezielt korrigiert, ohne neue Aussagen zu erfinden.
 - **Abnahme:** Formular/Parser/Backend-Sicherheitszweig geprüft; tatsächliche Benutzerbearbeitung mit Freigabe und Zielgedächtnis-/Fortschrittskontrolle auf dem iPhone noch offen. Erst nach bestandenem Praxistest den Entwicklungsplan auf Grün setzen.
+
+
+## LUMEN 2026.10.08.24 – iPhone-Fokusmodus für Entscheidungen
+
+**Verbindliche Produktregel:** Bei einer Entscheidung bearbeitet der Nutzer einen verständlichen Vorschlag im vergrößerbaren, wirklich scrollbar bleibenden Editor. Eine lange unformatierte Textarea mit Überschriften im selben Fließtext ist nicht zulässig.
+
+- Die Übersicht zeigt **echte HTML-Abschnittsüberschriften** (z. B. „Für wen arbeiten wir?“ / „Das versprechen wir unseren Kunden:“), darunter jeweils den bearbeitbaren Inhalt. So sind die Überschriften sichtbar und müssen nicht selbst mitbearbeitet werden.
+- Das Antippen eines Vorschlagtextes öffnet die iOS-freundliche, modal vergrößerte Bearbeitung auf `document.body`, außerhalb der mit `transform` animierten LUMEN-Karten. Der Hintergrund bleibt stabil und verdeckt.
+- Ein zentraler, *eigener Scroll-Container* übernimmt das vertikale Touch-Scrolling. Textfelder wachsen auf ihre tatsächliche Inhaltshöhe und verursachen **kein konkurrierendes Scrollen** auf iPhone.
+- Die Ansicht richtet sich mit `visualViewport.height` und `visualViewport.offsetTop` an der sichtbaren Bildschirmhöhe bei geöffneter iPhone-Tastatur aus. Das Feld wird **synchron auf den Antipp-Gesture fokussiert**, nicht nach `requestAnimationFrame`, damit Safari die Tastatur zuverlässig öffnet.
+- Der Bearbeitungsmodus zeigt eine feste, erreichbare Fußleiste mit `⚡ Entscheidung steht. Pilot übernimmt.` und dem Zeichenstand. Ein deutliches `✓ Fertig` schließt die Ansicht und bewahrt sämtliche Änderungen; Escape unterstützt Desktop.
+- Alle Änderungen werden in einem gemeinsamen Draft gehalten; Rückkehr in die Übersicht, modale Bearbeitung oder regulärer Neu-Render verlieren den Text nicht. Ein generischer einteiliger Editor bleibt für andere Branchen / Aufgabentypen bestehen.
+- **Backend unverändert gesichert:** `execution-engine` empfängt den endgültigen zusammengesetzten Text als `edited_content`; Besitzerprüfung, explizite Freigabe, Validierung/Safety-Gate und Speicherung in Zielgedächtnis und Ergebnis bleiben aktiv.
+- Technisch kontrolliert: Quelltext- und Syntaxprüfung, Überschriftenaufteilung, Roundtrip, Bearbeitungs-Persistenz, Modal außerhalb der animierten Oberfläche, viewport-sensible Tastaturbehandlung und Freigabepayload. Die reale Scroll-/Keyboard-Abnahme auf einem iPhone muss separat bestanden werden, bevor der Teilblock grün wird.
