@@ -2857,6 +2857,13 @@ body{background:radial-gradient(ellipse 72vw 60vw at 92% -10%,rgba(145,255,62,.1
  }
 }
 
+
+/* Visible recovery instead of a blank Home when a data endpoint fails. */
+.pilot-load-fallback{max-width:660px;margin:10px auto;padding:14px 16px;background:#fffaf1;border:1px solid #f1d7aa;border-radius:14px;font-size:13px;color:#554326}
+.pilot-load-fallback strong{display:block;font-size:14px}.pilot-load-fallback p{margin:7px 0 12px;line-height:1.5}
+.pilot-load-fallback .btn{font-size:12px;padding:8px 12px;min-height:38px}
+.pilot-load-fallback details{margin-top:9px;color:#876e4a;font-size:11px}
+.pilot-load-fallback details small{overflow-wrap:anywhere}
 </style></head>
 <body>
 <section id="auth" class="auth"><div class="box">
@@ -5123,13 +5130,49 @@ async function decideExecution(v,approved){
    }
  }catch(e){PS.textContent="Pilot benötigt deine Aufmerksamkeit";pilotNotice(e.message||String(e),"error")}
 }
-async function enter(session){user=session.user;try{activeGoalId=localStorage.getItem("nexaro_pilot_goal_"+user.id)||null}catch{}A.classList.add("hidden");APP.classList.remove("hidden");try{await load();await pilotEnsureJourney();render();if(goals[0]){
-   void startGoalResearch(goals[0].id);
-   void pilotResumeApprovedWork();
-   if(!pilotAutoRunKey(goals[0].id)||!(pilotReviewContext()||
-     actions.find(a=>a.status==="ready"&&(a.owner_type==="joint"||a.recommended_mode==="together")))){}
-   else void pilotLandAtAttention(goals[0].id,"Hier ist deine Handlung erforderlich");
-  }telemetry("event",{event_name:"session_entered",event_category:"activation",properties:{has_goal:!!goals[0]}})}catch(e){telemetry("incident",{source:"app_load",severity:"error",error_code:"LOAD_FAILED",message:e.message||String(e)});pilotNotice(e.message)}}
+/* Render the interactive shell before optional network calls; never leave a blank view. */
+function pilotShowLoadError(err){
+ const msg=String(err?.message||err||"Ein Dienst ist vorübergehend nicht erreichbar.");
+ const banner='<section class="pilot-load-fallback" role="alert"><strong>Pilot konnte nicht alle Auftragsdaten laden.</strong>'+
+ '<p>Deine gespeicherten Aufträge bleiben erhalten. Du kannst das Laden erneut versuchen.</p>'+
+ '<button type="button" id="pilotRetryLoad" class="btn ai">Erneut laden</button>'+
+ '<details><summary>Fehlerdetails</summary><small>'+esc(msg).slice(0,220)+'</small></details></section>';
+ const host=document.getElementById("view");if(!host)return;
+ // Keep the visible working home if available; a recoverable warning must not wipe it.
+ host.insertAdjacentHTML("afterbegin",banner);
+ document.getElementById("pilotRetryLoad")?.addEventListener("click",async()=>{
+   const btn=document.getElementById("pilotRetryLoad");if(btn){btn.disabled=true;btn.textContent="Pilot lädt …"}
+   try{await load();render();if(goals[0]){void pilotResumeApprovedWork();void startGoalResearch(goals[0].id)}}
+   catch(e){console.warn("Pilot-Daten weiterhin nicht verfügbar",e);pilotShowLoadError(e)}
+ });
+}
+async function enter(session){
+ user=session.user;
+ try{activeGoalId=localStorage.getItem("nexaro_pilot_goal_"+user.id)||null}catch{}
+ A.classList.add("hidden");APP.classList.remove("hidden");
+ // A failed or slow data request may not prevent the start page from showing.
+ try{current="home";render()}catch(e){
+   document.getElementById("view").innerHTML='<section class="pilot-simple-card">Pilot lädt deine Oberfläche …</section>';
+   console.error("Pilot-Oberfläche initialisieren",e);
+ }
+ try{
+   await load();
+   await pilotEnsureJourney();
+   render();
+   if(goals[0]){
+     void startGoalResearch(goals[0].id);
+     void pilotResumeApprovedWork();
+     const reviewNeeded=!!pilotReviewContext()||!!actions.find(a=>
+       a.status==="ready"&&(a.owner_type==="joint"||a.recommended_mode==="together"));
+     if(reviewNeeded)void pilotLandAtAttention(goals[0].id,"Hier ist deine Handlung erforderlich");
+   }
+   void telemetry("event",{event_name:"session_entered",event_category:"activation",properties:{has_goal:!!goals[0]}});
+ }catch(e){
+   void telemetry("incident",{source:"app_load",severity:"error",error_code:"LOAD_FAILED",message:e?.message||String(e)});
+   try{render()}catch(ex){console.warn("Pilot-Fehleransicht",ex)}
+   pilotShowLoadError(e);
+ }
+}
 async function leave(){if(activePilotFlight)pilotDestroyFlight(activePilotFlight);pilotSetFlightState(null,"idle","");user=null;org=null;isAdmin=false;customerPreview=false;adminData=null;pendingAttachments=[];goalSuccessMap={};goals=[];features=[];plans=[];actions=[];contexts=[];milestones=[];documents=[];results=[];claims=[];evidence=[];completeness=[];progressEvents=[];outcomes=[];adaptations=[];pilotState=null;aiRequests=[];qualityContracts=[];consensusRuns=[];executions=[];executionSteps=[];designJobs=[];canvaStatus=null;researchBusy=false;researchAttempted.clear();notifications=[];readiness=[];evalRuns=[];APP.classList.add("hidden");A.classList.remove("hidden")}
 let authMode="login";
 const AUTHM=document.getElementById("authModal"),ME=document.getElementById("modalEmail"),MP=document.getElementById("modalPassword"),MP2=document.getElementById("modalPassword2"),MW=document.getElementById("repeatPasswordWrap"),PW=document.getElementById("privacyWrap"),AP=document.getElementById("acceptPrivacy"),SM=document.getElementById("submitAuth"),SW=document.getElementById("switchAuthMode"),RC=document.getElementById("resendConfirmation"),MM=document.getElementById("modalMessage"),CS=document.getElementById("confirmationState"),CE=document.getElementById("confirmationEmail"),CR=document.getElementById("confirmationResend"),CL=document.getElementById("confirmationLogin");
