@@ -157,3 +157,13 @@ Die separate Unternehmenswebsite und ihre zentralen Seiten bleiben unangetastet.
 - **Wichtige Grenze:** Das E-Mail-Versandsystem in Supabase sowie serverseitige Erzeuger für PDF, DOCX oder andere Formate verwenden die neuen Vorlagen **nicht automatisch**. Erst nach sicherer Pipeline-Integration und realer Testzustellung als vollständig umgesetzt einstufen.
 
 **Technischer Status:** GitHub-Pilot-Frontend und Partnerunterseite angepasst, Artwork integriert, Dokument-/Mailvorlagen bereit. Code-/Strukturtest und echter iPhone-/Android- sowie Versandtest getrennt abnehmen.
+
+## LUMEN FLIGHT V6 — ausschließlich freigegebener Glas-Orb (2026-10-08)
+
+- **Einziger bewegter Flugkörper:** Die Fluganimation verwendet `/pilot/lumen-orb.svg` als statisches Sprite im **einzigen** `#pilotFlightLayer .pilot-plane[data-artwork="lumen-orb"]` (76 × 76 px). Keine zusätzliche Emoji- oder Outline-Flugzeugzeichnung, CSS-Flugkurve, Trail-Pseudoelemente oder animierte innere Orbit-Segmente.
+- **Kontinuierlich und wahrhaftig:** Derselbe Flugkörper führt Start, stationären Rundflug während bestätigter Arbeitsphasen, Anflug zum tatsächlich vorhandenen Aktionsbutton und Wiederstart nach Freigabe aus. Bei fehlender Arbeitsberechtigung darf er keine aktive Ausführung vortäuschen.
+- **Compositor statt JS-Frame-Layout:** Web Animations API mit vorberechneten `translate3d`-Keyframes für die Flugbahn; `requestAnimationFrame` ausschließlich als Fallback. Das Ende der Startkurve übernimmt die Tangente des Rundflugs. Boarding startet von der tatsächlich geparkten Bildschirmkoordinate mit zur kürzeren Startzeit passender Tangente.
+- **Kleinerer Avatar:** Figurenkörper maximal ca. 58 px hoch (Maßstab 0,58), also kleiner als das 76-px-Flugzeug; die Sprechblase ist davon unabhängig und bleibt lesbar. Branchenkleidung, Ausstieg, ruhiges Gehen und Wiedereinstieg bleiben erhalten. Avatar nur bei einer realen erforderlichen Nutzerhandlung.
+- **Keine CSS-Konflikte:** CSS `animation:none!important` für den Flugkörper deaktiviert veraltete CSS-Fluganimationen, ohne dessen JS-gesteuerte Web Animation zu blockieren. Keine Filter-/Blur-Effekte auf der bewegten Compositing-Ebene.
+- **Test:** `pilot/tests/flight-motion.mjs` prüft die echte Laufzeitbewegung, einen einzigen Flugkörper, die Bildidentität, Rundflug-Positionsänderungen, Landung, Größenverhältnis, Gang-Animation und Reboarding in Chromium/Firefox/WebKit. Zusätzlich `pilot/tests/orbit-product.mjs` auf die neue einzige Flugzeug-Grafik aktualisiert. Echtes iPhone-Video bleibt notwendige optische Endabnahme; Test bestanden ist nicht gleich garantierte 60 FPS unter jeder Last.
+- **Geltungsbereich:** ausschließlich `pilot/` plus Pilot-GitHub-Testworkflow. Unternehmenswebsite bleibt unverändert.
