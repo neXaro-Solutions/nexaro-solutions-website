@@ -1911,7 +1911,7 @@ function nxOpenNext(){
   const mask=document.createElement("div");mask.className="nx-mask";
   const safe=esc;
   mask.innerHTML='<section class="nx-modal" role="dialog" aria-modal="true" aria-labelledby="nxTitle" aria-describedby="nxDesc">'+
-    '<div class="nx-top"><div class="nx-symbol" aria-hidden="true">✦</div><span class="nx-kicker">neXaro · PILOT · Alpha 2026.10.08.8</span><button type="button" class="nx-close" aria-label="Schließen">×</button></div>'+
+    '<div class="nx-top"><div class="nx-symbol" aria-hidden="true">✦</div><span class="nx-kicker">neXaro · PILOT · Alpha 2026.10.08.9</span><button type="button" class="nx-close" aria-label="Schließen">×</button></div>'+
     '<h2 id="nxTitle">'+safe(config.title||"Pilot fragt nach")+'</h2><p class="nx-description" id="nxDesc">'+safe(config.description||"Bitte ergänze die noch fehlenden Angaben.")+'</p>'+
     '<form novalidate><div class="nx-fields">'+fields.map((f,i)=>'<div class="nx-field"><label for="nxInput'+i+'">'+safe(f.label)+'</label>'+
       (f.short?'<input id="nxInput'+i+'" type="text" name="'+safe(f.key)+'" maxlength="500" placeholder="'+safe(f.placeholder||"")+'" data-required="'+(f.required?"1":"0")+'">':
@@ -2046,7 +2046,8 @@ async function pilotSafetyDiagnostic({show=true}={}){
       connectivity_or_runtime_error:"! Verbindungs- oder Laufzeitfehler",
       unexpected_provider_response:"! Unerwartete Antwort des Modells"
     };
-    return name+": "+(map[code]||"! Diagnosecode "+code);
+    const detail=String(obj?.detail||"").slice(0,250);
+    return name+": "+(map[code]||"! Diagnosecode "+code)+(detail?"\nAnbieterhinweis: "+detail:"");
   };
   const description=describe(result.primary,"OpenAI")+"\n"+describe(result.secondary,"Claude")+
     "\n\n"+(result.healthy?"Mindestens ein Anbieter hat den technischen Test bestanden. Wenn der Auftrag trotzdem fehlschlägt, untersuchen wir als Nächstes die Auftragsintelligenz.":"Kein Anbieter hat die technische Sicherheitsprüfung erfolgreich abgeschlossen. Pilot stoppt weiterhin sicher, bis mindestens einer verfügbar ist.");
