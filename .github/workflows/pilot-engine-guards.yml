@@ -1,0 +1,34 @@
+name: Pilot engine regression tests
+
+on:
+  push:
+    paths:
+      - "supabase/functions/execution-engine/**"
+      - "pilot/tests/engine-contract.mjs"
+      - "pilot/index.html"
+      - ".github/workflows/pilot-engine-guards.yml"
+  pull_request:
+    paths:
+      - "supabase/functions/execution-engine/**"
+      - "pilot/tests/engine-contract.mjs"
+      - "pilot/index.html"
+      - ".github/workflows/pilot-engine-guards.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    name: Core workflow safety and recovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install pinned TypeScript parser
+        run: npm install --no-save --no-audit --no-fund typescript@5.9.3
+      - name: Run isolated backend regression tests
+        run: node pilot/tests/engine-contract.mjs
