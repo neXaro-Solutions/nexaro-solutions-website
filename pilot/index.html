@@ -3131,6 +3131,19 @@ body{max-width:100%;overflow-x:clip}
 .pilot-journal-actions button,.pilot-journal-add{border:1px solid #c9e8b8;background:#fff;border-radius:9px;color:#396725;padding:9px;font-size:11px;font-weight:750;cursor:pointer}
 .pilot-journal-add{margin-top:10px;background:#eaffde}
 @media(max-width:460px){.pilot-journal-entry{align-items:flex-start;flex-direction:column}}
+
+.pilot-bg-progress{margin:10px 0 4px;padding:11px 12px;border:1px solid #d8eecb;background:#fbfff8;border-radius:12px}
+.pilot-bg-progress-top{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:baseline}
+.pilot-bg-progress-top strong{font-size:12px;color:#3b6135}
+.pilot-bg-progress-top small{font-size:11px;color:#627561}
+.pilot-bg-phases{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;margin:9px 0}
+.pilot-bg-phases span{text-align:center;padding:7px 1px;font-size:10px;font-weight:650;border:1px solid #e1e9df;border-radius:7px;color:#71806f;background:#fff}
+.pilot-bg-phases span.done{color:#39722d;background:#eaffdf;border-color:#bde8a5}
+.pilot-bg-phases span.active{color:#436d1d;background:#e7ffce;border:1px solid #91df66}
+.pilot-bg-progress p{margin:6px 0 0;font-size:12px;color:#52674f;overflow-wrap:anywhere}
+.pilot-bg-progress p.pilot-bg-handoff{color:#805620}
+.pilot-bg-result-note{display:block;font-size:11px;color:#71816f;margin:5px 0 8px}
+@media(max-width:390px){.pilot-bg-phases span{font-size:9px;padding:7px 1px}.pilot-bg-progress-top{gap:4px}}
 </style></head>
 <body>
 <section id="auth" class="auth"><div class="box">
@@ -3533,7 +3546,7 @@ let pilotBackgroundJob=null,pilotBackgroundTimer=null,pilotBackgroundBusy=false;
 function pilotBackgroundWorking(id){return !!id&&pilotBackgroundJob?.goal_id===id&&["queued","running"].includes(pilotBackgroundJob.status)}
 async function pilotBackgroundRead(id){
  if(!id||!user)return null;
- const r=await sb.from("pilot_background_jobs").select("goal_id,status,steps_completed,max_steps,cost_spent_usd,max_cost_usd,last_error")
+ const r=await sb.from("pilot_background_jobs").select("goal_id,status,steps_completed,max_steps,cost_spent_usd,max_cost_usd,last_error,stage,current_action_title,handoff_reason,stage_updated_at,expires_at")
   .eq("goal_id",id).maybeSingle();
  if(r.error)throw new Error("Hintergrundstatus nicht abrufbar.");
  if(goals[0]?.id===id)pilotBackgroundJob=r.data||null;
@@ -3592,8 +3605,40 @@ async function pilotBackgroundResume(id){
  }
  return false;
 }
+
+const pilotBgStages=[{key:"preparing",text:"Verstehen"},{key:"drafting",text:"Erarbeiten"},
+ {key:"verifying",text:"Prüfen"},{key:"saving",text:"Ablegen"}];
+function pilotBgHandoffText(j){
+ const codes={
+  HUMAN_REVIEW_OR_UNSUPPORTED_ACTION:"Der nächste Schritt erfordert deine Entscheidung oder eine gesondert freizugebende Funktion.",
+  EXISTING_GOAL_EXECUTION_NEEDS_REVIEW:"Ein anderer Arbeitsschritt wartet auf Prüfung oder Freigabe.",
+  EXISTING_EXECUTION_NEEDS_REVIEW:"Ein Ergebnis wartet bereits auf Prüfung oder Freigabe.",
+  PREREQUISITE_NOT_COMPLETED:"Eine frühere Aufgabe ist noch nicht abgeschlossen.",
+  ACTION_BLOCKED_OR_IN_PROGRESS:"Ein früherer Schritt muss zuerst geklärt werden.",
+  CONTENT_SAFETY_REVIEW_REQUIRED:"Eine Inhaltsprüfung ist notwendig.",
+  EXECUTION_LEASE_EXPIRED_REVIEW_REQUIRED:"Der Serverlauf wurde unterbrochen. Pilot startet keinen kostenpflichtigen Versuch ohne Prüfung.",
+  GOAL_PERMISSION_CHANGED:"Der Projektzugriff muss überprüft werden."
+ };
+ return codes[j?.handoff_reason||j?.last_error]||"Pilot benötigt eine Prüfung, bevor er sicher weiterarbeitet.";
+}
+function pilotBgProgressHTML(j){
+ if(!j)return "";
+ const active=pilotBgStages.findIndex(s=>s.key===j.stage);
+ const count=Math.max(0,Math.min(12,Number(j.steps_completed)||0));
+ return '<div class="pilot-bg-progress" role="status" aria-label="Hintergrundstatus">'+
+  '<div class="pilot-bg-progress-top"><strong>'+count+' / '+Math.max(1,Number(j.max_steps)||6)+' Schritte</strong>'+
+  '<small>'+Number(j.cost_spent_usd||0).toFixed(4)+' / '+Number(j.max_cost_usd||0.25).toFixed(2)+' USD geschätzte KI-Kosten</small></div>'+
+  (["queued","running"].includes(j.status)?
+    '<div class="pilot-bg-phases">'+pilotBgStages.map((x,i)=>
+      '<span class="'+(active>=0&&i<active?"done":active===i?"active":"")+'">'+esc(x.text)+'</span>'
+     ).join("")+'</div>'+
+     '<p>'+esc(j.current_action_title||"Pilot plant den nächsten sicheren Schritt.")+'</p>':
+    j.status==="waiting_user"?
+     '<p class="pilot-bg-handoff"><strong>Prüfung erforderlich:</strong> '+esc(pilotBgHandoffText(j))+'</p>':
+     '<p>'+esc(j.status==="paused"?"Hintergrundarbeit pausiert.":"Genehmigter Hintergrundabschnitt beendet.")+'</p>')+'</div>';
+}
 function pilotAutoStatusCard(){
- if(pilotBackgroundWorking(goals[0]?.id))return '<div class="pilot-auto-status" role="status"><span>✈</span><div><strong>Pilot arbeitet auch bei geschlossener App</strong><small>'+pilotBackgroundJob.steps_completed+' / '+pilotBackgroundJob.max_steps+' sichere Kreativschritte · bis '+Number(pilotBackgroundJob.max_cost_usd).toFixed(2)+' USD geschätzte KI-Kosten</small></div><button id="pausePilotBackground" class="btn" type="button">Pausieren</button></div>';
+ if(pilotBackgroundWorking(goals[0]?.id))return '<div class="pilot-auto-status" role="status"><span>✈</span><div><strong>Pilot arbeitet auch bei geschlossener App</strong><small>Sicherer mehrstufiger Kreativauftrag · keine einzelnen Klicks nötig</small></div><button id="pausePilotBackground" class="btn" type="button">Pausieren</button></div>';
  if(pilotAutoSession?.active)return '<div class="pilot-auto-status" role="status" aria-live="polite"><span class="pilot-auto-orbit" aria-hidden="true">✦</span><div><strong>Pilot arbeitet selbstständig</strong><small>'+esc(pilotAutoSession.label||"Arbeitsschritt wird bearbeitet …")+'</small></div>'+
  '<button id="pausePilotAutopilot" type="button" class="btn">'+(pilotAutoSession.cancelRequested?"Stop angefordert":"Nach diesem Schritt stoppen")+'</button></div>';
  if(pilotAutoSummary?.text)return '<div class="pilot-auto-status pilot-auto-summary pilot-auto-'+esc(pilotAutoSummary.kind||"completed")+'" role="status"><span aria-hidden="true">'+(pilotAutoSummary.kind==="waiting"?"◌":pilotAutoSummary.kind==="error"?"!":"✓")+'</span><div><strong>'+(pilotAutoSummary.kind==="waiting"?"Pilot wartet auf dich":pilotAutoSummary.kind==="error"?"Prüfung benötigt":"Automatischer Arbeitslauf")+'</strong><small>'+esc(pilotAutoSummary.text)+'</small></div></div>';
@@ -3744,6 +3789,7 @@ function home(){
  (needsHuman?'<div id="pilotFlightAttention" class="pilot-flight-attention" role="status"><strong>Prüfung erforderlich.</strong> '+(activePilotFlight?.phase==="parked"?"✈ Pilot ist gelandet. ":"")+'Nach deiner Entscheidung arbeitet Pilot weiter.</div>':'')+
  (pilotBackgroundJob?.goal_id===g.id&&pilotBackgroundJob.status==="paused"?
   '<button type="button" id="resumePilotBackground" class="btn">✈ Hintergrundarbeit fortsetzen</button>':'')+
+ (pilotBackgroundJob?.goal_id===g.id?pilotBgProgressHTML(pilotBackgroundJob):'')+
  (inProgress?'<div class="pilot-simple-activity">'+esc(pilotAutoSession?.label||"Pilot bearbeitet sichere Schritte auch bei geschlossener App …")+
  (pilotBackgroundWorking(g.id)?'<button id="pausePilotBackground" class="pilot-simple-textbutton" type="button">Hintergrund pausieren</button>':
  '<button id="pausePilotAutopilot" class="pilot-simple-textbutton" type="button">Nach diesem Schritt stoppen</button>')+'</div>':
@@ -3920,8 +3966,10 @@ function pilotProjectResultsHTML(data,refActions=[]){
  items.map(r=>{
   const pending=["provisional","review_required"].includes(r.quality_status),name=pilotFriendlyActionTitle(r.title||"Ergebnis");
   const text=String(r.content||"").replace(/\\n/g,"\n"),short=text.length>160?text.slice(0,157)+" …":text;
-  return '<article class="pilot-project-file"><span class="pilot-simple-tag '+(pending?"pending":"")+'">'+(pending?"Vorläufig":"Erarbeitet")+'</span>'+
+  const bg=!!r.structured_content?.background_worker;
+  return '<article class="pilot-project-file"><span class="pilot-simple-tag '+(pending?"pending":"")+'">'+(bg?"Textkonzept":pending?"Vorläufig":"Erarbeitet")+'</span>'+
    '<h4>'+esc(name)+'</h4><p>'+esc(short)+'</p>'+
+   (bg?'<small class="pilot-bg-result-note">Auf vorherige Projektschritte abgestimmt · formale Inhaltsprüfung, keine unabhängige Quellenprüfung</small>':'')+
    '<details class="pilot-project-document"><summary>Vollständiges Ergebnis</summary><div class="pilot-project-document-body">'+esc(text)+'</div></details></article>';
  }).join("")+'</details>').join("");
 }
