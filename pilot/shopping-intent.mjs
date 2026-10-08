@@ -14,9 +14,18 @@ export function productShoppingIntent(text){
  const t=String(text||"").trim();
  if(notBuying.test(t))return null;
  const topic=PRODUCT_TOPICS.find(p=>p.match.test(t));
- if(!topic)return null;
- if(!purchasing.test(t)&&!/^(?:was\s+ist|welches?|welcher|welche|ich\s+(?:brauche|möchte))\b/i.test(t))return null;
- return {key:topic.key,topic:topic.noun,query:topic.noun,raw:t};
+ if(topic){
+  if(!purchasing.test(t)&&!/^(?:was\s+ist|welches?|welcher|welche|ich\s+(?:brauche|möchte))\b/i.test(t))return null;
+  return {key:topic.key,topic:topic.noun,query:topic.noun,raw:t};
+ }
+ // Extend to other physical products without treating every question as a shopping intent.
+ const generic=t.match(/^(?:(?:was\s+ist|welches?\s+ist|welche\s+ist|welcher\s+ist)\s+(?:(?:das|der|die)\s+)?)?(?:beste[nrs]?|günstigste[nrs]?|empfehlenswerteste[nrs]?)\s+([\p{L}\p{N}äöüÄÖÜß -]{4,45})[?.!]?$/iu);
+ if(generic){
+  const noun=generic[1].trim().replace(/\s*[?.!]$/, "");
+  if(!/\b(?:versicherung|kredit|tarif|bank|anwalt|arzt|aktie|medikament)\b/i.test(noun))
+   return {key:"generic",topic:noun,query:noun,raw:t};
+ }
+ return null;
 }
 export function shoppingPreferences(text){
  const t=String(text||"");
@@ -50,14 +59,16 @@ export function isShoppingFollowUp(text,active){
 }
 const accessories=/\b(?:hülle|case|schutzfolie|schutzglas|ladegerät|ladekabel|netzteil|stativ|ersatzteil|displayersatz|displayglas|schutzhülle|adapter|silikonhülle|schutzcover|telefonhalter|handyhalter|cover)\b/i;
 export function shortlistOffers(raw,topic,preferences={}){
- const info=PRODUCT_TOPICS.find(x=>x.key===topic)||PRODUCT_TOPICS[0];
+ const info=PRODUCT_TOPICS.find(x=>x.key===topic)||null;
+ const tokens=String(preferences.product_topic||"").trim().toLowerCase().split(/\s+/).filter(x=>x.length>=4);
  const offers=(Array.isArray(raw)?raw:[]).filter(o=>{
   const title=String(o.name||"");
   const price=Number(o.price_eur);
-  if(!info.products.test(title)||accessories.test(title))return false;
+  if(info?!info.products.test(title):!tokens.length||!tokens.every(x=>title.toLowerCase().includes(x)))return false;
+  if(accessories.test(title))return false;
   if(!Number.isFinite(price)||price<=0)return false;
   if(preferences.budget&&((o.total_eur==null?price:Number(o.total_eur))>preferences.budget))return false;
-  if(preferences.platform==="iOS"&&info.key==="smartphone"&&!/\biphone\b/i.test(title))return false;
+  if(preferences.platform==="iOS"&&topic==="smartphone"&&!/\biphone\b/i.test(title))return false;
   if(preferences.platform==="Android"&&info.key==="smartphone"&&/\biphone\b/i.test(title))return false;
   try{if(new URL(String(o.url)).protocol!=="https:")return false}catch{return false}
   return true;
