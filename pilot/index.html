@@ -1943,6 +1943,24 @@ async function pilotApiError(response,fallback){
     return new Error("Pilot kann diese Anfrage noch nicht zuverlässig beurteilen. Aus Sicherheitsgründen wurde sie nicht ausgeführt. Bitte formuliere den Auftrag sachlich und eindeutig oder kontaktiere den Support. (Code: SAFETY_REVIEW_REQUIRED)");
   if(extracted?.reason_code==="secondary_moderation_blocked")
     return new Error("Die Sicherheitsprüfung hat diesen Auftrag abgelehnt. Du kannst eine zulässige Alternative formulieren. (Code: SAFETY_POLICY_BLOCKED)");
+  if(extracted?.reason_code==="safety_credentials_missing")
+    return new Error("Pilots Sicherheitsdienst ist noch nicht mit gültigen API-Zugangsdaten verbunden. Der Auftrag wird aus Sicherheitsgründen gestoppt. Bitte die Zugangsdaten im neXaro-Supabase-Projekt unter Edge Functions → Secrets hinterlegen. (Code: SAFETY_CREDENTIALS_MISSING)");
+  if(extracted?.diagnostic_code){
+    const details={
+      primary_key_missing:"Kein OpenAI-Schlüssel für die primäre Sicherheitsprüfung hinterlegt.",
+      primary_key_invalid:"Der OpenAI-Zugang wurde abgewiesen. API-Schlüssel und Berechtigungen prüfen.",
+      primary_rate_limited:"Der OpenAI-Dienst meldet ein Kontingent- oder Ratenlimit.",
+      primary_model_not_found:"Das konfigurierte Moderationsmodell ist nicht erreichbar.",
+      primary_http_error:"Der OpenAI-Dienst beantwortet die Anfrage mit einem Serverfehler.",
+      primary_connectivity_error:"Der OpenAI-Dienst ist aus dem Pilot-Backend nicht erreichbar.",
+      secondary_key_invalid:"Der alternative Claude-Sicherheitsdienst lehnt den API-Zugang ab. Schlüssel und Berechtigungen prüfen.",
+      secondary_model_not_found:"Das alternative Claude-Modell ist nicht verfügbar oder für diesen Zugang nicht freigegeben.",
+      secondary_rate_limited:"Beim alternativen Claude-Dienst ist das Kontingent oder Ratenlimit erreicht.",
+      secondary_http_error:"Der alternative Claude-Dienst beantwortet die Prüfung mit einem Fehler.",
+      secondary_connectivity_error:"Der alternative Claude-Dienst ist aus dem Pilot-Backend nicht erreichbar."
+    };
+    return new Error("Pilot konnte die Sicherheitsprüfung nicht abschließen. "+(details[extracted.diagnostic_code]||"Technischer Fehler beim Sicherheitsanbieter.")+" Die Anfrage ist nicht als unzulässig eingestuft. (Code: "+String(extracted.diagnostic_code).toUpperCase()+")");
+  }
   if(extracted?.reason_code==="safety_provider_unavailable"||extracted?.error==="safety_check_unavailable"){
     return new Error("Die Sicherheitsprüfung ist derzeit technisch nicht verfügbar. Deshalb wird der Auftrag noch nicht ausgeführt. Dein Auftrag wurde nicht als unzulässig eingestuft. (Code: SAFETY_PROVIDER_UNAVAILABLE)");
   }
