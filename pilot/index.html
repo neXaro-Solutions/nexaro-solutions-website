@@ -4303,13 +4303,11 @@ async function pilotBackgroundObserve(id){
    if(prev!==job.status||done!==job.steps_completed||stage!==job.stage||title!==job.current_action_title){
      await load();if(!document.querySelector("#goalText:focus"))render()
    }
-   if(pilotBackgroundWorking(id)){if(current==="home")pilotEnsureContinuousFlight(id)}
+   if(pilotBackgroundWorking(id))pilotEnsureContinuousFlight(id);
    else{
     pilotBackgroundStopPolling();
-    if(current==="home"){
-     if(job.status==="waiting_user")void pilotLandAtAttention(id,"Pilot benötigt deine Entscheidung oder Prüfung");
-     else pilotEndContinuousFlight(id,job.status==="completed"?"Sicherer Hintergrundabschnitt bearbeitet":"Hintergrundlauf pausiert");
-    }
+    if(job.status==="waiting_user")void pilotLandAtAttention(id,"Pilot benötigt deine Entscheidung oder Prüfung");
+    else pilotEndContinuousFlight(id,job.status==="completed"?"Sicherer Hintergrundabschnitt bearbeitet":"Hintergrundlauf pausiert");
    }
   }catch(e){console.warn("Pilot-Hintergrund",String(e?.message||e).slice(0,120))}
   finally{pilotBackgroundBusy=false}
@@ -4336,7 +4334,7 @@ async function pilotBackgroundResume(id){
  const r=await pilotBackgroundCall("resume",id);
  if(["queued","running"].includes(r.status)){
   pilotBackgroundJob=r.job||prior;render();
-  if(current==="home")pilotEnsureContinuousFlight(id);
+  pilotEnsureContinuousFlight(id);
   void pilotBackgroundObserve(id);return true
  }
  return false;
@@ -6665,7 +6663,8 @@ function pilotFlyingFromCurrentWork(){
  return document.getElementById("executeAction")||
    document.getElementById("createGoal")||
    document.getElementById("pilotNextActionPanel")||
-   document.querySelector(".pilot-simple-work");
+   document.querySelector(".pilot-simple-work")||
+   document.querySelector(".side .nav[data-view=\"goals\"]");
 }
 function pilotEnsureContinuousFlight(goalId){
  if(!goalId||goals[0]?.id!==goalId||pilotFlightPreviewRunning)return;
