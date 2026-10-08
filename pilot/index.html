@@ -3258,6 +3258,11 @@ body{max-width:100%;overflow-x:clip}
 .pilot-shopping-price a{display:inline-block;margin-top:6px;font-size:11px;font-weight:820;text-decoration:none;color:#316d37}
 .pilot-shopping-footer{font-size:11px;color:#748279;line-height:1.6;margin:12px 0 0}
 @media(max-width:580px){.pilot-shopping-card{padding:15px 14px;border-radius:18px;margin-top:14px}.pilot-shopping-offer{align-items:start;flex-direction:column}.pilot-shopping-price{text-align:left}.pilot-shopping-choice .btn{width:100%}}
+
+.pilot-focus--conversation{flex-direction:column!important;justify-content:center!important;gap:0;padding-top:18px;padding-bottom:36px}
+.pilot-focus--conversation .pilot-focus-entry{padding-bottom:10px!important}
+.pilot-focus--conversation .pilot-shopping-card{flex:0 0 auto;width:min(740px,100%);margin:0 auto 22px}
+@media(max-width:600px){.pilot-focus--conversation{justify-content:flex-start!important;padding-top:24px;padding-bottom:30px}.pilot-focus--conversation .pilot-focus-entry{padding-top:7px!important}}
 </style><style id="pilot-orbit-design">
 /* ORBIT — canonical product tokens and layouts. Legacy tooling keeps its selectors. */
 :root{--bg:#f2f6f3;--s:#ffffff;--t:#172d29;--m:#5b7068;--l:#dae5de;--g:#9aef55;--g2:#6cba3c;--o:#e99342;--sh:0 24px 70px #243f3010;--sh2:0 10px 30px #243f300b}
@@ -4150,7 +4155,7 @@ function home(){
  '<input id="attachmentDocumentInput" class="hidden-file" type="file" accept=".pdf,.docx,.txt,.md,.csv,.json,.xml,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,text/csv,application/json,application/xml" multiple>'+
  '<input id="attachmentFileInput" class="hidden-file" type="file" accept="image/*,.pdf,.docx,.txt,.md,.csv,.json,.xml" multiple>';
 
- return '<div class="pilot-focus"><section class="pilot-focus-entry" aria-labelledby="homeComposeTitle">'+
+ return '<div class="pilot-focus'+(pilotShoppingAssistant?.getState()?' pilot-focus--conversation':'')+'"><section class="pilot-focus-entry" aria-labelledby="homeComposeTitle">'+
  '<div class="pilot-machine-core" aria-hidden="true"><i></i><i></i><i></i><span>'+pilotAircraftSVG()+'</span></div>'+
  '<div class="pilot-focus-brand">PILOT</div><h2 id="homeComposeTitle">Was soll ich für dich erledigen?</h2>'+
  '<div class="pilot-focus-composer">'+
@@ -5021,8 +5026,9 @@ function pilotShoppingCard(){return pilotShoppingAssistant?.card()||"";}
 async function pilotShoppingAsk(text){
  const assistant=await pilotShoppingGet();
  if(!assistant)return false;
+ pilotComposerDraft=""; // The current question is consumed before any consultation rerender.
  const handled=await assistant.handle(text,{attachments:pendingAttachments.length>0});
- if(handled)pilotComposerDraft="";
+ if(!handled)pilotComposerDraft=text;
  return handled;
 }
 
