@@ -3785,6 +3785,7 @@ function pilotBindSpatialUI(){
 
 
 /* Only display the worker at an actual intervention on the active Pilot screen. */
+let pilotAttentionReconnectPending=false;
 function pilotSyncFlightScreen(){
  if(pilotFlightPreviewRunning)return; // the isolated test owns its plane
  if(current!=="home"&&!document.querySelector(".nx-mask")){
@@ -3792,7 +3793,23 @@ function pilotSyncFlightScreen(){
    document.getElementById("pilotFlightLayer")?.replaceChildren();
    if(pilotFlightState.mode==="attention"||pilotFlightState.mode==="dialog_attention")
      pilotSetFlightState(null,"idle","");
+   return;
  }
+ if(current!=="home"||document.querySelector(".nx-mask")||pilotAutoSession?.active||
+    activePilotFlight?.plane?.isConnected||pilotAttentionReconnectPending)return;
+ const next=actions.find(a=>a.status==="ready");
+ const needsChoice=!!pilotReviewContext()||
+   executions.some(e=>["review_required","waiting_approval"].includes(e.status))||
+   !!(next&&(next.owner_type==="joint"||next.recommended_mode==="together"));
+ const goalId=goals[0]?.id;
+ if(!needsChoice||!goalId)return;
+ pilotAttentionReconnectPending=true;
+ queueMicrotask(()=>{
+   pilotAttentionReconnectPending=false;
+   if(current==="home"&&!pilotAutoSession?.active&&!pilotFlightPreviewRunning&&
+       !activePilotFlight?.plane?.isConnected&&goals[0]?.id===goalId)
+     void pilotLandAtAttention(goalId,"Hier ist deine Handlung erforderlich");
+ });
 }
 function render(){if(!effectiveAdmin()&&["roadmap","alpha","admin"].includes(current))current="home";applyRoleUI();document.querySelectorAll("[data-view]").forEach(b=>b.classList.toggle("active",b.dataset.view===current));T.textContent={home:"Pilot",goals:"Aufträge",documents:"Dokumente",results:"Ergebnisse",execution:"Ausführung",canva:"Gestaltung",roadmap:"Entwicklungsplan",alpha:"Systemtest",admin:"Admin-Cockpit",me:"Einstellungen"}[current];V.dataset.screen=current;V.innerHTML={home:home,goals:goalsView,documents:documentsView,results:resultsView,execution:executionView,canva:canvaView,roadmap:roadmap,alpha:alphaView,admin:adminView,me:me}[current]();document.querySelectorAll(".side .nav[data-view]").forEach(b=>{if(b.dataset.view===current)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current")});bind();pilotBindSpatialUI();pilotSyncFlightScreen()}
 
@@ -4772,8 +4789,11 @@ async function pilotAvatarReboard(goalId){
  })().finally(()=>{if(activePilotFlight===f)f.boardingPromise=null});
  return f.boardingPromise;
 }
+let pilotAttentionLandingInFlight=false;
 async function pilotLandAtAttention(goalId,message){
- if(!goalId||goals[0]?.id!==goalId||pilotFlightPreviewRunning)return;
+ if(!goalId||goals[0]?.id!==goalId||pilotFlightPreviewRunning||pilotAttentionLandingInFlight)return;
+ pilotAttentionLandingInFlight=true;
+ try{
  pilotSetFlightState(goalId,"attention",message||"Hier ist deine Handlung erforderlich");
  if(current!=="home"){current="home";render()}
  const target=document.getElementById("confirmPilotResult")||
@@ -4793,6 +4813,7 @@ async function pilotLandAtAttention(goalId,message){
  if(activePilotFlight?.plane?.isConnected&&target)
    await landPilotAtNextAction({scroll:false,minCruise:350,keepLanded:true,targetElement:target,
      landingMessage:message||"Hier ist deine Handlung erforderlich."});
+ }finally{pilotAttentionLandingInFlight=false}
 }
 function pilotEndContinuousFlight(goalId,message){
  if(pilotFlightState.goalId&&goalId!==pilotFlightState.goalId)return;
