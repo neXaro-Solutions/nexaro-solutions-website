@@ -3135,7 +3135,7 @@ function nxOpenNext(){
   const mask=document.createElement("div");mask.className="nx-mask";
   const safe=esc;
   mask.innerHTML='<section class="nx-modal" role="dialog" aria-modal="true" aria-labelledby="nxTitle" aria-describedby="nxDesc">'+
-    '<div class="nx-top"><div class="nx-symbol" aria-hidden="true">✦</div><span class="nx-kicker">neXaro · PILOT · LUMEN 2026.10.08.34</span><button type="button" class="nx-close" aria-label="Schließen">×</button></div>'+
+    '<div class="nx-top"><div class="nx-symbol" aria-hidden="true">✦</div><span class="nx-kicker">neXaro · PILOT · LUMEN 2026.10.08.35</span><button type="button" class="nx-close" aria-label="Schließen">×</button></div>'+
     '<h2 id="nxTitle">'+safe(config.title||"Pilot fragt nach")+'</h2><p class="nx-description" id="nxDesc">'+safe(config.description||"Bitte ergänze die noch fehlenden Angaben.")+'</p>'+
     '<form novalidate><div class="nx-fields">'+fields.map((f,i)=>'<div class="nx-field"><label for="nxInput'+i+'">'+safe(f.label)+'</label>'+
       (f.short?'<input id="nxInput'+i+'" type="text" name="'+safe(f.key)+'" maxlength="500" placeholder="'+safe(f.placeholder||"")+'" data-required="'+(f.required?"1":"0")+'">':
@@ -3844,9 +3844,28 @@ async function pilotBraveDiagnostic(){
        pilotNotice("Brave Search verbunden: "+total+" Treffer, "+official+
          " amtliche Seiten erfolgreich abgerufen. Die fachliche Prüfung ihrer Aussagen erfolgt im Auftrag.");
      }else if(candidates>0){
-       pilotNotice("Brave Search verbunden: "+total+" Treffer. "+candidates+
-         " amtliche Fundstellen erkannt, aber keine Seite konnte bisher zuverlässig ausgelesen werden. "+
-         "Diese Treffer bleiben Suchhinweise, bis die Originalquelle geprüft ist.");
+       const attempted=Number(result.data?.tested_official||0);
+       const reasons=result.data?.verification_failures||{};
+       const category={
+         redirect_not_official:"Weiterleitung zu einer fremden Domain",
+         too_many_redirects:"zu viele Weiterleitungen",
+         pdf_requires_reader:"PDF-Dokumente",
+         no_relevant_extract:"kein geeigneter Textauszug",
+         http_403:"Zugriff von der Originalseite abgelehnt",
+         http_429:"Zugriffslimit der Originalseite",
+         access_challenge:"Zugriffsschutz der Originalseite",
+         timeout:"Zeitüberschreitung",
+         network_or_tls_error:"Netzwerkverbindung fehlgeschlagen",
+         unsupported_content_type:"Dateiformat nicht lesbar",
+         oversized_page:"zu große Originalseite"
+       };
+       const causes=Object.entries(reasons).filter(x=>Number(x[1])>0)
+         .sort((a,b)=>Number(b[1])-Number(a[1]))
+         .slice(0,2).map(x=>(category[x[0]]||"technischer Abruf nicht möglich")+" ("+x[1]+")");
+       pilotNotice("Brave verbunden: "+total+" Treffer, "+candidates+" amtliche Links. "+
+         (attempted?attempted+" Originalseiten versucht; ":"")+
+         "noch keine inhaltlich bestätigt. "+(causes.length?"Abrufhinweise: "+causes.join(", ")+". ":"")+
+         "Die Treffer bleiben Suchhinweise, bis die Originalquelle gelesen werden kann.");
      }else{
        pilotNotice("Brave Search verbunden: "+total+" Treffer. "+
          (focused?"Auch die gezielte Suche nach amtlichen Fachquellen wurde versucht. ":"")+
