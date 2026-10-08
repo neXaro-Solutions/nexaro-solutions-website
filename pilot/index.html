@@ -4819,8 +4819,21 @@ async function createGoal(){
     if(goals[0]?.id===targetGoal.id && !pilotReviewContext() &&
        !pilotRelevantInterruption() &&
        actions.some(a=>["ready","pending"].includes(a.status)&&a.goal_id===targetGoal.id)){
-      PS.textContent="Pilot bearbeitet deinen Auftrag selbstständig …";
-      await pilotContinueSafely(targetGoal.id,32);
+      PS.textContent="Pilot übergibt sichere Schritte an den Server …";
+      try{
+        await pilotBackgroundStart(targetGoal.id);
+        PS.textContent="Pilot arbeitet auch bei geschlossener App weiter.";
+      }catch(error){
+        // An interrupted response may conceal a successfully accepted job.
+        const persisted=await pilotBackgroundRead(targetGoal.id).catch(()=>null);
+        if(persisted&&["queued","running"].includes(persisted.status)){
+          void pilotBackgroundObserve(targetGoal.id);
+          PS.textContent="Pilot läuft im Hintergrund.";
+        }else{
+          pilotEndContinuousFlight(targetGoal.id,"Hintergrundstart konnte nicht bestätigt werden");
+          throw new Error("Kein bestätigter Hintergrundstart. "+String(error?.message||error));
+        }
+      }
     }
   }catch(e){
     PS.textContent="Pilot bereit";
@@ -5521,7 +5534,8 @@ async function confirmPilotResult(){
    await pilotAvatarReboard(ctx.ex.goal_id);
    pilotEnsureContinuousFlight(ctx.ex.goal_id);
    PS.textContent="Pilot startet die nächsten sicheren Schritte …";
-   void pilotContinueSafely(ctx.ex.goal_id,32);
+   if(!(await pilotBackgroundResume(ctx.ex.goal_id).catch(()=>false)))
+     void pilotContinueSafely(ctx.ex.goal_id,32);
  }catch(e){
    PS.textContent="Pilot benötigt eine Prüfung";
    await load().catch(()=>{});
@@ -5763,7 +5777,8 @@ async function decideExecution(v,approved){
    if(r.data?.status==="completed"){
      await pilotAvatarReboard(goalId);
      pilotEnsureContinuousFlight(goalId);
-     void pilotContinueSafely(goalId,32);
+     if(!(await pilotBackgroundResume(goalId).catch(()=>false)))
+       void pilotContinueSafely(goalId,32);
    }else if(r.data?.status==="blocked"){
      pilotEndContinuousFlight(goalId,"Die externe Funktion ist noch nicht verbunden");
      pilotNotice("Die Freigabe wurde gespeichert. Die externe Aktion ist technisch noch nicht ausführbar und wurde nicht durchgeführt.");
@@ -5785,7 +5800,10 @@ function pilotShowLoadError(err){
  host.insertAdjacentHTML("afterbegin",banner);
  document.getElementById("pilotRetryLoad")?.addEventListener("click",async()=>{
    const btn=document.getElementById("pilotRetryLoad");if(btn){btn.disabled=true;btn.textContent="Pilot lädt …"}
-   try{await load();render();if(goals[0]){void pilotResumeApprovedWork();void startGoalResearch(goals[0].id)}}
+   try{await load();if(goals[0])await pilotBackgroundRead(goals[0].id).catch(()=>null);
+     render();if(goals[0]){if(pilotBackgroundWorking(goals[0].id))void pilotBackgroundObserve(goals[0].id);
+       else if(!pilotBackgroundJob)void pilotResumeApprovedWork();
+       void startGoalResearch(goals[0].id)}}
    catch(e){console.warn("Pilot-Daten weiterhin nicht verfügbar",e);pilotShowLoadError(e)}
  });
 }
@@ -5801,10 +5819,12 @@ async function enter(session){
  try{
    await load();
    await pilotEnsureJourney();
+   if(goals[0])await pilotBackgroundRead(goals[0].id).catch(()=>null);
    render();
    if(goals[0]){
      void startGoalResearch(goals[0].id);
-     void pilotResumeApprovedWork();
+     if(pilotBackgroundWorking(goals[0].id))void pilotBackgroundObserve(goals[0].id);
+     else if(!pilotBackgroundJob)void pilotResumeApprovedWork();
      // Existing decisions remain visible in the project, but do not trigger
      // a fresh airplane + avatar just because the user reopened the webpage.
    }
