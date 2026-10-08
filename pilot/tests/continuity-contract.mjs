@@ -259,6 +259,28 @@ assert(frontend.includes('pilotNotice("Pilot übernimmt "+reusedDecisions'),
   "Users must see that an earlier confirmed choice is being reused");
 console.log("PASS Verified-only migration, revocation protection and human-readable UI notice");
 
+// Explicitly choosing "Auftrag fortsetzen" should prevent duplicate goal questions.
+// Merely having a recent active goal is insufficient; user intent must be explicit.
+const pinnedScopeSource=String(frontend.match(/function pilotContinuationScope\(input\)\{[\s\S]*?\n\}/)?.[0]||"");
+assert(pinnedScopeSource.startsWith("function pilotContinuationScope"));
+const scoped=new Function("goals","pilotPinnedGoalId",pinnedScopeSource+"\nreturn pilotContinuationScope;")(
+  [{id:GOAL,status:"active"}],GOAL);
+assert.equal(scoped("Erstelle mir ein Logo"),GOAL);
+assert.equal(scoped("Arbeite an der Website weiter"),GOAL);
+assert.equal(scoped("Ich möchte eine neue Firma gründen"),null);
+assert.equal(scoped("Bitte ein anderes Projekt starten"),null);
+const unscoped=new Function("goals","pilotPinnedGoalId",pinnedScopeSource+"\nreturn pilotContinuationScope;")(
+  [{id:GOAL,status:"active"}],null);
+assert.equal(unscoped("Erstelle mir ein Logo"),null,
+  "The most recently active project must never be silently pinned");
+assert(frontend.includes("pilotPinnedGoalId=activeGoalId"),
+  "Explicit project open must retain project context");
+assert(frontend.includes('id="pilotNewProject"'),
+  "A visible one-tap new-project escape must always be available");
+assert(frontend.includes('body:{input:text,...(pinnedGoalId?{existing_goal_id:pinnedGoalId}:{})}'),
+  "Pinned project must be passed to the backend before unnecessary goal resolution");
+console.log("PASS Explicit goal continuation is one tap, visible, and never pins new projects");
+
 const alternatives=scenario([],OWNER,[],[legalEntry]);
 const comparison=await alternatives.invoke({input:"Bitte Rechtsform GmbH oder Einzelunternehmen vergleichen"});
 assert.equal(comparison.http,200);
