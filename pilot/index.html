@@ -2870,6 +2870,12 @@ body{background:radial-gradient(ellipse 72vw 60vw at 92% -10%,rgba(145,255,62,.1
 .pilot-initial-fallback strong{display:block;font-size:14px}
 .pilot-initial-fallback p{font-size:12px;color:#7c8b77;margin:4px 0 0;line-height:1.5}
 .pilot-initial-beacon{display:grid;place-items:center;flex:0 0 38px;height:38px;border-radius:12px;background:#eaffd8;color:#42822c;font-size:19px}
+
+/* Admin preview landing zone – only while the isolated animation test runs. */
+.pilot-demo-only{margin:10px 0 12px;padding:12px;display:grid;gap:8px;border:1px solid #d5eac8;border-radius:12px;background:#f9fff6}
+.pilot-demo-only .pilot-admin-runway-label{font-size:11px;font-weight:800;color:#5e8746}
+.pilot-demo-only .pilot-admin-land-target{padding:9px 12px;border:1px dashed #7baa5c;border-radius:10px;background:#fff;color:#4b7140;font-weight:750;font-size:12px}
+.pilot-demo-only .pilot-admin-demo-status{font-size:11px;line-height:1.5;margin:0;color:#607d53}
 </style></head>
 <body>
 <section id="auth" class="auth"><div class="box">
@@ -3777,7 +3783,18 @@ function pilotBindSpatialUI(){
  if(!reduced){V.classList.remove("pilot-view-enter");V.classList.add("pilot-view-enter")}
 }
 
-function render(){if(!effectiveAdmin()&&["roadmap","alpha","admin"].includes(current))current="home";applyRoleUI();document.querySelectorAll("[data-view]").forEach(b=>b.classList.toggle("active",b.dataset.view===current));T.textContent={home:"Pilot",goals:"Aufträge",documents:"Dokumente",results:"Ergebnisse",execution:"Ausführung",canva:"Gestaltung",roadmap:"Entwicklungsplan",alpha:"Systemtest",admin:"Admin-Cockpit",me:"Einstellungen"}[current];V.dataset.screen=current;V.innerHTML={home:home,goals:goalsView,documents:documentsView,results:resultsView,execution:executionView,canva:canvaView,roadmap:roadmap,alpha:alphaView,admin:adminView,me:me}[current]();document.querySelectorAll(".side .nav[data-view]").forEach(b=>{if(b.dataset.view===current)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current")});bind();pilotBindSpatialUI()}
+
+/* Only display the worker at an actual intervention on the active Pilot screen. */
+function pilotSyncFlightScreen(){
+ if(pilotFlightPreviewRunning)return; // the isolated test owns its plane
+ if(current!=="home"&&!document.querySelector(".nx-mask")){
+   if(activePilotFlight)pilotDestroyFlight(activePilotFlight);
+   document.getElementById("pilotFlightLayer")?.replaceChildren();
+   if(pilotFlightState.mode==="attention"||pilotFlightState.mode==="dialog_attention")
+     pilotSetFlightState(null,"idle","");
+ }
+}
+function render(){if(!effectiveAdmin()&&["roadmap","alpha","admin"].includes(current))current="home";applyRoleUI();document.querySelectorAll("[data-view]").forEach(b=>b.classList.toggle("active",b.dataset.view===current));T.textContent={home:"Pilot",goals:"Aufträge",documents:"Dokumente",results:"Ergebnisse",execution:"Ausführung",canva:"Gestaltung",roadmap:"Entwicklungsplan",alpha:"Systemtest",admin:"Admin-Cockpit",me:"Einstellungen"}[current];V.dataset.screen=current;V.innerHTML={home:home,goals:goalsView,documents:documentsView,results:resultsView,execution:executionView,canva:canvaView,roadmap:roadmap,alpha:alphaView,admin:adminView,me:me}[current]();document.querySelectorAll(".side .nav[data-view]").forEach(b=>{if(b.dataset.view===current)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current")});bind();pilotBindSpatialUI();pilotSyncFlightScreen()}
 
 function formatBytes(n){const v=Number(n||0);if(v<1024)return v+" B";if(v<1024*1024)return (v/1024).toFixed(1)+" KB";return (v/1024/1024).toFixed(1)+" MB"}
 function renderAttachmentTray(){
@@ -4547,48 +4564,58 @@ async function landPilotAtNextAction({scroll=true,minCruise=1700,keepLanded=fals
    if(pending)panel.classList.remove("pilot-arrival-pending");
  }
 }
+/* A truly isolated visual test: never triggers real action or approval handlers. */
+let pilotFlightPreviewRunning=false;
 async function previewPilotFlight(){
  const button=document.getElementById("pilotLandingPreview");
- if(!button||activePilotFlight)return;
- let panel=document.getElementById("pilotNextActionPanel");
- let target=document.getElementById("executeAction");
- let testRunway=null;
- // In Admin/Systemtests there is deliberately no live user action.
- // Create a disabled, temporary landing marker rather than invoking an actual task.
- if((!panel||!target)&&current==="alpha"){
-   const host=button.closest(".pilot-admin-quicktest");
-   if(host){
-     testRunway=document.createElement("div");
-     testRunway.className="pilot-admin-runway";
-     testRunway.id="pilotNextActionPanel";
-     testRunway.innerHTML='<span class="pilot-admin-runway-label">✦ Test-Landezone</span>'+
-       '<button id="executeAction" type="button" disabled aria-label="Nur Flugtest – keine Auftragsausführung">✈ Landepunkt</button>';
-     host.appendChild(testRunway);
-     panel=testRunway;target=testRunway.querySelector("#executeAction");
-   }
+ if(!button||pilotFlightPreviewRunning)return;
+ const host=button.closest(".pilot-admin-quicktest")||button.parentElement;
+ if(!host)return;
+ if(pilotAutoSession?.active||pilotExecutionRequestActive){
+   void pilotNotice("Pilot bearbeitet gerade einen echten Auftrag. Bitte warte, bis dieser Lauf beendet ist, bevor du die Animation testest.");
+   return;
  }
- if(!target||!panel){testRunway?.remove();return}
- button.disabled=true;
- panel.classList.remove("pilot-action-landed");
- const beforeState={...pilotFlightState},previewGoal=goals[0]?.id||null;
- if(!startPilotFlight(button)){button.disabled=false;testRunway?.remove();return}
+ pilotFlightPreviewRunning=true;button.disabled=true;
+ // The old parked aircraft must never block the independent Admin test.
+ if(activePilotFlight)pilotDestroyFlight(activePilotFlight);
+ document.getElementById("pilotFlightLayer")?.replaceChildren();
+ pilotSetFlightState(null,"idle","");
+ const runway=document.createElement("section");
+ runway.className="pilot-admin-runway pilot-demo-only";
+ runway.innerHTML='<div class="pilot-admin-runway-label">✈ Animationstest · ohne Auftragsausführung</div>'+
+ '<button type="button" class="pilot-admin-land-target" disabled>Hier landet Pilot</button>'+
+ '<p class="pilot-admin-demo-status" role="status" aria-live="polite">Flugzeug startet …</p>';
+ host.insertAdjacentElement("afterend",runway);
+ const destination=runway.querySelector(".pilot-admin-land-target");
+ const status=runway.querySelector(".pilot-admin-demo-status");
  try{
-   pilotSetFlightState(previewGoal,"attention","Hier ist deine Handlung erforderlich");
-   const landed=await landPilotAtNextAction({scroll:true,minCruise:2100,keepLanded:true,
-     targetElement:target,landingMessage:"✈ Test: Avatar steigt aus · Deine Handlung ist erforderlich"});
-   if(landed){
-     await pilotWait(1700);
-     await pilotAvatarReboard(previewGoal);
-     if(button.isConnected){
-       startPilotFlight(button);
-       setPilotFlightPhase("✈ Test: Avatar eingestiegen · Pilot startet erneut");
-       await pilotWait(1750);
-     }
-   }
- }catch(err){console.warn("Pilot Flugtest beendet:",String(err?.message||"Fehler"))}
- finally{
-   finishPilotFlight();pilotSetFlightState(beforeState.goalId,beforeState.mode,beforeState.message);
-   testRunway?.remove();
+   if(!startPilotFlight(button))throw new Error("Fluganimation konnte nicht gestartet werden.");
+   const demoGoalId=goals[0]?.id||"draft";
+   pilotSetFlightState(demoGoalId,"attention","Hier ist deine Handlung erforderlich");
+   status.textContent="Pilot fliegt zur Landezone …";
+   const landed=await landPilotAtNextAction({
+     scroll:true,minCruise:1600,keepLanded:true,targetElement:destination,
+     landingMessage:"✈ Pilot gelandet · Hier ist deine Handlung erforderlich"
+   });
+   if(!landed)throw new Error("Der Landeanflug wurde unterbrochen.");
+   status.textContent="Avatar ausgestiegen · macht kleine Schritte und wartet auf deine Handlung";
+   await pilotWait(3500);
+   status.textContent="Handlung im Test bestätigt · Avatar steigt wieder ein …";
+   await pilotAvatarReboard(demoGoalId);
+   if(!activePilotFlight?.plane?.isConnected)throw new Error("Der Wiedereinstieg wurde unterbrochen.");
+   pilotSetFlightState(demoGoalId,"flying","Pilot startet nach der Bestätigung erneut");
+   status.textContent="Pilot ist wieder gestartet ✓";
+   await pilotWait(1500);
+ }catch(e){
+   console.warn("Pilot-Flugtest",String(e?.message||e));
+   status.textContent="Test unterbrochen: "+String(e?.message||e);
+   await pilotWait(850);
+ }finally{
+   if(activePilotFlight)pilotDestroyFlight(activePilotFlight);
+   document.getElementById("pilotFlightLayer")?.replaceChildren();
+   pilotSetFlightState(null,"idle","");
+   runway.remove();
+   pilotFlightPreviewRunning=false;
    if(button.isConnected)button.disabled=false;
  }
 }
@@ -4631,7 +4658,7 @@ function pilotFlyingFromCurrentWork(){
    document.querySelector(".pilot-simple-work");
 }
 function pilotEnsureContinuousFlight(goalId){
- if(!goalId||goals[0]?.id!==goalId)return;
+ if(!goalId||goals[0]?.id!==goalId||current!=="home"||pilotFlightPreviewRunning)return;
  if(activePilotFlight?.phase==="parked"||activePilotFlight?.phase==="boarding")void pilotAvatarReboard(goalId);
  if(!activePilotFlight?.plane?.isConnected){
    const origin=pilotFlyingFromCurrentWork();
@@ -4746,7 +4773,7 @@ async function pilotAvatarReboard(goalId){
  return f.boardingPromise;
 }
 async function pilotLandAtAttention(goalId,message){
- if(!goalId||goals[0]?.id!==goalId)return;
+ if(!goalId||goals[0]?.id!==goalId||pilotFlightPreviewRunning)return;
  pilotSetFlightState(goalId,"attention",message||"Hier ist deine Handlung erforderlich");
  if(current!=="home"){current="home";render()}
  const target=document.getElementById("confirmPilotResult")||
