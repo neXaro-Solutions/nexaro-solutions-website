@@ -218,6 +218,49 @@ async function recoverAcceptedFollowup(sb:any,ownerId:string,input:string,reques
   }};
 }
 
+// Initial project creation can be retried without generating another project,
+// even if the original HTTP response disappeared after the goal was accepted.
+// A partially initialized goal is deliberately NOT reported as ready.
+async function initialRequestFingerprint(text:string){
+  const bytes=new TextEncoder().encode(text);
+  const digest=new Uint8Array(await crypto.subtle.digest("SHA-256",bytes));
+  return Array.from(digest,b=>b.toString(16).padStart(2,"0")).join("");
+}
+async function recoverAcceptedNewGoal(sb:any,ownerId:string,input:string,requestId:string,body:any){
+  const lookup=await sb.from("goals").select("*")
+    .eq("pilot_request_id",requestId).maybeSingle();
+  if(lookup.error)return {status:503,body:{error:"goal_request_lookup_unavailable",retryable:true}};
+  const goal=lookup.data;
+  if(!goal)return null;
+  if(goal.owner_id!==ownerId)return {status:404,body:{error:"request_not_found"}};
+  if(body.existing_goal_id||goal.pilot_request_fingerprint!==await initialRequestFingerprint(input))
+    return {status:409,body:{error:"request_id_conflict",
+      message:"Diese Übertragung gehört bereits zu einem anderen Projektauftrag."}};
+  const [pr,ar]=await Promise.all([
+    sb.from("plans").select("*").eq("goal_id",goal.id)
+      .order("version",{ascending:false}).limit(1),
+    sb.from("actions").select("*").eq("goal_id",goal.id)
+      .order("created_at",{ascending:true}).limit(100)
+  ]);
+  if(pr.error||ar.error)return {status:503,body:{error:"goal_recovery_lookup_failed",retryable:true}};
+  const plan=pr.data?.[0]||null,actions=ar.data||[];
+  if(!plan||!actions.length){
+    // The initial request may still be planning in another tab. Never
+    // declare success or create a second project in this state.
+    return {status:503,body:{error:"goal_setup_incomplete",
+      goal_id:goal.id,retryable:true,
+      message:"Pilot hat das Projekt angelegt, aber die Planung noch nicht abgeschlossen. Bitte denselben Auftrag erneut prüfen."}};
+  }
+  const next=actions.find((a:any)=>a.status==="ready")||
+    actions.find((a:any)=>a.status==="pending")||actions[0];
+  return {status:200,body:{
+    stage:"ready",recovered:true,goal,plan,actions,
+    next_action:{...next,reason:"Pilot hat diesen Projektauftrag bereits übernommen. Es wurde kein zweites Projekt angelegt."},
+    continuity:{mode:"new_goal",goal_id:goal.id,confidence:"high",reason:"already_received"},
+    decision_journal:{reused:0,keys:[]}
+  }};
+}
+
 /* User decisions are authoritative. Detect an explicit request to replace a prior
    choice, not ordinary background discussion of alternative options. */
 function explicitDecisionProposal(input:string,latest:Map<string,any>){
@@ -468,11 +511,13 @@ const pilotCorsHandler=async(req:Request)=>{
   if(!guard?.ok||verdict?.allowed!==true)
     return Response.json({error:guard?.status===403?"request_blocked_by_policy":"safety_check_unavailable",diagnostic_code:verdict?.diagnostic_code||null,reason_code:verdict?.reason_code||"safety_check_unavailable"},
       {status:guard?.status===403?403:503,headers:cors});
-  // Retry lookup comes before goal matching, planning and all new writes.
-  // Authorization uses the original action's goal owner, never the caller's claim.
+  // Retries are checked before classification, planning or any new writes.
+  // Follow-up actions and initial projects share the same client receipt.
   if(requestId){
-    const recovered=await recoverAcceptedFollowup(sb,user.id,input,requestId,body);
-    if(recovered)return Response.json(recovered.body,{status:recovered.status,headers:cors});
+    const followup=await recoverAcceptedFollowup(sb,user.id,input,requestId,body);
+    if(followup)return Response.json(followup.body,{status:followup.status,headers:cors});
+    const initial=await recoverAcceptedNewGoal(sb,user.id,input,requestId,body);
+    if(initial)return Response.json(initial.body,{status:initial.status,headers:cors});
   }
   let intent:Intent=body.intent||intentOf(input);
   const base=Deno.env.get("SUPABASE_URL")!;
@@ -669,9 +714,17 @@ const pilotCorsHandler=async(req:Request)=>{
   const goalIns=await sb.from("goals").insert({
     organization_id:orgId,owner_id:user.id,title,description:intent.objective,desired_outcome:desiredOutcome,
     success_criteria:executionContract.deliverables.map(x=>({key:x.key,required:true,definition:x.proof,kind:x.kind})),constraints:intent.constraints,resources:[],domain:intent.domain,timeframe:intent.timeframe,budget,
-    status:"active",readiness:"ready_with_assumptions"
+    status:"active",readiness:"ready_with_assumptions",
+    pilot_request_id:requestId,
+    pilot_request_fingerprint:requestId?await initialRequestFingerprint(input):null
   }).select("*").single();
-  if(goalIns.error) return Response.json({error:"goal_create_failed",detail:goalIns.error.message},{status:500,headers:cors});
+  if(goalIns.error){
+    if(goalIns.error.code==="23505"&&requestId){
+      const existing=await recoverAcceptedNewGoal(sb,user.id,input,requestId,body);
+      if(existing)return Response.json(existing.body,{status:existing.status,headers:cors});
+    }
+    return Response.json({error:"goal_create_failed",retryable:true},{status:503,headers:cors});
+  }
   const goal=goalIns.data;
 
   const contextRows:any[]=[
