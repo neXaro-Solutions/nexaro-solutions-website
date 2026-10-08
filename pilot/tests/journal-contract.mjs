@@ -18,7 +18,7 @@ const GOAL="33333333-3333-4333-8333-333333333333";
 const OTHER="44444444-4444-4444-8444-444444444444";
 const goals=[{id:GOAL,owner_id:USER,organization_id:ORGANIZATION,title:"Gartenbaubetrieb"},
  {id:OTHER,owner_id:"88888888-8888-4888-8888-888888888888",organization_id:ORGANIZATION,title:"Fremdes Projekt"}];
-let seq=0,handler;const history=[];
+let seq=0,handler,raceOnNextInsert=false;const history=[];
 class Query{
  constructor(table){this.table=table;this.pred=[];this.mode="read";this.payload=null;this.sortField=null;this.up=true;this.maximum=null}
  select(){return this}
@@ -29,6 +29,19 @@ class Query{
  execute(){
   const rows=this.table==="goals"?goals:history;
   if(this.mode==="insert"){
+   if(this.table==="pilot_decision_journal"){
+    if(raceOnNextInsert){
+      raceOnNextInsert=false;
+      history.push({id:++seq,goal_id:this.payload.goal_id,
+        decision_key:this.payload.decision_key,decision_value:"Concurrent edit",
+        event_type:"set",source_type:"direct_user",
+        created_at:"2026-10-08T14:00:00.000Z"});
+    }
+    const prev=history.filter(x=>x.goal_id===this.payload.goal_id&&
+      x.decision_key===this.payload.decision_key).at(-1);
+    if((prev?.id??null)!==(this.payload.expected_revision_id??null))
+      return {data:null,error:{code:"P0001",message:"decision_revision_conflict"}};
+   }
    const record={id:++seq,created_at:"2026-10-08T14:00:00.000Z",...this.payload};
    rows.push(record);return {data:[record],error:null};
   }
@@ -92,4 +105,16 @@ console.log("PASS Revocation keeps append-only history and removes current choic
 result=await send({goal_id:GOAL,operation:"set",decision_key:"legal_form",decision_value:"Einzelunternehmen oder GmbH"});
 assert.equal(result.http,400);assert.equal(history.length,3);
 console.log("PASS Contradictory legal forms are not stored as decisions");
-console.log("PASS Journal tests: 7 scenarios, no production data touched.");
+result=await send({goal_id:GOAL,operation:"set",decision_key:"company_name",decision_value:"Restarted Brand"});
+assert.equal(result.http,409);assert.equal(result.data.reason_code,"CONFIRM_CHANGE_REQUIRED");
+result=await send({goal_id:GOAL,operation:"set",decision_key:"company_name",
+  decision_value:"Restarted Brand",expected_revision_id:history[2].id});
+assert.equal(result.http,200);assert.equal(history.length,4);
+console.log("PASS Reopening a revoked decision requires acknowledgement of the last revision");
+raceOnNextInsert=true;
+result=await send({goal_id:GOAL,operation:"set",decision_key:"budget",decision_value:"5.000 EUR"});
+assert.equal(result.http,409);assert.equal(result.data.reason_code,"REVISION_CHANGED");
+assert.equal(history.filter(x=>x.decision_key==="budget").length,1);
+console.log("PASS Simultaneous edits cannot bypass the database revision guard");
+
+console.log("PASS Journal tests: 9 scenarios, no production data touched.");
