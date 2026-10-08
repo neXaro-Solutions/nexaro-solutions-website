@@ -22,7 +22,11 @@ assert(pilot.includes('const expanded=pilotProjectExpanded.get(goal.id)===true;'
 assert(pilot.includes('if(b.dataset.view==="goals"&&current!=="goals")pilotProjectExpanded.clear()'),"Reopening orders starts from a clean collapsed overview");
 assert(pilot.includes('function pilotReadinessStatus(status)'),"System test statuses must be human-readable");
 assert(pilot.includes('class="pilot-readiness-status '),"Readiness values use readable mobile labels, not narrow overflowing raw codes");
-assert(pilot.includes('class="pilot-readiness-passed"'),"Passed checks are collapsed separately from unfinished checks");
+assert(pilot.includes('class="pilot-readiness-passed pilot-tests-group"'),"Passed checks are collapsed separately from unfinished checks");
+assert(pilot.includes('pilot-tests-shell')&&pilot.includes('pilot-tests-overview'),"System test has a focused summary, not stacked full-size dashboard cards");
+assert(pilot.includes('class="pilot-tests-group pilot-tests-open"')&&pilot.includes('Verbindungen & Einzeltests'),"Long test lists and technical tools are disclosed only on demand");
+assert(pilot.includes('pilot-more-menu-label admin-only hidden')&&pilot.includes('SYSTEM · INTERN'),"Extra menu clearly separates user functions from admin tools");
+assert(pilot.includes('left:calc(-50% - 5px)!important')&&pilot.includes('transform:translateX(-50%)!important'),"More menu is centered above the three-item dock");
 assert(pilot.includes('class="pilot-neon-keyword"'),"Central task keywords use orange emphasis");
 assert(pilot.includes('--nx-neon-orange:#ff7214'),"Orange accent token must remain part of the neXaro daylight visual system");
 assert(pilot.includes('.pilot-admin-screen .admin-hero-actions{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important'),"Mobile admin actions remain two-column with readable labels");
