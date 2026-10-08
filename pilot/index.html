@@ -1851,6 +1851,26 @@ body{background:radial-gradient(ellipse 72vw 60vw at 92% -10%,rgba(145,255,62,.1
  .pilot-intel-core::before,.pilot-intel-core::after,.head .status .dot,.pilot-process-step.running:before{animation:none!important}
 }
 
+
+/* LUMEN: operator interfaces share customer-facing visual identity. */
+.pilot-admin-screen .roadmap-card,.pilot-admin-screen .admin-hero,.pilot-admin-screen .admin-kpis>div,.pilot-admin-screen .admin-grid .card,.pilot-admin-screen .admin-page>.card{
+ border:1px solid rgba(148,204,136,.22)!important;border-radius:25px!important;
+ background:linear-gradient(132deg,rgba(255,255,255,.97),rgba(250,255,247,.92))!important;
+ box-shadow:0 13px 38px rgba(39,67,34,.045)!important;
+}
+.pilot-admin-screen .admin-hero{background:radial-gradient(circle at 95% 0%,rgba(148,255,75,.14),transparent 45%),#fff!important}
+.pilot-admin-screen .admin-kpis{gap:10px}
+.pilot-admin-screen .admin-kpis>div{min-width:0}
+.pilot-admin-screen .admin-kpis>div strong{color:#233a23}
+.pilot-admin-screen .admin-user-table{border-radius:18px;overflow-x:auto}
+.pilot-admin-screen .admin-user-row{border-color:rgba(138,185,129,.13)}
+.pilot-admin-screen .admin-user-head{background:#f2fbee}
+.pilot-admin-screen .roadmap-progress,.pilot-admin-screen .roadmap-item{border-radius:17px;background:rgba(251,255,249,.90);border-color:rgba(130,195,121,.18)}
+.pilot-admin-screen .roadmap-item.done{background:linear-gradient(110deg,#f1ffe9,#fff)}
+.pilot-admin-screen .admin-role{border:1px solid #d3e9ca;border-radius:11px;background:#fcfffa;color:#305432}
+.pilot-admin-screen .admin-hero .btn.primary,.pilot-admin-screen .card .btn.primary{background:linear-gradient(100deg,#acff61,#7eeb25)!important;color:#1d401a!important;border:0!important}
+.pilot-admin-screen .admin-user-row strong,.pilot-admin-screen .admin-activity strong{color:#26462a}
+
 </style></head>
 <body>
 <section id="auth" class="auth"><div class="box">
@@ -2162,8 +2182,8 @@ function canvaView(){
    '</section></div></div>';
 }
 
-function roadmap(){if(!effectiveAdmin())return home();const c=features.reduce((a,f)=>(a[f.status]=(a[f.status]||0)+1,a),{}),done=c.ready||0,total=features.length,pct=total?Math.round(done/total*100):0;return '<div class="card roadmap-card"><div class="section-head"><div><div class="ey">NUR ADMIN</div><h2>Entwicklungsplan</h2></div><button class="btn" data-jump="alpha">Systemtest öffnen</button></div><p class="muted">Umgesetzte Funktionen sind abgehakt. Der Status wird automatisch aus technischen Verifikationsnachweisen aktualisiert; offene oder spätere Funktionen bleiben sichtbar und werden nicht vergessen.</p><div class="roadmap-auto"><span class="dot"></span><strong>Automatische Statuspflege aktiv</strong><small>Verifiziert → automatisch grün</small></div><div class="roadmap-progress"><div><strong>'+done+' / '+total+' erledigt</strong><span>'+pct+'%</span></div><div class="progress-track"><div class="progress-bar" style="width:'+pct+'%"></div></div></div><div class="btns roadmap-summary"><span class="badge green">✓ Erledigt '+done+'</span><span class="badge">MVP '+(c.mvp||0)+'</span><span class="badge">Alpha '+(c.alpha||0)+'</span><span class="badge">Geplant '+(c.planned||0)+'</span><span class="badge orange">Zurückgestellt '+(c.deferred||0)+'</span></div><div class="roadmap-list">'+features.map(f=>{const ready=f.status==="ready";return '<div class="roadmap-item '+(ready?"done":"")+'"><span class="roadmap-check">'+(ready?"✓":"")+'</span><div><strong>'+f.workspace_number+'. '+esc(f.name)+'</strong><small>'+esc(f.priority)+'</small></div><span class="badge '+(ready?"green":"")+'">'+(ready?"Erledigt":esc(deStatus(f.status)))+'</span></div>'}).join("")+'</div></div>'}
-function alphaView(){if(!effectiveAdmin())return home();const passed=readiness.filter(x=>x.status==="passed").length,total=readiness.length,last=evalRuns[0],aiCost=aiRequests.reduce((s,x)=>s+Number(x.actual_cost||0),0);return '<div class="grid"><div class="card"><h2>Bereitschaft der privaten Testphase</h2><div style="font-size:42px;font-weight:900">'+passed+' / '+total+'</div><p class="muted">Pflichtchecks bestanden</p>'+readiness.map(x=>'<div class="stat"><span class="muted">'+esc(x.description)+'</span><strong>'+esc(deStatus(x.status))+'</strong></div>').join("")+'<div class="btns"><button id="runEvals" class="btn primary">Prüfsuite ausführen</button><button id="runAlphaE2E" class="btn ai">✦ Alpha-Systemtest starten</button></div><div id="e2eStatus" class="muted" style="margin-top:12px">Der Systemtest nutzt isolierte Testdaten und räumt sie automatisch wieder auf.</div></div><div><div class="card"><h3>Prüfung</h3>'+(last?'<div class="stat"><span class="muted">Status</span><strong>'+esc(last.status)+'</strong></div><div class="stat"><span class="muted">Bewertung</span><strong>'+Math.round(Number(last.score||0)*100)+'%</strong></div><div class="stat"><span class="muted">Fälle</span><strong>'+last.passed_cases+' / '+last.total_cases+'</strong></div>':'<p class="muted">Noch kein Eval-Run.</p>')+'</div><div class="card" style="margin-top:20px"><h3>KI-Kostenmonitor</h3><div class="stat"><span class="muted">Anfragen</span><strong>'+aiRequests.length+'</strong></div><div class="stat"><span class="muted">Aktuelle Kosten</span><strong>'+aiCost.toFixed(4)+'</strong></div><div class="stat"><span class="muted">Ausweichrouten</span><strong>'+aiRequests.filter(x=>x.fallback_used).length+'</strong></div></div><div class="card" style="margin-top:20px"><h3>Hinweise</h3>'+(notifications.map(n=>'<div class="item"><span class="badge">'+esc(n.priority)+'</span><strong>'+esc(n.title)+'</strong><div class="muted">'+esc(n.body)+'</div></div>').join("")||'<p class="muted">Keine offenen Hinweise.</p>')+'</div></div></div>'}
+function roadmapLegacy(){if(!effectiveAdmin())return home();const c=features.reduce((a,f)=>(a[f.status]=(a[f.status]||0)+1,a),{}),done=c.ready||0,total=features.length,pct=total?Math.round(done/total*100):0;return '<div class="card roadmap-card"><div class="section-head"><div><div class="ey">NUR ADMIN</div><h2>Entwicklungsplan</h2></div><button class="btn" data-jump="alpha">Systemtest öffnen</button></div><p class="muted">Umgesetzte Funktionen sind abgehakt. Der Status wird automatisch aus technischen Verifikationsnachweisen aktualisiert; offene oder spätere Funktionen bleiben sichtbar und werden nicht vergessen.</p><div class="roadmap-auto"><span class="dot"></span><strong>Automatische Statuspflege aktiv</strong><small>Verifiziert → automatisch grün</small></div><div class="roadmap-progress"><div><strong>'+done+' / '+total+' erledigt</strong><span>'+pct+'%</span></div><div class="progress-track"><div class="progress-bar" style="width:'+pct+'%"></div></div></div><div class="btns roadmap-summary"><span class="badge green">✓ Erledigt '+done+'</span><span class="badge">MVP '+(c.mvp||0)+'</span><span class="badge">Alpha '+(c.alpha||0)+'</span><span class="badge">Geplant '+(c.planned||0)+'</span><span class="badge orange">Zurückgestellt '+(c.deferred||0)+'</span></div><div class="roadmap-list">'+features.map(f=>{const ready=f.status==="ready";return '<div class="roadmap-item '+(ready?"done":"")+'"><span class="roadmap-check">'+(ready?"✓":"")+'</span><div><strong>'+f.workspace_number+'. '+esc(f.name)+'</strong><small>'+esc(f.priority)+'</small></div><span class="badge '+(ready?"green":"")+'">'+(ready?"Erledigt":esc(deStatus(f.status)))+'</span></div>'}).join("")+'</div></div>'}
+function alphaViewLegacy(){if(!effectiveAdmin())return home();const passed=readiness.filter(x=>x.status==="passed").length,total=readiness.length,last=evalRuns[0],aiCost=aiRequests.reduce((s,x)=>s+Number(x.actual_cost||0),0);return '<div class="grid"><div class="card"><h2>Bereitschaft der privaten Testphase</h2><div style="font-size:42px;font-weight:900">'+passed+' / '+total+'</div><p class="muted">Pflichtchecks bestanden</p>'+readiness.map(x=>'<div class="stat"><span class="muted">'+esc(x.description)+'</span><strong>'+esc(deStatus(x.status))+'</strong></div>').join("")+'<div class="btns"><button id="runEvals" class="btn primary">Prüfsuite ausführen</button><button id="runAlphaE2E" class="btn ai">✦ Alpha-Systemtest starten</button></div><div id="e2eStatus" class="muted" style="margin-top:12px">Der Systemtest nutzt isolierte Testdaten und räumt sie automatisch wieder auf.</div></div><div><div class="card"><h3>Prüfung</h3>'+(last?'<div class="stat"><span class="muted">Status</span><strong>'+esc(last.status)+'</strong></div><div class="stat"><span class="muted">Bewertung</span><strong>'+Math.round(Number(last.score||0)*100)+'%</strong></div><div class="stat"><span class="muted">Fälle</span><strong>'+last.passed_cases+' / '+last.total_cases+'</strong></div>':'<p class="muted">Noch kein Eval-Run.</p>')+'</div><div class="card" style="margin-top:20px"><h3>KI-Kostenmonitor</h3><div class="stat"><span class="muted">Anfragen</span><strong>'+aiRequests.length+'</strong></div><div class="stat"><span class="muted">Aktuelle Kosten</span><strong>'+aiCost.toFixed(4)+'</strong></div><div class="stat"><span class="muted">Ausweichrouten</span><strong>'+aiRequests.filter(x=>x.fallback_used).length+'</strong></div></div><div class="card" style="margin-top:20px"><h3>Hinweise</h3>'+(notifications.map(n=>'<div class="item"><span class="badge">'+esc(n.priority)+'</span><strong>'+esc(n.title)+'</strong><div class="muted">'+esc(n.body)+'</div></div>').join("")||'<p class="muted">Keine offenen Hinweise.</p>')+'</div></div></div>'}
 
 async function loadAdminConsole(force=false){
   if(!isAdmin)return;
@@ -2181,7 +2201,7 @@ function adminTrend(obj){
   const max=Math.max(1,...entries.map(([,v])=>Number(v||0)));
   return entries.length?'<div class="admin-bars">'+entries.map(([d,v])=>'<div class="admin-bar-col"><div class="admin-bar"><i style="height:'+Math.max(8,Math.round(Number(v||0)/max*100))+'%"></i></div><b>'+esc(String(v))+'</b><span>'+esc(d.slice(5))+'</span></div>').join("")+'</div>':'<p class="muted">Noch keine Daten.</p>'
 }
-function adminView(){
+function adminViewLegacy(){
   if(!effectiveAdmin())return home();
   if(!adminData)return '<div class="card admin-loading"><h2>Admin-Cockpit</h2><p class="muted">Nutzer, Rollen und Analysen werden geladen …</p><button id="loadAdmin" class="btn primary">Daten laden</button></div>';
   const m=adminData.metrics||{},users=adminData.users||[],activity=adminData.recent_activity||[];
@@ -2219,6 +2239,27 @@ async function changeAdminRole(el){
     pilotNotice(e.message||String(e));
     if(previous)el.value=previous;
   }finally{el.disabled=false}
+}
+
+
+/* Admin tools use the same design system but retain full verification and role workflows. */
+function roadmap(){
+  if(!effectiveAdmin())return home();
+  return '<div class="pilot-screen pilot-admin-screen">'+
+    pilotScene("SYSTEMARCHITEKTUR","Entwicklungsplan","Welche Fähigkeiten bereits verifiziert sind und welche noch geprüft werden müssen.","◫")+
+    roadmapLegacy()+'</div>';
+}
+function alphaView(){
+  if(!effectiveAdmin())return home();
+  return '<div class="pilot-screen pilot-admin-screen">'+
+    pilotScene("QUALITÄTSKONTROLLE","Systemtests","Prüfungen und Freigaben werden nachvollziehbar dokumentiert.","✓")+
+    alphaViewLegacy()+'</div>';
+}
+function adminView(){
+  if(!effectiveAdmin())return home();
+  return '<div class="pilot-screen pilot-admin-screen">'+
+    pilotScene("BETRIEBSSTEUERUNG","Systemadministration","Berechtigungen, Nutzung und technische Betriebsdaten sind ausschließlich für Administratoren sichtbar.","⌘")+
+    adminViewLegacy()+'</div>';
 }
 
 function me(){
@@ -2402,7 +2443,7 @@ function nxOpenNext(){
   const mask=document.createElement("div");mask.className="nx-mask";
   const safe=esc;
   mask.innerHTML='<section class="nx-modal" role="dialog" aria-modal="true" aria-labelledby="nxTitle" aria-describedby="nxDesc">'+
-    '<div class="nx-top"><div class="nx-symbol" aria-hidden="true">✦</div><span class="nx-kicker">neXaro · PILOT · LUMEN 2026.10.08.16</span><button type="button" class="nx-close" aria-label="Schließen">×</button></div>'+
+    '<div class="nx-top"><div class="nx-symbol" aria-hidden="true">✦</div><span class="nx-kicker">neXaro · PILOT · LUMEN 2026.10.08.17</span><button type="button" class="nx-close" aria-label="Schließen">×</button></div>'+
     '<h2 id="nxTitle">'+safe(config.title||"Pilot fragt nach")+'</h2><p class="nx-description" id="nxDesc">'+safe(config.description||"Bitte ergänze die noch fehlenden Angaben.")+'</p>'+
     '<form novalidate><div class="nx-fields">'+fields.map((f,i)=>'<div class="nx-field"><label for="nxInput'+i+'">'+safe(f.label)+'</label>'+
       (f.short?'<input id="nxInput'+i+'" type="text" name="'+safe(f.key)+'" maxlength="500" placeholder="'+safe(f.placeholder||"")+'" data-required="'+(f.required?"1":"0")+'">':
