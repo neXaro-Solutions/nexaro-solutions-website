@@ -7,6 +7,9 @@ const original=new WeakMap();
 let language=initial,applying=false;
 
 const exact=new Map(Object.entries({
+"Vape & B2B":"Vape & B2B","03 / VAPE & B2B-FACHHANDEL":"03 / VAPE & B2B TRADE",
+"Für Fachhändler und gewerbliche Wiederverkäufer: Sortimentsanfragen zu Vape-, Trend- und weiteren B2B-Artikeln direkt persönlich abstimmen. Keine Endkundenbestellung.":"For specialist retailers and business resellers: discuss product enquiries for vape, trend and other B2B goods directly with us. No consumer orders.",
+
 "Startseite":"Home","Lösungen":"Solutions","Sicherheit":"Security","Kontakt":"Contact","Direkt sprechen ↗":"Talk to us ↗",
 "Persönlich sprechen":"Talk to us","Direkt persönlich sprechen":"Talk to us directly","Passende Lösung finden ↓":"Find the right solution ↓",
 "Direkter Ansprechpartner":"Direct contact","Für Unternehmen & Gewerbe":"For businesses","Geschützte Datenverarbeitung":"Protected data processing","Keine unnötigen Umwege":"No unnecessary detours",
