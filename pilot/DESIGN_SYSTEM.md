@@ -85,3 +85,19 @@ Dieser Zusatz ist verbindlich für alle mobilen und Desktop-Oberflächen.
 - Erst die abgeschlossene Landung löst das Einblenden und Freigeben der operativen Aktion aus. Danach erfolgt ein weiches Ausblenden.
 - Teure Blur-/Filtereffekte auf bewegten Elementen minimieren. Kein `opacity:...!important` oder `transform:...!important` auf dem animierten Flugzeug, wenn native Keyframes diese Werte steuern.
 - Die Flugfunktion bleibt im Entwicklungsplan `alpha`, solange die neue Version nicht in einer realen iPhone-Bildschirmaufnahme als flüssig bestätigt wurde.
+
+
+## Produktkorrektur: Inline Decision Core statt großem Editor (LUMEN 2026.10.08.25)
+
+**Verbindliche Korrektur des alten Editor-Modells:** Der Nutzer möchte **keinen** großen, modalen oder automatisch aufspringenden Editor. Bei gemeinsamen Pilot-Entscheidungen ist das bereits sichtbare, **kompakte, direkt bearbeitbare** Entscheidungsfeld der Standard. Frühere Anweisungen, beim Antippen einen eigenständigen bildschirmfüllenden Fokuseditor zu öffnen, sind hiermit aufgehoben.
+
+- Abschnittstitel sind deutlich hervorgehobene, echte Labels **innerhalb einer einzigen zusammenhängenden Entscheidungsfläche**, darunter frei bearbeitbare Textabschnitte ohne separate Büro-Formularrahmen.
+- Höhe der Entscheidungsfläche auf dem iPhone etwa 290px; intern auf-/abwärts scrollen, ohne Modaldialog, Seitenübernahme oder Tastatur-Zwang.
+- Die Textfelder wachsen intern mit dem Inhalt. **Einziger vertikaler Scroll-Eigentümer ist die kompakte Entscheidungsfläche**, nicht ein konkurrierendes verschachteltes Textarea-Scrolling.
+- Umgebung bleibt die helle futuristische LUMEN-Kommandozentrale: leichte holografische Ebenen, Neon-Grün/Orange, subtiles Systemraster, dezenter Glow, prägnante Typografie, sehr wenig Büro-/CRM-Formularoptik.
+- Fokusfeedback ist unmittelbar sichtbar, aber minimal; keine großflächige Abblendung oder Verschiebung. Mobil-Safari bleibt vorrangig.
+- Ein klarer Hauptbefehl `⚡ Entscheidung steht. Pilot übernimmt.`, keine doppelte Freigabe und kein unnötiges „vollständiges Ergebnis“ im Entscheidungsdialog.
+- Die lokal bearbeiteten Abschnitte werden **nachweislich verlustfrei** zu einem Entscheidungstext zusammengesetzt und durch den vorhandenen sicheren Backend-Freigabeprozess verarbeitet.
+- Jede künftige Gestaltung muss zuerst nach dem Grundsatz beurteilt werden: **futuristischer KI-Mitarbeiter statt herkömmlicher Office-Software**. Funktionalität, Lesbarkeit und visuelle Tiefe gleichzeitig bewahren.
+
+**Status:** Quellcode in `pilot/index.html`, LUMEN 2026.10.08.25. Funktionstests bestanden, echter iPhone-Scroll-/Eingabetest noch offen.
