@@ -39,7 +39,9 @@ assert(pilot.includes('id="pilotLanguageSwitcher"')&&pilot.includes('data-pilot-
 assert(pilot.includes('src="./pilot-language.js?')&&pilotLanguage.includes('localStorage.setItem(STORE,language)'),"Pilot language selection works and persists across visits");
 assert(pilotLanguage.includes('private project content')&&pilotLanguage.includes('pilot-project-document-body'),"Interface translation does not automatically rewrite private project documents");
 assert(pilot.includes('class="nav admin-only hidden" data-view="admin" aria-label="Administration"')&&pilot.includes('<span>Administration</span>'),"Admin menu row has a proper icon-and-label structure");
-assert(pilot.includes('#pilotLanguageSwitcher{')&&pilot.includes('position:fixed!important')&&pilot.includes('bottom:calc(91px + env(safe-area-inset-bottom))'),"Pilot language selector stays fixed bottom-left above mobile navigation");
+assert(pilot.includes('#pilotLanguageSwitcher{')&&pilot.includes('position:fixed!important')&&pilot.includes('right:max(14px,env(safe-area-inset-right,0px))!important')&&pilot.includes('top:calc(13px + env(safe-area-inset-top,0px))!important'),"Pilot language selector is fixed at the top right");
+assert(pilot.includes('right:max(11px,env(safe-area-inset-right,0px))!important')&&pilot.includes('top:calc(9px + env(safe-area-inset-top,0px))!important'),"Pilot language selector remains top-right on smartphones");
+assert(!pilot.includes('bottom:calc(91px + env(safe-area-inset-bottom))'),"Language selector must not return to the bottom-left mobile location");
 
 assert(pilot.includes('--nx-neon-orange:#ff7214'),"Orange accent token must remain part of the neXaro daylight visual system");
 assert(pilot.includes('.pilot-admin-screen .admin-hero-actions{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important'),"Mobile admin actions remain two-column with readable labels");
