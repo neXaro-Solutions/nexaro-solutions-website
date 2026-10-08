@@ -1854,9 +1854,17 @@ function askGoalResolution(candidate){
   });
 }
 async function createGoal(){
-  const text=document.getElementById("goalText").value.trim();if(!text||!org)return;
-  const btn=document.getElementById("createGoal");btn.classList.add("launching");startPilotFlight(btn);btn.disabled=true;btn.textContent="✈ Pilot startet …";PS.textContent="Pilot hebt ab …";
+  const text=document.getElementById("goalText").value.trim();
+  if(!text||!org)return;
+
+  const btn=document.getElementById("createGoal");
+  btn.classList.add("launching");
+  startPilotFlight(btn);
+  btn.disabled=true;
+  btn.textContent="✈ Pilot startet …";
+  PS.textContent="Pilot hebt ab …";
   setTimeout(()=>{if(PS.textContent==="Pilot hebt ab …")PS.textContent="Pilot versteht …"},650);
+
   try{
     let r=await sb.functions.invoke("pilot-intelligence",{body:{input:text}});
     if(r.error)throw new Error(r.data?.error||r.error.message||"Pilot konnte den Auftrag nicht einordnen.");
@@ -1865,18 +1873,65 @@ async function createGoal(){
     if(data.stage==="goal_resolution"){
       PS.textContent="Pilot prüft den Zusammenhang …";
       const choice=await askGoalResolution(data.candidate_goal);
+
       if(choice==="existing"){
         r=await sb.functions.invoke("pilot-intelligence",{body:{input:text,existing_goal_id:data.candidate_goal.id}});
       }else{
         r=await sb.functions.invoke("pilot-intelligence",{body:{input:text,force_new_goal:true}});
       }
+
       if(r.error)throw new Error(r.data?.error||r.error.message||"Pilot konnte die Zielentscheidung nicht übernehmen.");
       data=r.data;
     }
 
     if(data.stage==="clarification"){
       const answers={};
-      forasync function completeAction(withOutcome,blocked){const n=actions.find(a=>a.status==="ready")||actions.find(a=>a.status==="pending");if(!n)return;let outcome=null;if(withOutcome){const metric=window.prompt("Welche Kennzahl möchtest du messen? Zum Beispiel: Leads");if(metric){const current=window.prompt("Aktueller Wert?");const target=window.prompt("Zielwert?");const unit=window.prompt("Einheit? Zum Beispiel: Leads, %, EUR")||"";outcome={metric,current_value:Number(current||0),target:Number(target||0),unit}}}PS.textContent="Pilot aktualisiert Fortschritt …";try{const r=await sb.functions.invoke("progress-engine",{body:{action_id:n.id,outcome,blocked}});if(r.error)throw r.error;await load();await telemetry("event",{goal_id:goals[0]?.id||null,event_name:"progress_updated",event_category:"outcome",properties:{outcome_attached:!!outcome,blocked:!!blocked}});PS.textContent="Pilot bereit";render()}catch(e){PS.textContent="Pilot bereit";await telemetry("incident",{goal_id:goals[0]?.id||null,source:"progress",severity:"error",error_code:"PROGRESS_FAILED",message:e.message||String(e)});alert(e.message||String(e))}}
+      for(const q of data.questions||[]){
+        const ans=window.prompt(q.question_de||q.question_en||"Weitere Angabe");
+        if(ans)answers[q.key]=ans;
+      }
+
+      PS.textContent="Pilot plant …";
+      r=await sb.functions.invoke("pilot-intelligence",{body:{input:text,intent:data.intent,answers,force_new_goal:true}});
+      if(r.error)throw new Error(r.data?.error||r.error.message||"Pilot konnte den Plan nicht erstellen.");
+      data=r.data;
+    }
+
+    if(data.stage!=="ready")throw new Error("Pilot konnte den Plan nicht abschließen.");
+
+    await load();
+    const targetGoalId=data.goal?.id||goals[0]?.id;
+    const targetGoal=goals.find(g=>g.id===targetGoalId)||goals[0];
+    if(!targetGoal)throw new Error("Das Ziel konnte nicht geladen werden.");
+
+    if(pendingAttachments.length){
+      await processPendingAttachments(targetGoal.id,text);
+      await load();
+    }
+
+    const continued=data.continuity?.mode==="existing_goal";
+    PS.textContent=continued?"Pilot arbeitet am bestehenden Ziel weiter":"Pilot bereit";
+
+    telemetry("event",{
+      goal_id:targetGoal.id,
+      event_name:continued?"goal_continued":"goal_created",
+      event_category:"activation",
+      properties:{
+        domain:targetGoal.domain?.primary||"general",
+        continuity_mode:data.continuity?.mode||"new_goal",
+        attachments:documents.filter(d=>d.metadata?.goal_id===targetGoal.id).length
+      }
+    });
+    render();
+  }catch(e){
+    PS.textContent="Pilot bereit";
+    alert(e.message||String(e));
+    btn.disabled=false;
+    btn.textContent="✈ Pilot jetzt starten";
+    btn.classList.remove("launching");
+  }
+}
+async function completeAction(withOutcome,blocked){const n=actions.find(a=>a.status==="ready")||actions.find(a=>a.status==="pending");if(!n)return;let outcome=null;if(withOutcome){const metric=window.prompt("Welche Kennzahl möchtest du messen? Zum Beispiel: Leads");if(metric){const current=window.prompt("Aktueller Wert?");const target=window.prompt("Zielwert?");const unit=window.prompt("Einheit? Zum Beispiel: Leads, %, EUR")||"";outcome={metric,current_value:Number(current||0),target:Number(target||0),unit}}}PS.textContent="Pilot aktualisiert Fortschritt …";try{const r=await sb.functions.invoke("progress-engine",{body:{action_id:n.id,outcome,blocked}});if(r.error)throw r.error;await load();await telemetry("event",{goal_id:goals[0]?.id||null,event_name:"progress_updated",event_category:"outcome",properties:{outcome_attached:!!outcome,blocked:!!blocked}});PS.textContent="Pilot bereit";render()}catch(e){PS.textContent="Pilot bereit";await telemetry("incident",{goal_id:goals[0]?.id||null,source:"progress",severity:"error",error_code:"PROGRESS_FAILED",message:e.message||String(e)});alert(e.message||String(e))}}
 async function sendFeedback(v){const [id,rating]=v.split(":");let reason=null;if(rating==="down")reason=window.prompt("Was sollte verbessert werden?")||null;await telemetry("feedback",{goal_id:goals[0]?.id||null,target_type:"result",target_id:id,rating,reason});await telemetry("event",{goal_id:goals[0]?.id||null,event_name:"result_feedback",event_category:"feedback",properties:{rating}});alert("Danke – Feedback gespeichert.")}
 async function runAlphaE2E(){const btn=document.getElementById("runAlphaE2E"),s=document.getElementById("e2eStatus");if(btn)btn.disabled=true;if(s)s.textContent="Systemtest läuft: Ausführung → Pilot-Synthese → Ergebnis → Prüfung → Fortschritt …";PS.textContent="Pilot prüft das System …";try{const r=await sb.functions.invoke("alpha-e2e-selftest",{body:{}});if(r.error)throw Object.assign(new Error(r.data?.error||r.error.message||"E2E-Test fehlgeschlagen"),{detail:r.data});const checks=r.data?.checks||[];if(s)s.innerHTML='<strong>Systemtest bestanden ✓</strong><br>'+checks.map(c=>(c.passed?'✓ ':'✕ ')+esc(c.check)).join('<br>');await load();render();PS.textContent="Pilot bereit"}catch(e){const d=e.detail||{};const checks=d.checks||[];if(s)s.innerHTML='<strong>Systemtest fehlgeschlagen</strong><br>'+esc(d.error||e.message||String(e))+(checks.length?'<br>'+checks.map(c=>(c.passed?'✓ ':'✕ ')+esc(c.check)).join('<br>'):'');PS.textContent="Prüfung erforderlich";await load();render()}finally{if(btn)btn.disabled=false}}
 async function runEvals(){PS.textContent="Prüfung läuft …";try{const r=await sb.functions.invoke("evaluation-runner",{body:{suite:"alpha-core"}});if(r.error)throw r.error;await load();render();PS.textContent="Pilot bereit"}catch(e){PS.textContent="Pilot bereit";await telemetry("incident",{source:"evaluation",severity:"error",error_code:"EVAL_FAILED",message:e.message||String(e)});alert(e.message||String(e))}}
