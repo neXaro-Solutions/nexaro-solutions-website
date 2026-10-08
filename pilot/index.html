@@ -3263,6 +3263,7 @@ body{max-width:100%;overflow-x:clip}
 .pilot-focus--conversation .pilot-focus-entry{padding-bottom:10px!important}
 .pilot-focus--conversation .pilot-shopping-card{flex:0 0 auto;width:min(740px,100%);margin:0 auto 22px}
 @media(max-width:600px){.pilot-focus--conversation{justify-content:flex-start!important;padding-top:24px;padding-bottom:30px}.pilot-focus--conversation .pilot-focus-entry{padding-top:7px!important}}
+.pilot-project-evidence-note{font-size:10px;line-height:1.6;color:#869387;margin:7px 0 0;padding:0 3px;text-align:left}
 </style><style id="pilot-orbit-design">
 /* ORBIT — canonical product tokens and layouts. Legacy tooling keeps its selectors. */
 :root{--bg:#f2f6f3;--s:#ffffff;--t:#172d29;--m:#5b7068;--l:#dae5de;--g:#9aef55;--g2:#6cba3c;--o:#e99342;--sh:0 24px 70px #243f3010;--sh2:0 10px 30px #243f300b}
@@ -4461,7 +4462,8 @@ function pilotProjectResultsHTML(data,refActions=[]){
   '<div class="pilot-project-results-title">Dein Ergebnis'+(unique.length>1?' <span>'+unique.length+'</span>':'')+'</div>'+
   output(unique[0])+
   (unique.length>1?'<details class="pilot-more-results"><summary>Ältere Ergebnisse anzeigen ('+(unique.length-1)+')</summary>'+
-   unique.slice(1).map(output).join("")+'</details>':'')+'</div>';
+   unique.slice(1).map(output).join("")+'</details>':'')+
+   '<p class="pilot-project-evidence-note">Das Ergebnis ist als Arbeitsprodukt gespeichert; keine unabhängige Quellenprüfung sachlicher Aussagen.</p></div>';
 }
 const pilotProjectExpanded=new Map();
 function pilotProjectCard(goal){
