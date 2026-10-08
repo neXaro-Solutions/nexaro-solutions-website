@@ -3298,7 +3298,9 @@ let activeGoalId=null;
 // This context is set only by an explicit click on "Auftrag fortsetzen",
 // never merely by whichever goal was last opened in another session.
 let pilotPinnedGoalId=null;
+let pilotForceNewGoal=false;
 function pilotContinuationScope(input){
+ if(pilotForceNewGoal)return null;
  if(!pilotPinnedGoalId||
     !goals.some(g=>g.id===pilotPinnedGoalId&&g.status==="active"))return null;
  // An explicit NEW project must never be silently attached to the open one.
@@ -3797,7 +3799,8 @@ function home(){
  const entry='<section class="pilot-simple-card pilot-simple-entry" aria-labelledby="homeComposeTitle">'+
  '<div class="pilot-simple-heading"><span class="pilot-simple-orb">✈</span><div><span class="pilot-simple-kicker">DEIN INTELLIGENTER MITARBEITER</span><h2 id="homeComposeTitle">Was soll Pilot erledigen?</h2>'+
  '<p>Ein Satz genügt. Pilot erkennt die nötigen Schritte selbst.</p></div></div>'+
- (pilotPinnedGoalId&&g?.id===pilotPinnedGoalId?'<div class="pilot-context-hint" role="status"><span>Du setzt fort: <strong>'+esc(g.title||"Dein Projekt")+'</strong></span><button id="pilotNewProject" type="button">Neues Projekt</button></div>':'')+
+ (pilotForceNewGoal?'<div class="pilot-context-hint" role="status"><span><strong>Neues Projekt</strong> · Der nächste Auftrag wird unabhängig angelegt.</span><button id="pilotCancelNewProject" type="button">Bestehendes Projekt</button></div>':
+   pilotPinnedGoalId&&g?.id===pilotPinnedGoalId?'<div class="pilot-context-hint" role="status"><span>Du setzt fort: <strong>'+esc(g.title||"Dein Projekt")+'</strong></span><button id="pilotNewProject" type="button">Neues Projekt</button></div>':'')+
  '<textarea id="goalText" maxlength="3000" rows="3" placeholder="'+(g?"Zum Beispiel: Erstelle einen Businessplan für mein Unternehmen.":"Zum Beispiel: Ich möchte mein eigenes Unternehmen gründen.")+'" aria-label="Dein Auftrag"></textarea>'+
  '<div class="pilot-simple-entry-footer"><div class="command-attachments"><div class="attachment-actions"><button class="attach-btn" type="button" data-attach-kind="file">＋ Datei hinzufügen</button></div>'+
  attach+'<div id="attachmentTray" class="attachment-tray" aria-live="polite"></div></div>'+
@@ -4439,10 +4442,18 @@ async function processPendingAttachments(goalId,taskText){
 function bind(){
   document.querySelectorAll("[data-view]").forEach(b=>b.onclick=async()=>{current=b.dataset.view;const menu=b.closest(".pilot-nav-more");if(menu)menu.open=false;if(current==="admin"&&isAdmin){try{await loadAdminConsole()}catch(e){pilotNotice(e.message||String(e))}}render()});
   document.querySelectorAll("[data-jump]").forEach(b=>b.onclick=()=>{current=b.dataset.jump;render()});
-   document.querySelectorAll("[data-open-goal]").forEach(b=>b.onclick=async()=>{if(activePilotFlight&&pilotFlightState.goalId&&pilotFlightState.goalId!==b.dataset.openGoal){pilotDestroyFlight(activePilotFlight);pilotSetFlightState(null,"idle","")}activeGoalId=b.dataset.openGoal;pilotPinnedGoalId=activeGoalId;try{localStorage.setItem("nexaro_pilot_goal_"+user.id,activeGoalId)}catch{}await load();current="home";render()});
+   document.querySelectorAll("[data-open-goal]").forEach(b=>b.onclick=async()=>{if(activePilotFlight&&pilotFlightState.goalId&&pilotFlightState.goalId!==b.dataset.openGoal){pilotDestroyFlight(activePilotFlight);pilotSetFlightState(null,"idle","")}activeGoalId=b.dataset.openGoal;pilotPinnedGoalId=activeGoalId;pilotForceNewGoal=false;try{localStorage.setItem("nexaro_pilot_goal_"+user.id,activeGoalId)}catch{}await load();current="home";render()});
   document.getElementById("pilotNewProject")?.addEventListener("click",()=>{
     const draft=document.getElementById("goalText")?.value||"";
-    pilotPinnedGoalId=null;render();
+    pilotPinnedGoalId=null;pilotForceNewGoal=true;render();
+    const field=document.getElementById("goalText");
+    if(field){field.value=draft;field.focus();}
+  });
+  document.getElementById("pilotCancelNewProject")?.addEventListener("click",()=>{
+    const draft=document.getElementById("goalText")?.value||"";
+    pilotForceNewGoal=false;
+    pilotPinnedGoalId=goals[0]?.status==="active"?goals[0].id:null;
+    render();
     const field=document.getElementById("goalText");
     if(field){field.value=draft;field.focus();}
   });
@@ -4796,10 +4807,13 @@ async function createGoal(){
   setTimeout(()=>{if(PS.textContent==="Pilot hebt ab …")PS.textContent="Pilot versteht …"},650);
 
   try{
-    const pinnedGoalId=pilotContinuationScope(text);
-    let resolutionPayload=pinnedGoalId?{existing_goal_id:pinnedGoalId}:{force_new_goal:true};
+    const forceNewGoal=pilotForceNewGoal;
+    const pinnedGoalId=forceNewGoal?null:pilotContinuationScope(text);
+    let resolutionPayload=forceNewGoal?{force_new_goal:true}:
+      pinnedGoalId?{existing_goal_id:pinnedGoalId}:{force_new_goal:true};
     let r=await sb.functions.invoke("pilot-intelligence",{
-      body:{input:text,...(pinnedGoalId?{existing_goal_id:pinnedGoalId}:{})}
+      body:{input:text,...(forceNewGoal?{force_new_goal:true}:
+        pinnedGoalId?{existing_goal_id:pinnedGoalId}:{})}
     });
     if(r.error)throw await pilotApiError(r,"Pilot konnte den Auftrag nicht einordnen.");
     let data=r.data;
@@ -4906,6 +4920,7 @@ async function createGoal(){
 
     const continued=data.continuity?.mode==="existing_goal";
     if(!continued||(pilotPinnedGoalId&&pilotPinnedGoalId!==targetGoal.id))pilotPinnedGoalId=null;
+    pilotForceNewGoal=false;
     PS.textContent=continued?"Pilot arbeitet am bestehenden Ziel weiter":"Pilot bereit";
 
     telemetry("event",{
@@ -5932,7 +5947,7 @@ function pilotShowLoadError(err){
  });
 }
 async function enter(session){
- user=session.user;pilotPinnedGoalId=null;
+ user=session.user;pilotPinnedGoalId=null;pilotForceNewGoal=false;
  try{activeGoalId=localStorage.getItem("nexaro_pilot_goal_"+user.id)||null}catch{}
  A.classList.add("hidden");APP.classList.remove("hidden");
  // A failed or slow data request may not prevent the start page from showing.
@@ -5961,7 +5976,7 @@ async function enter(session){
    pilotShowLoadError(e);
  }
 }
-async function leave(){pilotPinnedGoalId=null;if(activePilotFlight)pilotDestroyFlight(activePilotFlight);pilotSetFlightState(null,"idle","");user=null;org=null;isAdmin=false;customerPreview=false;adminData=null;pendingAttachments=[];goalSuccessMap={};goals=[];features=[];plans=[];actions=[];contexts=[];milestones=[];documents=[];results=[];claims=[];evidence=[];completeness=[];progressEvents=[];outcomes=[];adaptations=[];pilotState=null;aiRequests=[];qualityContracts=[];consensusRuns=[];executions=[];executionSteps=[];designJobs=[];canvaStatus=null;researchBusy=false;researchAttempted.clear();notifications=[];readiness=[];evalRuns=[];APP.classList.add("hidden");A.classList.remove("hidden")}
+async function leave(){pilotPinnedGoalId=null;pilotForceNewGoal=false;if(activePilotFlight)pilotDestroyFlight(activePilotFlight);pilotSetFlightState(null,"idle","");user=null;org=null;isAdmin=false;customerPreview=false;adminData=null;pendingAttachments=[];goalSuccessMap={};goals=[];features=[];plans=[];actions=[];contexts=[];milestones=[];documents=[];results=[];claims=[];evidence=[];completeness=[];progressEvents=[];outcomes=[];adaptations=[];pilotState=null;aiRequests=[];qualityContracts=[];consensusRuns=[];executions=[];executionSteps=[];designJobs=[];canvaStatus=null;researchBusy=false;researchAttempted.clear();notifications=[];readiness=[];evalRuns=[];APP.classList.add("hidden");A.classList.remove("hidden")}
 let authMode="login";
 const AUTHM=document.getElementById("authModal"),ME=document.getElementById("modalEmail"),MP=document.getElementById("modalPassword"),MP2=document.getElementById("modalPassword2"),MW=document.getElementById("repeatPasswordWrap"),PW=document.getElementById("privacyWrap"),AP=document.getElementById("acceptPrivacy"),SM=document.getElementById("submitAuth"),SW=document.getElementById("switchAuthMode"),RC=document.getElementById("resendConfirmation"),MM=document.getElementById("modalMessage"),CS=document.getElementById("confirmationState"),CE=document.getElementById("confirmationEmail"),CR=document.getElementById("confirmationResend"),CL=document.getElementById("confirmationLogin");
 function modalMessage(s,ok=false){MM.innerHTML='<div class="msg '+(ok?'ok':'')+'">'+esc(s)+'</div>'}

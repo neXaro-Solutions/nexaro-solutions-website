@@ -285,6 +285,21 @@ assert(frontend.includes("async function leave(){pilotPinnedGoalId=null;"),
   "Logging out must clear project context");
 console.log("PASS Explicit goal continuation is one tap, visible, and session-safe");
 
+// The 'Neues Projekt' control must force a genuinely fresh project even when
+// a single active goal would otherwise be automatically matched by the backend.
+assert(frontend.includes("pilotPinnedGoalId=null;pilotForceNewGoal=true;render()"),
+  "New-project button must explicitly switch to new-goal mode");
+assert(frontend.includes("let pilotForceNewGoal=false;"));
+assert(frontend.includes("body:{input:text,...(forceNewGoal?{force_new_goal:true}:"),
+  "New-goal intention must reach the backend on the first request");
+assert(frontend.includes("pilotForceNewGoal=false;\n    PS.textContent=continued?"),
+  "After a successful command the new-goal scope must reset");
+assert(frontend.includes('id="pilotCancelNewProject"'),
+  "User must be able to return to the previously opened project");
+assert(frontend.includes('user=session.user;pilotPinnedGoalId=null;pilotForceNewGoal=false;'));
+assert(frontend.includes('async function leave(){pilotPinnedGoalId=null;pilotForceNewGoal=false;'));
+console.log("PASS New-project control actually bypasses goal matching and can be undone");
+
 const alternatives=scenario([],OWNER,[],[legalEntry]);
 const comparison=await alternatives.invoke({input:"Bitte Rechtsform GmbH oder Einzelunternehmen vergleichen"});
 assert.equal(comparison.http,200);
