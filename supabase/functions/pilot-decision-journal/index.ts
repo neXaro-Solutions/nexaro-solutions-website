@@ -72,7 +72,7 @@ Deno.serve(async req=>{
    return reply({status:"unchanged",goal_id:goalId,decision:before});
  // Compare-and-set: never overwrite a confirmed choice without the user's
  // explicitly submitted current revision.
- if(before&&((op==="revoke")||(op==="set"&&before.event_type==="set"&&before.decision_value!==value))){
+ if(before){
    const expected=Number(input?.expected_revision_id);
    if(!Number.isSafeInteger(expected)||expected!==Number(before.id))
      return reply({error:"decision_conflict",reason_code:"CONFIRM_CHANGE_REQUIRED",
@@ -83,10 +83,16 @@ Deno.serve(async req=>{
    goal_id:goalId,organization_id:goal.organization_id,owner_id:owner,
    decision_key:key,decision_value:String(value||""),
    event_type:op==="revoke"?"revoke":"set",source_type:"direct_user" as const,
+   expected_revision_id:before?.id||null,
    source_ref:crypto.randomUUID()
  };
  const save=await sb.from(table).insert(payload).select("id,goal_id,decision_key,decision_value,event_type,source_type,created_at").single();
- if(save.error)return reply({error:"decision_store_failed",retryable:true},503);
+ if(save.error){
+   if(save.error.code==="P0001"||save.error.message?.includes("decision_revision_conflict"))
+     return reply({error:"decision_conflict",reason_code:"REVISION_CHANGED",
+       retryable:true},409);
+   return reply({error:"decision_store_failed",retryable:true},503);
+ }
  return reply({status:"saved",goal_id:goalId,decision:{...save.data,
    label:LABELS[key],display_value:key==="legal_form"?FORM[String(value)]||value:value}});
 });
