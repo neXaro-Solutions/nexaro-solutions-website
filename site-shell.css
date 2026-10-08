@@ -3,5 +3,9 @@
  .world-grid,.steps{grid-template-columns:minmax(0,1fr)}
  .world-card,.step{min-width:0;max-width:100%;overflow-wrap:anywhere}
  .world-card h3,.step h3{overflow-wrap:anywhere;word-break:normal}
+ /* Prevent long German headings and CRM copy from forcing auto-min-width grid tracks. */
+ .section-head,.cta-grid,.hero-grid{grid-template-columns:minmax(0,1fr)}
+ .section-head>*,.cta-grid>*,.hero-grid>*{min-width:0;max-width:100%;overflow-wrap:anywhere}
+ .section-head :is(h2,h3,em),.cta-grid :is(h2,h3,em){min-width:0;overflow-wrap:anywhere}
 }
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{transition:none!important;animation:none!important}}
