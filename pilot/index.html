@@ -3506,7 +3506,7 @@ function alphaViewLegacy(){if(!effectiveAdmin())return home();const passed=readi
 '<button id="diagnosePilotAI" class="btn pilot-admin-ai-test" type="button">✦ KI-Ausführung testen</button>'+
 '<button id="pilotBraveTest" class="btn" type="button">⌕ Brave prüfen</button>'+
 '<button id="diagnoseSafety" class="btn" type="button">🛡 Verbindung prüfen</button>'+
-'<button id="pilotLandingPreview" class="btn" type="button">✈ Flug &amp; Landung testen</button>'+
+'<button id="pilotLandingPreview" class="btn" type="button">✈ Flug, Avatar &amp; Landung testen</button>'+
 '</div><p class="pilot-admin-quicktest-note">Einzeltests verändern deinen Auftrag nicht.</p></section>'+
 '<div id="e2eStatus" class="muted" style="margin-top:12px">Der Systemtest nutzt isolierte Testdaten und räumt sie automatisch wieder auf.</div></div><div><div class="card"><h3>Prüfung</h3>'+(last?'<div class="stat"><span class="muted">Status</span><strong>'+esc(last.status)+'</strong></div><div class="stat"><span class="muted">Bewertung</span><strong>'+Math.round(Number(last.score||0)*100)+'%</strong></div><div class="stat"><span class="muted">Fälle</span><strong>'+last.passed_cases+' / '+last.total_cases+'</strong></div>':'<p class="muted">Noch kein Eval-Run.</p>')+'</div><div class="card" style="margin-top:20px"><h3>KI-Kostenmonitor</h3><div class="stat"><span class="muted">Anfragen</span><strong>'+aiRequests.length+'</strong></div><div class="stat"><span class="muted">Aktuelle Kosten</span><strong>'+aiCost.toFixed(4)+'</strong></div><div class="stat"><span class="muted">Ausweichrouten</span><strong>'+aiRequests.filter(x=>x.fallback_used).length+'</strong></div></div><div class="card" style="margin-top:20px"><h3>Hinweise</h3>'+(notifications.map(n=>'<div class="item"><span class="badge">'+esc(n.priority)+'</span><strong>'+esc(n.title)+'</strong><div class="muted">'+esc(n.body)+'</div></div>').join("")||'<p class="muted">Keine offenen Hinweise.</p>')+'</div></div></div>'}
 
@@ -4439,11 +4439,24 @@ async function previewPilotFlight(){
  if(!target||!panel){testRunway?.remove();return}
  button.disabled=true;
  panel.classList.remove("pilot-action-landed");
+ const beforeState={...pilotFlightState},previewGoal=goals[0]?.id||null;
  if(!startPilotFlight(button)){button.disabled=false;testRunway?.remove();return}
- try{await landPilotAtNextAction({scroll:true,minCruise:2850})}
- catch(err){console.warn("Pilot Flugtest beendet:",String(err?.message||"Fehler"))}
+ try{
+   pilotSetFlightState(previewGoal,"attention","Hier ist deine Handlung erforderlich");
+   const landed=await landPilotAtNextAction({scroll:true,minCruise:2100,keepLanded:true,
+     targetElement:target,landingMessage:"✈ Test: Avatar steigt aus · Deine Handlung ist erforderlich"});
+   if(landed){
+     await pilotWait(1700);
+     await pilotAvatarReboard(previewGoal);
+     if(button.isConnected){
+       startPilotFlight(button);
+       setPilotFlightPhase("✈ Test: Avatar eingestiegen · Pilot startet erneut");
+       await pilotWait(1750);
+     }
+   }
+ }catch(err){console.warn("Pilot Flugtest beendet:",String(err?.message||"Fehler"))}
  finally{
-   finishPilotFlight();
+   finishPilotFlight();pilotSetFlightState(beforeState.goalId,beforeState.mode,beforeState.message);
    testRunway?.remove();
    if(button.isConnected)button.disabled=false;
  }
