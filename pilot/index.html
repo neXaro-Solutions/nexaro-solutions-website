@@ -2461,6 +2461,22 @@ body{background:radial-gradient(ellipse 72vw 60vw at 92% -10%,rgba(145,255,62,.1
 @media(max-width:360px){.pilot-legal-option{padding:10px 8px;min-height:103px}.pilot-legal-option strong{font-size:11px}}
 @media(prefers-reduced-motion:reduce){.pilot-legal-option{transition:none}}
 
+
+/* LUMEN .39: goal-scoped decision continuity, no repeated large selection menu. */
+.pilot-legal-restored{display:flex;gap:10px;align-items:center;padding:11px 13px;margin:11px 0;
+ border:1px solid rgba(126,216,78,.39);border-radius:13px;
+ background:linear-gradient(115deg,#f2ffe8,#fff);color:#2e522d}
+.pilot-legal-restored>span{display:grid;place-items:center;flex:0 0 31px;width:31px;height:31px;
+ border-radius:50%;background:#ddffcb;font-weight:950}
+.pilot-legal-restored>div{display:grid;gap:3px;min-width:0}
+.pilot-legal-restored small{font-size:9px;letter-spacing:.08em;color:#688862;font-weight:800}
+.pilot-legal-restored strong{font-size:15px;overflow-wrap:anywhere}
+.pilot-legal-change{margin:9px 0}
+.pilot-legal-change summary{cursor:pointer;color:#65815d;font-size:11px;font-weight:850;
+ min-height:39px;display:flex;align-items:center}
+.pilot-legal-change summary:before{content:"⌄";margin-right:7px}
+.pilot-legal-change[open] summary:before{content:"⌃"}
+
 </style></head>
 <body>
 <section id="auth" class="auth"><div class="box">
@@ -2549,7 +2565,23 @@ async function load(){
     }
   }
 
-  if(goals[0]){const gid=goals[0].id;const [p,a,c,mi,d,r,cl,ev,co,pe,ou,ad,ps,air,qc]=await Promise.all([sb.from("plans").select("*").eq("goal_id",gid).order("version",{ascending:false}),sb.from("actions").select("*").eq("goal_id",gid).order("created_at",{ascending:true}),sb.from("context_items").select("context_type,key,value").eq("goal_id",gid),sb.from("milestones").select("*").eq("goal_id",gid).order("created_at",{ascending:true}),sb.from("documents").select("*").eq("owner_id",user.id).order("created_at",{ascending:false}),sb.from("results").select("*").eq("goal_id",gid).order("created_at",{ascending:false}),sb.from("claims").select("*").order("created_at",{ascending:false}),sb.from("evidence").select("*").order("created_at",{ascending:false}),sb.from("completeness_checks").select("*").eq("goal_id",gid).order("created_at",{ascending:false}),sb.from("progress_events").select("*").eq("goal_id",gid).order("created_at",{ascending:false}),sb.from("outcomes").select("*").eq("goal_id",gid).order("updated_at",{ascending:false}),sb.from("adaptation_events").select("*").eq("goal_id",gid).order("created_at",{ascending:false}),sb.from("pilot_states").select("*").eq("goal_id",gid).eq("user_id",user.id).limit(1),sb.from("ai_requests").select("*").eq("goal_id",gid).order("created_at",{ascending:false}).limit(10),sb.from("quality_contracts").select("*").eq("goal_id",gid).order("created_at",{ascending:false}).limit(10)]);for(const x of [p,a,c,mi,d,r,cl,ev,co,pe,ou,ad,ps,air,qc])if(x.error)throw x.error;plans=p.data||[];actions=a.data||[];contexts=c.data||[];milestones=mi.data||[];documents=d.data||[];results=r.data||[];claims=cl.data||[];evidence=ev.data||[];completeness=co.data||[];progressEvents=pe.data||[];outcomes=ou.data||[];adaptations=ad.data||[];pilotState=ps.data?.[0]||null;aiRequests=air.data||[];qualityContracts=qc.data||[];const [no,rd,er,cr,ex,es,dj,cs]=await Promise.all([sb.from("notifications").select("*").eq("user_id",user.id).order("created_at",{ascending:false}).limit(20),isAdmin?sb.from("alpha_readiness_checks").select("*").order("category"):Promise.resolve({data:[],error:null}),isAdmin?sb.from("evaluation_runs").select("*").order("started_at",{ascending:false}).limit(5):Promise.resolve({data:[],error:null}),sb.from("ai_consensus_runs").select("*").eq("goal_id",gid).order("created_at",{ascending:false}).limit(10),sb.from("executions").select("*").eq("goal_id",gid).order("created_at",{ascending:false}).limit(10),sb.from("execution_steps").select("*").order("created_at",{ascending:false}).limit(100),sb.from("design_jobs").select("*").eq("user_id",user.id).order("created_at",{ascending:false}).limit(30),sb.functions.invoke("canva-status",{body:{}})]);if(no.error)throw no.error;if(rd.error)throw rd.error;if(er.error)throw er.error;if(cr.error)throw cr.error;if(ex.error)throw ex.error;if(es.error)throw es.error;if(dj.error)throw dj.error;notifications=no.data||[];readiness=rd.data||[];evalRuns=er.data||[];consensusRuns=cr.data||[];executions=ex.data||[];executionSteps=es.data||[];designJobs=dj.data||[];canvaStatus=cs.error?null:cs.data}else{plans=[];actions=[];contexts=[];milestones=[];const d=await sb.from("documents").select("*").eq("owner_id",user.id).order("created_at",{ascending:false});documents=d.data||[];results=[];claims=[];evidence=[];completeness=[];progressEvents=[];outcomes=[];adaptations=[];pilotState=null;aiRequests=[];qualityContracts=[];consensusRuns=[];executions=[];executionSteps=[];const dj=await sb.from("design_jobs").select("*").eq("user_id",user.id).order("created_at",{ascending:false}).limit(30);designJobs=dj.data||[];const cs=await sb.functions.invoke("canva-status",{body:{}});canvaStatus=cs.error?null:cs.data}
+  if(goals[0]){const gid=goals[0].id;const [p,a,c,mi,d,r,cl,ev,co,pe,ou,ad,ps,air,qc]=await Promise.all([sb.from("plans").select("*").eq("goal_id",gid).order("version",{ascending:false}),sb.from("actions").select("*").eq("goal_id",gid).order("created_at",{ascending:true}),sb.from("context_items").select("context_type,key,value").eq("goal_id",gid),sb.from("milestones").select("*").eq("goal_id",gid).order("created_at",{ascending:true}),sb.from("documents").select("*").eq("owner_id",user.id).order("created_at",{ascending:false}),sb.from("results").select("*").eq("goal_id",gid).order("created_at",{ascending:false}),sb.from("claims").select("*").order("created_at",{ascending:false}),sb.from("evidence").select("*").order("created_at",{ascending:false}),sb.from("completeness_checks").select("*").eq("goal_id",gid).order("created_at",{ascending:false}),sb.from("progress_events").select("*").eq("goal_id",gid).order("created_at",{ascending:false}),sb.from("outcomes").select("*").eq("goal_id",gid).order("updated_at",{ascending:false}),sb.from("adaptation_events").select("*").eq("goal_id",gid).order("created_at",{ascending:false}),sb.from("pilot_states").select("*").eq("goal_id",gid).eq("user_id",user.id).limit(1),sb.from("ai_requests").select("*").eq("goal_id",gid).order("created_at",{ascending:false}).limit(10),sb.from("quality_contracts").select("*").eq("goal_id",gid).order("created_at",{ascending:false}).limit(10)]);for(const x of [p,a,c,mi,d,r,cl,ev,co,pe,ou,ad,ps,air,qc])if(x.error)throw x.error;plans=p.data||[];actions=a.data||[];contexts=c.data||[];milestones=mi.data||[];documents=d.data||[];results=r.data||[];claims=cl.data||[];evidence=ev.data||[];completeness=co.data||[];progressEvents=pe.data||[];outcomes=ou.data||[];adaptations=ad.data||[];pilotState=ps.data?.[0]||null;aiRequests=air.data||[];qualityContracts=qc.data||[];const [no,rd,er,cr,ex,es,dj,cs]=await Promise.all([sb.from("notifications").select("*").eq("user_id",user.id).order("created_at",{ascending:false}).limit(20),isAdmin?sb.from("alpha_readiness_checks").select("*").order("category"):Promise.resolve({data:[],error:null}),isAdmin?sb.from("evaluation_runs").select("*").order("started_at",{ascending:false}).limit(5):Promise.resolve({data:[],error:null}),sb.from("ai_consensus_runs").select("*").eq("goal_id",gid).order("created_at",{ascending:false}).limit(10),sb.from("executions").select("*").eq("goal_id",gid).order("created_at",{ascending:false}).limit(10),sb.from("execution_steps").select("*").order("created_at",{ascending:false}).limit(100),sb.from("design_jobs").select("*").eq("user_id",user.id).order("created_at",{ascending:false}).limit(30),sb.functions.invoke("canva-status",{body:{}})]);if(no.error)throw no.error;if(rd.error)throw rd.error;if(er.error)throw er.error;if(cr.error)throw cr.error;if(ex.error)throw ex.error;if(es.error)throw es.error;if(dj.error)throw dj.error;notifications=no.data||[];readiness=rd.data||[];evalRuns=er.data||[];consensusRuns=cr.data||[];executions=ex.data||[];executionSteps=es.data||[];designJobs=dj.data||[];canvaStatus=cs.error?null:cs.data;
+  const activeReview=pilotReviewContext();
+  if(pilotIsLegalFormDecision(activeReview)){
+    try{
+      const recovered=await sb.functions.invoke("execution-engine",{body:{
+        operation:"decision_context",goal_id:gid
+      }});
+      pilotPriorLegalChoice=recovered.error?{goal_id:gid,status:"unavailable"}:
+        {...(recovered.data||{}),goal_id:gid};
+    }catch{pilotPriorLegalChoice={goal_id:gid,status:"unavailable"}}
+    if(pilotDecisionDraft?.executionId===activeReview.ex.id&&!pilotDecisionDraft.legalFormChoice&&
+       pilotPriorLegalChoice.status==="found"){
+      pilotDecisionDraft.legalFormChoice=pilotPriorLegalChoice.choice;
+      pilotDecisionDraft.legalChoiceRestored=true;
+    }
+  }else pilotPriorLegalChoice=null;
+ }else{plans=[];actions=[];contexts=[];milestones=[];const d=await sb.from("documents").select("*").eq("owner_id",user.id).order("created_at",{ascending:false});documents=d.data||[];results=[];claims=[];evidence=[];completeness=[];progressEvents=[];outcomes=[];adaptations=[];pilotState=null;aiRequests=[];qualityContracts=[];consensusRuns=[];executions=[];executionSteps=[];const dj=await sb.from("design_jobs").select("*").eq("user_id",user.id).order("created_at",{ascending:false}).limit(30);designJobs=dj.data||[];const cs=await sb.functions.invoke("canva-status",{body:{}});canvaStatus=cs.error?null:cs.data}
 }
 
 
@@ -2592,6 +2624,7 @@ function pilotReviewContext(){
 }
 /* A compact editable decision rather than an opaque full AI report. */
 let pilotDecisionDraft=null;
+let pilotPriorLegalChoice=null;
 function pilotDecisionPlainText(raw){
  const text=String(raw||"").replace(/\\n/g,"\n").trim();
  const matchAudience=text.match(/\*\*Zielgruppe:\*\*\s*([\s\S]*?)(?=\s*\*\*Kundennutzen(?:-Satz)?\b|---|\*\*Offene Annahmen|$)/i);
@@ -2631,7 +2664,9 @@ function pilotDecisionFor(ctx){
  if(!pilotDecisionDraft||pilotDecisionDraft.executionId!==ctx.ex.id){
   const plain=pilotDecisionPlainText(ctx.result.content);
   const sections=pilotDecisionSections(plain);
-  pilotDecisionDraft={executionId:ctx.ex.id,sections,text:pilotDecisionSerialize(sections),changed:false};
+  const prior=pilotPriorLegalChoice?.status==="found"&&pilotPriorLegalChoice.goal_id===ctx.ex.goal_id?pilotPriorLegalChoice.choice:null;
+  pilotDecisionDraft={executionId:ctx.ex.id,sections,text:pilotDecisionSerialize(sections),
+    changed:false,legalFormChoice:prior,legalChoiceRestored:!!prior};
  }
  if(!pilotDecisionDraft.sections)pilotDecisionDraft.sections=pilotDecisionSections(pilotDecisionDraft.text);
  return pilotDecisionDraft;
@@ -2664,6 +2699,13 @@ function pilotLegalFormReviewCard(ctx){
  const selected=String(draft.legalFormChoice||"");
  const valid=PILOT_LEGAL_FORMS.slice(0,3).some(f=>f.id===selected);
  const waiting=selected==="unsicher";
+ const prior=pilotPriorLegalChoice?.goal_id===ctx.ex.goal_id?pilotPriorLegalChoice:null;
+ const restored=prior?.status==="found"&&draft.legalChoiceRestored===true&&selected===prior.choice;
+ const explanation=restored?
+   "Diese Rechtsform hast du bereits für dein Ziel angegeben. Pilot hat deine frühere Wahl wiedergefunden.":
+   prior?.status==="ambiguous"?
+   "Pilot hat unterschiedliche frühere Angaben gefunden. Bitte bestätige, welche jetzt gilt.":
+   "Pilot konnte die frühere Wahl nicht eindeutig als gespeicherte Nutzerentscheidung zuordnen. Bitte bestätige sie einmalig.";
  const options=PILOT_LEGAL_FORMS.map(form=>
    '<button type="button" class="pilot-legal-option'+(selected===form.id?" is-selected":"")+
    '" data-legal-form="'+form.id+'" aria-pressed="'+(selected===form.id?"true":"false")+'">'+
@@ -2671,9 +2713,12 @@ function pilotLegalFormReviewCard(ctx){
    '<small>'+esc(form.hint)+'</small></button>').join("");
  return '<section class="pilot-review-card pilot-review-editable pilot-decision-hub pilot-legal-decision" aria-labelledby="pilotDecisionTitle">'+
    '<div class="pilot-decision-eyebrow"><span class="pilot-decision-beacon" aria-hidden="true"></span>DEINE ENTSCHEIDUNG</div>'+
-   '<h3 id="pilotDecisionTitle">Welche Rechtsform möchtest du wählen?</h3>'+
-   '<p>Pilot hat Möglichkeiten recherchiert, aber noch nichts für dich entschieden. Wähle eine Option – erst dann kann Pilot darauf aufbauen.</p>'+
-   '<div class="pilot-legal-options" role="group" aria-label="Geplante Rechtsform auswählen">'+options+'</div>'+
+   '<h3 id="pilotDecisionTitle">'+(restored?"Deine Rechtsform ist bereits hinterlegt.":"Welche Rechtsform gilt für dein Unternehmen?")+'</h3>'+
+   '<p>'+esc(explanation)+'</p>'+
+   (restored?'<div class="pilot-legal-restored" role="status"><span aria-hidden="true">✓</span><div><small>AUS DEINEM AUFTRAG</small><strong>'+esc(prior.label||selected)+'</strong></div></div>':'')+
+   (restored?'<details class="pilot-legal-change"><summary>Rechtsform ändern</summary>'+
+       '<div class="pilot-legal-options" role="group" aria-label="Geplante Rechtsform ändern">'+options+'</div></details>':
+       '<div class="pilot-legal-options" role="group" aria-label="Geplante Rechtsform auswählen">'+options+'</div>')+
    '<div id="pilotLegalHelp" class="pilot-legal-help" '+(waiting?'':'hidden')+'>'+
    '<strong>Worauf kommt es bei der Wahl an?</strong>'+
    '<p>Entscheidend sind unter anderem persönliches Haftungsrisiko, verfügbares Kapital, Mitgründer und der laufende Verwaltungsaufwand. Pilot kann dir diese Punkte erklären – eine Rechtsform wird erst nach deiner Wahl übernommen.</p></div>'+
@@ -2687,7 +2732,7 @@ function pilotLegalFormReviewCard(ctx){
    '<span id="pilotLegalNotesCount">'+String(draft.legalNotes||"").length+' / 650</span></div>'+
    '<button type="button" class="btn ai pilot-home-action-start pilot-decision-go" id="confirmPilotResult" data-execution="'+esc(ctx.ex.id)+
      '" '+(!valid||pilotAutoSession?.active?'disabled':'')+'>'+
-   (valid?'⚡ Rechtsform festlegen · Pilot prüft weiter':'Wähle zuerst eine Rechtsform')+'</button>'+
+   (restored?'⚡ Mit deiner bisherigen Wahl fortfahren':valid?'⚡ Rechtsform übernehmen · Pilot prüft weiter':'Wähle zuerst eine Rechtsform')+'</button>'+
    '<details class="pilot-legal-existing"><summary>Was Pilot bisher herausgefunden hat</summary>'+
      '<p>'+esc(pilotDecisionPlainText(ctx.result.content)).slice(0,2200)+'</p>'+
      '<small>Der Entwurf ist keine abschließend geprüfte Rechtsauskunft. Kammer, Anmeldung und Fachkunde werden separat anhand amtlicher Quellen untersucht.</small></details>'+
@@ -2714,7 +2759,11 @@ function pilotLegalRefreshCard(){
  if(counter)counter.textContent=String(draft.legalNotes||"").length+" / 650";
  const go=document.getElementById("confirmPilotResult");
  if(go){go.disabled=!valid||!!pilotAutoSession?.active;
-   go.textContent=valid?"⚡ Rechtsform festlegen · Pilot prüft weiter":"Wähle zuerst eine Rechtsform";}
+   const prior=pilotPriorLegalChoice?.goal_id===ctx.ex.goal_id?pilotPriorLegalChoice:null;
+   const restored=prior?.status==="found"&&selected===prior.choice&&draft.legalChoiceRestored===true;
+   go.textContent=restored?"⚡ Mit deiner bisherigen Wahl fortfahren":
+     valid?"⚡ Rechtsform übernehmen · Pilot prüft weiter":"Wähle zuerst eine Rechtsform";
+ }
 }
 function bindPilotLegalFormDecision(){
  if(!document.querySelector(".pilot-legal-decision"))return;
@@ -2723,6 +2772,7 @@ function bindPilotLegalFormDecision(){
    const choice=String(btn.dataset.legalForm||"");
    if(!PILOT_LEGAL_FORMS.some(x=>x.id===choice))return;
    pilotDecisionFor(ctx).legalFormChoice=choice;
+   pilotDecisionFor(ctx).legalChoiceRestored=false;
    pilotLegalRefreshCard();
  }));
  const notes=document.getElementById("pilotLegalNotes");
@@ -3333,7 +3383,7 @@ function nxOpenNext(){
   const mask=document.createElement("div");mask.className="nx-mask";
   const safe=esc;
   mask.innerHTML='<section class="nx-modal" role="dialog" aria-modal="true" aria-labelledby="nxTitle" aria-describedby="nxDesc">'+
-    '<div class="nx-top"><div class="nx-symbol" aria-hidden="true">✦</div><span class="nx-kicker">neXaro · PILOT · LUMEN 2026.10.08.38</span><button type="button" class="nx-close" aria-label="Schließen">×</button></div>'+
+    '<div class="nx-top"><div class="nx-symbol" aria-hidden="true">✦</div><span class="nx-kicker">neXaro · PILOT · LUMEN 2026.10.08.39</span><button type="button" class="nx-close" aria-label="Schließen">×</button></div>'+
     '<h2 id="nxTitle">'+safe(config.title||"Pilot fragt nach")+'</h2><p class="nx-description" id="nxDesc">'+safe(config.description||"Bitte ergänze die noch fehlenden Angaben.")+'</p>'+
     '<form novalidate><div class="nx-fields">'+fields.map((f,i)=>'<div class="nx-field"><label for="nxInput'+i+'">'+safe(f.label)+'</label>'+
       (f.short?'<input id="nxInput'+i+'" type="text" name="'+safe(f.key)+'" maxlength="500" placeholder="'+safe(f.placeholder||"")+'" data-required="'+(f.required?"1":"0")+'">':
