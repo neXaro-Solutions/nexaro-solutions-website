@@ -7,9 +7,11 @@ on:
       - "supabase/functions/pilot-intelligence/**"
       - "supabase/functions/pilot-decision-journal/**"
       - "supabase/functions/pilot-background/**"
+      - "supabase/functions/pilot-background/**"
       - "pilot/tests/engine-contract.mjs"
       - "pilot/tests/continuity-contract.mjs"
       - "pilot/tests/journal-contract.mjs"
+      - "pilot/tests/background-contract.mjs"
       - "pilot/tests/background-contract.mjs"
       - "pilot/index.html"
       - ".github/workflows/pilot-engine-guards.yml"
@@ -19,9 +21,11 @@ on:
       - "supabase/functions/pilot-intelligence/**"
       - "supabase/functions/pilot-decision-journal/**"
       - "supabase/functions/pilot-background/**"
+      - "supabase/functions/pilot-background/**"
       - "pilot/tests/engine-contract.mjs"
       - "pilot/tests/continuity-contract.mjs"
       - "pilot/tests/journal-contract.mjs"
+      - "pilot/tests/background-contract.mjs"
       - "pilot/tests/background-contract.mjs"
       - "pilot/index.html"
       - ".github/workflows/pilot-engine-guards.yml"
@@ -48,5 +52,7 @@ jobs:
         run: node pilot/tests/continuity-contract.mjs
       - name: Run decision journal safety and revision tests
         run: node pilot/tests/journal-contract.mjs
+      - name: Run background worker authorization and budget tests
+        run: node pilot/tests/background-contract.mjs
       - name: Run scheduled-background security and budget tests
         run: node pilot/tests/background-contract.mjs
