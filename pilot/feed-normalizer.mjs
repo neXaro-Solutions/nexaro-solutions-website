@@ -76,6 +76,7 @@ function readRows(text){
   rows=Array.isArray(obj)?obj:Array.isArray(obj.offers)?obj.offers:Array.isArray(obj.products)?obj.products:null;
   if(!rows)throw Error("JSON muss eine Produktliste oder 'offers'/'products' enthalten.");
  }else rows=parseDelimited(clean);
+ if(!rows.length)throw Error("Keine Produktzeilen gefunden.");
  if(rows.length>MAX_ROWS)throw Error("Feed zu groß: höchstens 1.500 Produkte je Datei.");
  return rows;
 }
