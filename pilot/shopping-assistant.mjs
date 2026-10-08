@@ -130,14 +130,15 @@ export function makeShoppingAssistant({sb,getUser,getOrg,redraw,safeLink,escape,
   s.stage="result";await save();redraw();
  }
  async function handle(input,{attachments=false}={}){
-  if(!getUser()||!getOrg()||busy||attachments)return false;
+  if(busy)return true; // Do not turn a concurrent product reply into a separate project.
+  if(!getUser()||!getOrg()||attachments)return false;
   const t=String(input||"").trim();
   const intent=productShoppingIntent(t),continuation=!intent&&isShoppingFollowUp(t,state);
   if(!intent&&!continuation)return false;
   busy=true;
   try{
    if(intent){
-    state={...fresh(),topic_key:intent.key,topic:intent.topic,preferences:shoppingPreferences(t)};
+    state={...fresh(),topic_key:intent.key,topic:intent.topic,preferences:{...shoppingPreferences(t),...(intent.key==="generic"?{product_topic:intent.topic}:{})}};
     note("user",t);
     if(needsShoppingClarification(t)){
      state.stage="clarify";
@@ -146,7 +147,7 @@ export function makeShoppingAssistant({sb,getUser,getOrg,redraw,safeLink,escape,
     }
    }else if(state.stage==="clarify"){
     const p=shoppingPreferences(t);
-    state.preferences={budget:p.budget||state.preferences?.budget||null,platform:p.platform||state.preferences?.platform||null,priority:p.priority||state.preferences?.priority||null};
+    state.preferences={...state.preferences,budget:p.budget||state.preferences?.budget||null,platform:p.platform||state.preferences?.platform||null,priority:p.priority||state.preferences?.priority||null};
     note("user",t);
    }else{
     note("user",t);await followup(t);return true;
