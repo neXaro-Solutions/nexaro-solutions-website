@@ -2703,6 +2703,13 @@ body{background:radial-gradient(ellipse 72vw 60vw at 92% -10%,rgba(145,255,62,.1
  .side nav.pilot-minimal-nav .nav[data-view="goals"] .pilot-nav-icon svg{width:18px!important;height:18px!important}
 }
 .pilot-evidence-required{padding:12px;border:1px solid #f1d8b9;background:#fffaf3;border-radius:12px;font-size:12px}.pilot-evidence-required strong{color:#855624;font-size:13px}.pilot-evidence-required p{margin:8px 0 0;color:#66725f;line-height:1.55}
+
+/* Flight-as-status: orbit for the entire active run, park only for user input. */
+#pilotFlightLayer .pilot-plane{width:47px!important;height:47px!important;font-size:26px!important;border-width:2px!important;box-shadow:0 0 0 5px rgba(142,255,45,.12),0 9px 22px rgba(42,74,22,.21)!important}
+#pilotFlightLayer .pilot-plane--parked{background:#fff4e9!important;border-color:#ffab51!important;color:#ad5d19!important;box-shadow:0 0 0 5px rgba(255,165,72,.12),0 8px 20px rgba(92,54,24,.15)!important}
+.pilot-flight-attention{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;padding:10px 12px;background:#fff7ea;border:1px solid #f2d9b4;border-radius:11px;color:#765229;font-size:12px;line-height:1.5;margin:9px 0}
+.pilot-flight-attention strong{font-size:12px;color:#7e4e15}
+@media(prefers-reduced-motion:reduce){#pilotFlightLayer .pilot-plane{transition:none!important}}
 </style></head>
 <body>
 <section id="auth" class="auth"><div class="box">
@@ -3228,13 +3235,17 @@ function home(){
  '<span id="goalTextCount" class="pilot-simple-counter" aria-hidden="true">0 / 3000</span>'+
  '</section>';
  if(!g)return '<div class="pilot-simple">'+entry+'<p class="pilot-simple-footnote">Pilot fragt nur nach, wenn eine entscheidende Information fehlt. Externe Aktionen benötigen deine Freigabe.</p></div>';
- let label=inProgress?"Pilot arbeitet für dich":approval?"Deine Entscheidung wird benötigt":interrupt?"Pilot benötigt Aufmerksamkeit":n?"Pilot bereitet den nächsten Schritt vor":"Aktueller Arbeitsabschnitt bearbeitet";
+ const needsHuman=!inProgress&&(!!approval||
+   !!(interrupt&&["waiting_approval","review_required"].includes(interrupt.status))||
+   !!(n&&(n.owner_type==="joint"||n.recommended_mode==="together")));
+ let label=inProgress?"✈ Pilot ist unterwegs":needsHuman?"Hier ist deine Handlung erforderlich":interrupt?"Pilot benötigt Aufmerksamkeit":n?"Pilot bereitet den nächsten Schritt vor":"Aktueller Arbeitsabschnitt bearbeitet";
  const status='<section class="pilot-simple-card pilot-simple-work" id="pilotNextActionPanel" aria-labelledby="homeNextTitle">'+
  '<span class="pilot-simple-kicker">DEIN AKTUELLER AUFTRAG</span>'+
  '<h2 id="homeNextTitle">'+esc(g.title||"Dein Ziel")+'</h2><div class="pilot-simple-created">Erstellt am '+esc(pilotProjectDate(g.created_at))+'</div>'+
- '<div class="pilot-simple-state"><span class="pilot-simple-indicator '+(inProgress?"running":approval||interrupt?"needs":"")+'"></span>'+
+ '<div class="pilot-simple-state"><span class="pilot-simple-indicator '+(inProgress?"running":needsHuman||interrupt?"needs":"")+'"></span>'+
  '<span>'+esc(label)+'</span></div>'+
  (count?'<p class="pilot-simple-count">'+done+' von '+count+' vorbereiteten Arbeitsschritten bearbeitet. Das tatsächliche Endziel wird gesondert geprüft.</p>':'')+
+ (needsHuman?'<div id="pilotFlightAttention" class="pilot-flight-attention" role="status"><strong>✈ Pilot ist gelandet.</strong> Hier ist deine Handlung erforderlich. Nach deiner Freigabe startet Pilot erneut.</div>':'')+
  (inProgress?'<div class="pilot-simple-activity">'+esc(pilotAutoSession.label||"Pilot bearbeitet die nächsten Aufgaben …")+
  '<button id="pausePilotAutopilot" class="pilot-simple-textbutton" type="button">Nach diesem Schritt stoppen</button></div>':
  approval?pilotReviewCard(approval):
@@ -4204,7 +4215,11 @@ function pilotStartCruise(f){
 function startPilotFlight(button){
  const layer=document.getElementById("pilotFlightLayer");
  if(!layer||!button||!button.isConnected)return false;
- if(activePilotFlight?.plane?.isConnected)return true;
+ if(activePilotFlight?.plane?.isConnected){
+   if(["parked","landing","touchdown","exit"].includes(activePilotFlight.phase)){
+     pilotDestroyFlight(activePilotFlight);
+   }else return true;
+ }
  layer.replaceChildren();
  const size=window.innerWidth<680?58:66;
  const plane=document.createElement("div"),label=document.createElement("div");
@@ -4215,7 +4230,11 @@ function startPilotFlight(button){
  const f={plane,label,size,from,startedAt:performance.now(),phase:"takeoff",animation:null,frameVersion:0,fallbackFrame:null,resolveLanding:null};
  activePilotFlight=f;
  plane.style.transform=pilotMotion.transform({x:from.x,y:from.y,angle:-12,scale:.77});
- pilotTrack(f,pilotMotion.curveFrames(t=>pilotLaunchPoint(f,t),88),1320,1,()=>pilotStartCruise(f));
+ if(window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches){
+   f.phase="cruise";
+   plane.style.transform=pilotMotion.transform({x:window.innerWidth/2-size/2,y:Math.max(115,window.innerHeight*.22),angle:-11,scale:.8});
+   label.textContent="Pilot arbeitet an deinem Auftrag …";
+ }else pilotTrack(f,pilotMotion.curveFrames(t=>pilotLaunchPoint(f,t),88),1320,1,()=>pilotStartCruise(f));
  return true;
 }
 function setPilotFlightPhase(message){
@@ -4255,10 +4274,10 @@ async function pilotWaitForRunway(button){
    previous=next;
  }
 }
-async function landPilotAtNextAction({scroll=true,minCruise=1700}={}){
+async function landPilotAtNextAction({scroll=true,minCruise=1700,keepLanded=false,targetElement=null,landingMessage=null}={}){
  const f=activePilotFlight, panel=document.getElementById("pilotNextActionPanel");
  if(!f)return false;
- const target=pilotButtonTarget();
+ const target=targetElement?.isConnected?targetElement:pilotButtonTarget();
  if(!target){finishPilotFlight();return false}
  const pending=!!panel?.querySelector("#executeAction");
  if(pending){panel.classList.remove("pilot-action-landed");panel.classList.add("pilot-arrival-pending")}
@@ -4268,7 +4287,8 @@ async function landPilotAtNextAction({scroll=true,minCruise=1700}={}){
    const delay=Math.max(0,minCruise-(performance.now()-f.startedAt));
    if(delay)await pilotWait(delay);
    // Never cut the takeoff curve in half: approach begins from the uninterrupted cruise.
-   if(f.phase==="takeoff")await pilotWait(Math.max(0,1410-(performance.now()-f.startedAt)));
+   if(f.phase==="takeoff"&&!window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches)
+     await pilotWait(Math.max(0,1410-(performance.now()-f.startedAt)));
    if(activePilotFlight!==f)return false;
    if(f.phase==="takeoff")pilotStartCruise(f);
    if(activePilotFlight!==f)return false;
@@ -4297,18 +4317,31 @@ async function landPilotAtNextAction({scroll=true,minCruise=1700}={}){
      return {x,y,angle:tangent.angle*(1-pilotMotion.ease(t)),scale:1-.23*pilotMotion.ease(t)};
    };
    f.phase="landing";f.destination=destination;
-   setPilotFlightPhase("✈ Pilot im sanften Landeanflug auf den Aktionsbutton …");
-   const landed=await new Promise(resolve=>{
-     f.resolveLanding=resolve;
-     pilotTrack(f,pilotMotion.curveFrames(frameAt,132),duration,1,()=>{
-       if(activePilotFlight!==f||f.phase!=="landing")return;
-       f.phase="touchdown";
-       if(f.resolveLanding){const complete=f.resolveLanding;f.resolveLanding=null;complete(true)}
+   setPilotFlightPhase(keepLanded?"✈ Pilot landet: Hier ist deine Handlung erforderlich":"✈ Pilot landet am nächsten Arbeitsschritt …");
+   let landed;
+   if(window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches){
+     if(f.animation)try{f.animation.cancel()}catch{}
+     f.plane.style.transform=pilotMotion.transform({x:destination.x,y:destination.y,angle:0,scale:.75});
+     landed=true;
+   }else{
+     landed=await new Promise(resolve=>{
+       f.resolveLanding=resolve;
+       pilotTrack(f,pilotMotion.curveFrames(frameAt,132),duration,1,()=>{
+         if(activePilotFlight!==f||f.phase!=="landing")return;
+         f.phase="touchdown";
+         if(f.resolveLanding){const complete=f.resolveLanding;f.resolveLanding=null;complete(true)}
+       });
      });
-   });
+   }
    if(!landed||activePilotFlight!==f)return false;
    if(pending){panel.classList.remove("pilot-arrival-pending");panel.classList.add("pilot-action-landed")}
-   setPilotFlightPhase("Pilot gelandet · nächste Aktion bereit ✓");
+   if(keepLanded){
+     f.phase="parked";
+     f.plane.classList.add("pilot-plane--parked");
+     setPilotFlightPhase(landingMessage||"✈ Gelandet · Hier ist deine Handlung erforderlich");
+     return true;
+   }
+   setPilotFlightPhase(landingMessage||"Pilot gelandet · nächster Arbeitsschritt ✓");
    await pilotWait(580);
    if(activePilotFlight===f)finishPilotFlight();
    return true;
@@ -4372,17 +4405,63 @@ async function pilotResumeApprovedWork(){
   }else pilotAutoRunPreference(goalId,false);
  }catch{}
 }
+
+/* One aircraft per user-started run. A review parks it instead of clearing it. */
+let pilotFlightState={goalId:null,mode:"idle",message:""};
+function pilotSetFlightState(goalId,mode,message=""){
+ pilotFlightState={goalId:goalId||null,mode,message};
+ const banner=document.querySelector("#pilotFlightAttention");
+ if(banner){banner.hidden=mode!=="attention";if(!banner.hidden)banner.textContent=message||"Hier ist deine Handlung erforderlich";}
+}
+function pilotFlyingFromCurrentWork(){
+ return document.getElementById("executeAction")||
+   document.getElementById("createGoal")||
+   document.getElementById("pilotNextActionPanel")||
+   document.querySelector(".pilot-simple-work");
+}
+function pilotEnsureContinuousFlight(goalId){
+ if(!goalId||goals[0]?.id!==goalId)return;
+ if(!activePilotFlight?.plane?.isConnected){
+   const origin=pilotFlyingFromCurrentWork();
+   if(origin)startPilotFlight(origin);
+ }
+ pilotSetFlightState(goalId,"flying","Pilot arbeitet selbstständig weiter");
+ setPilotFlightPhase("✈ Pilot ist unterwegs · Dein Auftrag wird bearbeitet");
+}
+async function pilotLandAtAttention(goalId,message){
+ if(!goalId||goals[0]?.id!==goalId)return;
+ pilotSetFlightState(goalId,"attention",message||"Hier ist deine Handlung erforderlich");
+ if(current!=="home"){current="home";render()}
+ const target=document.getElementById("confirmPilotResult")||
+   document.getElementById("executeAction")||
+   document.querySelector('[data-jump="execution"]')||
+   document.getElementById("pilotNextActionPanel");
+ if(!activePilotFlight?.plane?.isConnected){
+   const origin=pilotFlyingFromCurrentWork();
+   if(origin)startPilotFlight(origin);
+ }
+ if(activePilotFlight?.phase==="parked"){setPilotFlightPhase("✈ Gelandet · Hier ist deine Handlung erforderlich");return}
+ if(activePilotFlight?.plane?.isConnected&&target)
+   await landPilotAtNextAction({scroll:false,minCruise:350,keepLanded:true,targetElement:target,
+     landingMessage:"✈ Gelandet · Hier ist deine Handlung erforderlich"});
+}
+function pilotEndContinuousFlight(goalId,message){
+ if(pilotFlightState.goalId&&goalId!==pilotFlightState.goalId)return;
+ pilotSetFlightState(goalId,"finished",message||"Der sichere Arbeitsabschnitt ist beendet");
+ setPilotFlightPhase("✈ Pilot hat diesen Arbeitsabschnitt beendet");
+ finishPilotFlight();
+}
 async function pilotContinueSafely(goalId,maxSteps=32){
  if(!goalId||pilotAutoSession?.active)return;
  const session={active:true,cancelRequested:false,count:0,max:maxSteps,label:"Pilot prüft den nächsten sicheren Schritt …"};
- pilotAutoSession=session;pilotAutoSummary=null;pilotAutoRunPreference(goalId,true);render();
+ pilotAutoSession=session;pilotAutoSummary=null;pilotAutoRunPreference(goalId,true);render();pilotEnsureContinuousFlight(goalId);
  let stopped="Sicherer Arbeitsabschnitt beendet.";
  let stopKind="completed";
  try{
    for(let i=0;i<maxSteps;i++){
      if(session.cancelRequested){stopped="Auf deinen Wunsch nach dem laufenden Schritt angehalten.";break}
      session.label="Pilot bearbeitet den nächsten sicheren Arbeitsschritt …";
-     render();
+     render();pilotEnsureContinuousFlight(goalId);
      const autoWatch=pilotWatchExecution({goalId});
     let response;
     try{
@@ -4426,8 +4505,16 @@ async function pilotContinueSafely(goalId,maxSteps=32){
    pilotAutoSummary={completed:session.count,kind:stopKind,text:doneNote+stopped};
    if(pilotAutoSession===session)pilotAutoSession=null;
    render();
-   if(launchCreated && !session.cancelRequested && goals[0]?.id===goalId){
-     setTimeout(()=>{if(!pilotAutoSession?.active && goals[0]?.id===goalId)void pilotContinueSafely(goalId,32)},250);
+   const waitingForHuman=stopKind==="waiting"||!!pilotReviewContext()||
+      actions.some(a=>(a.status==="ready"||a.status==="pending")&&
+        (a.owner_type==="joint"||a.recommended_mode==="together")&&!session.cancelRequested);
+   if(launchCreated&&!session.cancelRequested&&goals[0]?.id===goalId&&stopKind==="completed"){
+     pilotEnsureContinuousFlight(goalId);
+     setTimeout(()=>{if(!pilotAutoSession?.active&&goals[0]?.id===goalId)void pilotContinueSafely(goalId,32)},250);
+   }else if(waitingForHuman){
+     void pilotLandAtAttention(goalId,"Hier ist deine Handlung erforderlich");
+   }else{
+     pilotEndContinuousFlight(goalId,stopped);
    }
  }
 }
