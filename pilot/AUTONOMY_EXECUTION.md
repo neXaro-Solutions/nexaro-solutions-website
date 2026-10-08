@@ -137,3 +137,24 @@ Beim erneuten iPhone-Test brach die Recherche **nicht** ab: zwei Quellen gefunde
 **Fix aktiv in `ai-gateway v25`:** Der Textkörper jeder normalen OpenAI-Anfrage mit `text.format=json_object` beginnt jetzt mit `JSON output required.` und enthält anschließend den ursprünglichen Aufgabeninhalt. Die Ausgabevalidierung, das Safety-Gate, die Zuordnung zum angemeldeten Benutzer sowie die Hochrisiko-Route bleiben unverändert. `best-of-ai v19` läuft mit OpenAI und bedingtem Claude-Fallback.
 
 **Status:** Deployment und Prüfung des tatsächlich erzeugten Request-Bodys bestanden. Noch kein durchgeführter authentifizierter Provider-Retest nach v25, daher kein belegtes fertiges Ergebnis. Pilot-LUMEN-.29-Frontend ist unverändert kompatibel; der Qualitäts-/Performancepunkt bleibt Alpha.
+
+
+## 2026-10-08 · 10:41 – Root Cause: OpenAI-Abrechnung und Claude-Latenz (LUMEN .30)
+
+**Reale Produktionsdiagnose, verifiziert aus Edge-Logs:**
+- Ausführung `8476349e-8102-44ba-9c35-eee794a42019` fehlgeschlagen: `UPSTREAM_best-of-ai_503_MODEL_OUTPUT_NOT_READY`.
+- Die Quellenbeschaffung funktionierte erneut: drei gefunden, zwei für die Recherche ausgewählt, `RESEARCH_SOURCE_PACK` meldete `sufficient:true`. Das ist **keine** eigenständige fachliche Prüfung aller Aussagen.
+- OpenAI `gpt-4.1-mini` gab eine eindeutige Account-Abrechnungsablehnung zurück: `429 Your account is not active, please check your billing details`. Diese Sperre kann nicht durch neue Prompt-Parameter oder erneute Requests repariert werden.
+- Claude Sonnet 4.6 überschritt wiederum das Limit (`PROVIDER_TIMEOUT`). Es gab kein abgeschlossenes KI-Arbeitsartefakt.
+
+**Technisch implementiert:**
+- `best-of-ai v20`: Vor schnellem Routine-KI-Lauf die letzten 90 Minuten nach gespeicherten OpenAI-429-/Billing-Sperren des **gleichen Workspaces** abfragen; bei Sperre OpenAI nicht erneut belasten. Claude zuerst, OpenAI nur ohne aktuelle Sperre als Notfallback. Nach 90 Minuten wird OpenAI automatisch wieder prüfbar; keine unberechtigte Änderung an Zahlungsmitteln.
+- `ai-gateway v28`: Für `execution_artifact` im interaktiven Lauf Claude Haiku 5.5 mit `output_config.effort=low`, deutlich kürzerem Arbeitskontext und modellgerechten Kosten verwenden, statt Sonnet 4.6 jedes Mal an die Timeouts laufen zu lassen. **Nur** bei explizitem Modellzugriffs-/Parameterfehler 400/404 von Haiku 5.5 einmal auf Haiku 4.5 zurückfallen. Hochqualitäts-/sonstige Modellrouten bleiben unverändert.
+- Dauerhafte OpenAI-Billing-Fehler als `OPENAI_BILLING_INACTIVE` klassifizieren; andere 429 nicht als fälschlichen Arbeitserfolg behandeln.
+- Modellantwort-Schema für `execution_artifact`: mindestens 90 Zeichen im fertigen `deliverable`, eine echte `verification` und eine konkrete `next_recommendation`; Pflichtfelder dürfen nicht nur mit Platzhalterwerten befüllt sein. Quellenbasierte Rechtsaussagen weiterhin nur mit passenden tatsächlichen Belegen.
+- `pilot/index.html` LUMEN .30: Nur Administratoren sehen `✦ KI-Ausführung testen`. Das löst mit angemeldeter Sitzung einen **separaten kleinen** `best-of-ai`-Lauf aus (keine `actions`-, `results`- oder `progress`-Veränderung). Es prüft, ob ein Anbieter eine vollständige strukturierte Antwort liefern kann, und unterscheidet Fehler von Erfolg. Tests simulieren Erfolg, Provider-Ausfall und unvollständige Antwort.
+
+**Abnahmegrenzen und operativer Nutzerhinweis:**
+- Live-Konto: OpenAI-API-Abrechnung muss separat von einem ChatGPT-Abo geprüft/aktiviert werden. Nur der Kontoinhaber kann dies in den OpenAI Platform Billing-Einstellungen ändern.
+- Aktuelle Alpha-Versionen der Edge-Funktionen und Admin-Diagnostik sind installiert; **noch kein realer Haiku-5.5-Aufruf mit der Kundensitzung erfolgreich bestätigt.** Der KI-Kurztest geht vor einem erneuten vollständigen Auftragstest.
+- Keine falsche Erfolgsmeldung und kein automatisches Erledigt, solange eine verifizierte Ergebnisspeicherung fehlt. Die Architektur darf rechtlich relevante Fragen nicht aufgrund von bloßen Wikipedia-Links als abschließend geklärt markieren.
