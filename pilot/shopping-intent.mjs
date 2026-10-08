@@ -30,7 +30,8 @@ export function productShoppingIntent(text){
 export function shoppingPreferences(text){
  const t=String(text||"");
  const amount=t.match(/(?:bis|max(?:imal)?|unter|höchstens|budget|ca\.?|etwa)?\s*(\d{2,5})(?:[.,]00)?\s*(?:€(?!\w)|eur\b|euro\b)/i);
- const budget=amount?Number(amount[1]):null;
+ const shorthand=!amount?t.match(/^(?:(?:bis|max(?:imal)?|unter|höchstens|budget)\s+)?(\d{2,5})(?:\s*[,;]|\s|$)/i):null;
+ const budget=amount?Number(amount[1]):shorthand?Number(shorthand[1]):null;
  const platform=/\b(?:ios|iphone|apple)\b/i.test(t)?"iOS":/\bandroid\b/i.test(t)?"Android":null;
  const needs=[
  ["Kamera",/\b(?:kamera|fotos?|videos?|fotograf)\b/i],
