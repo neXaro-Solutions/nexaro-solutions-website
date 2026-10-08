@@ -3620,11 +3620,17 @@ function pilotShortResult(){
  // Prefer a concrete prepared deliverable over pure research/old failures.
  return items[0]||null;
 }
+/* Use a single ordered queue for UI and manual actions. */
+function pilotNextQueuedAction(){return actions.find(a=>a.status==="ready"||a.status==="pending")||null}
+function pilotRelevantInterruption(){
+ const open=new Set(actions.filter(a=>["ready","pending","running","blocked"].includes(a.status)).map(a=>a.id));
+ return executions.find(x=>open.has(x.action_id)&&["running","waiting_approval","review_required","blocked"].includes(x.status))||null;
+}
 function home(){
  const g=goals[0]||null;
- const n=actions.find(a=>a.status==="ready")||actions.find(a=>a.status==="pending");
+ const n=pilotNextQueuedAction();
  const approval=pilotReviewContext();
- const interrupt=executions.find(x=>["running","waiting_approval","review_required","blocked"].includes(x.status));
+ const interrupt=pilotRelevantInterruption();
  const inProgress=!!pilotAutoSession?.active;
  const done=actions.filter(x=>x.status==="completed").length;
  const count=actions.length;
@@ -3644,7 +3650,7 @@ function home(){
  if(!g)return '<div class="pilot-simple">'+entry+'<p class="pilot-simple-footnote">Pilot fragt nur nach, wenn eine entscheidende Information fehlt. Externe Aktionen benötigen deine Freigabe.</p></div>';
  const needsHuman=!inProgress&&(!!approval||
    !!(interrupt&&["waiting_approval","review_required"].includes(interrupt.status))||
-   !!(n&&(n.owner_type==="joint"||n.recommended_mode==="together")));
+   !!(n&&n.status==="ready"&&(n.owner_type==="joint"||n.owner_type==="user"||n.recommended_mode==="together"||n.blocking===true)));
  let label=inProgress?"✈ Pilot ist unterwegs":needsHuman?"Hier ist deine Handlung erforderlich":interrupt?"Pilot benötigt Aufmerksamkeit":n?"Pilot bereitet den nächsten Schritt vor":"Aktueller Arbeitsabschnitt bearbeitet";
  const status='<section class="pilot-simple-card pilot-simple-work" id="pilotNextActionPanel" aria-labelledby="homeNextTitle">'+
  '<span class="pilot-simple-kicker">DEIN AKTUELLER AUFTRAG</span>'+
@@ -3652,14 +3658,15 @@ function home(){
  '<div class="pilot-simple-state"><span class="pilot-simple-indicator '+(inProgress?"running":needsHuman||interrupt?"needs":"")+'"></span>'+
  '<span>'+esc(label)+'</span></div>'+
  (count?'<p class="pilot-simple-count">'+done+' von '+count+' vorbereiteten Arbeitsschritten bearbeitet. Das tatsächliche Endziel wird gesondert geprüft.</p>':'')+
- (needsHuman?'<div id="pilotFlightAttention" class="pilot-flight-attention" role="status"><strong>✈ Pilot ist gelandet.</strong> Hier ist deine Handlung erforderlich. Nach deiner Freigabe startet Pilot erneut.</div>':'')+
+ (needsHuman?'<div id="pilotFlightAttention" class="pilot-flight-attention" role="status"><strong>Prüfung erforderlich.</strong> '+(activePilotFlight?.phase==="parked"?"✈ Pilot ist gelandet. ":"")+'Nach deiner Entscheidung arbeitet Pilot weiter.</div>':'')+
  (inProgress?'<div class="pilot-simple-activity">'+esc(pilotAutoSession.label||"Pilot bearbeitet die nächsten Aufgaben …")+
  '<button id="pausePilotAutopilot" class="pilot-simple-textbutton" type="button">Nach diesem Schritt stoppen</button></div>':
  approval?pilotReviewCard(approval):
  interrupt?'<div class="command-card pilot-simple-action"><p>Pilot wartet auf die nötige Prüfung oder Freigabe.</p>'+
  '<button type="button" data-jump="execution" class="btn">Prüfung öffnen</button></div>':
  n?'<div class="command-card pilot-simple-action"><p><strong>Als Nächstes:</strong> '+esc(currentTask)+'</p>'+
- '<div class="pilot-home-action-buttons"><button type="button" id="executeAction" class="btn ai" data-action="'+esc(n.id)+'">'+(n.owner_type==="joint"||n.recommended_mode==="together"?"Entscheidung prüfen":"✈ Pilot weiterarbeiten lassen")+'</button></div></div>':
+ (n.status!=="ready"?'<p>Dieser Schritt wartet auf den Abschluss vorheriger Aufgaben. Pilot überspringt keine Abhängigkeiten.</p>':
+ '<div class="pilot-home-action-buttons"><button type="button" id="executeAction" class="btn ai" data-action="'+esc(n.id)+'">'+(n.owner_type==="joint"||n.owner_type==="user"||n.recommended_mode==="together"||n.blocking===true?"Entscheidung prüfen":"✈ Pilot weiterarbeiten lassen")+'</button></div>')+'</div>':
  '<p class="pilot-simple-count">Die vorbereiteten Schritte sind bearbeitet. Den tatsächlichen Abschluss prüft Pilot weiterhin.</p>')+
  '<details class="pilot-simple-details"><summary>Arbeitsdetails anzeigen</summary>'+
  '<p>Die technische Planung läuft im Hintergrund. Du musst diese Schritte nicht einzeln verwalten.</p>'+
@@ -4046,7 +4053,7 @@ function pilotSyncFlightScreen(){
  // step is available. The avatar is only permitted after an actual flight lands.
  if(pilotFlightState.mode!=="attention"||pilotFlightState.goalId!==goals[0]?.id)return;
  if(!pilotReviewContext()&&!actions.some(a=>a.status==="ready"&&
-   (a.owner_type==="joint"||a.recommended_mode==="together")))return;
+   (a.owner_type==="joint"||a.owner_type==="user"||a.recommended_mode==="together"||a.blocking===true)))return;
  const goalId=goals[0]?.id;
  pilotAttentionReconnectPending=true;
  queueMicrotask(()=>{
@@ -4575,7 +4582,7 @@ async function createGoal(){
   }
 }
 async function completeAction(withOutcome,blocked){
-  const n=actions.find(a=>a.status==="ready")||actions.find(a=>a.status==="pending");if(!n)return;
+  const n=pilotNextQueuedAction();if(!n||n.status!=="ready")return;
   let outcome=null;
   if(withOutcome){
     const values=await nxDialog({title:"Ergebnis und Fortschritt",description:"Die Messwerte erfassen wir in einem einzigen Schritt.",fields:[
@@ -5131,6 +5138,7 @@ async function pilotContinueSafely(goalId,maxSteps=32){
          no_open_actions:"Alle geplanten Arbeitsschritte sind bearbeitet.",
          goal_not_active:"Das Ziel ist nicht mehr aktiv.",
          blocked:"Ein Arbeitsschritt ist blockiert.",
+         pending_prerequisite:"Der nächste Arbeitsschritt wartet auf den Abschluss seiner Vorgängeraufgabe. Pilot überspringt diesen Schritt nicht.",
          failed:"Die Ergebnisprüfung ist fehlgeschlagen."
        };
        stopKind=["collaboration_required","attention_required","review_required","waiting_approval"].includes(data.status)?"waiting":
@@ -5160,8 +5168,9 @@ async function pilotContinueSafely(goalId,maxSteps=32){
    render();
    // A future joint step is not a present intervention. Land only when the
    // NEXT actionable step really requires the user, or a current review is open.
-   const nextReady=actions.find(a=>a.status==="ready");
-   const actualUserStep=!!nextReady&&(nextReady.owner_type==="joint"||nextReady.recommended_mode==="together");
+   const nextReady=pilotNextQueuedAction();
+   const actualUserStep=!!nextReady&&nextReady.status==="ready"&&
+     (nextReady.owner_type==="joint"||nextReady.owner_type==="user"||nextReady.recommended_mode==="together"||nextReady.blocking===true);
    const activeReview=!!pilotReviewContext()||
      executions.some(x=>["waiting_approval","review_required"].includes(x.status));
    const waitingForHuman=!session.cancelRequested&&(stopKind==="waiting"||activeReview||actualUserStep);
@@ -5395,8 +5404,8 @@ async function pilotExecutionProviderDiagnostic(){
 }
 async function executeAction(){
  if(pilotAutoSession?.active||pilotExecutionRequestActive)return;
- const n=actions.find(a=>a.status==="ready")||actions.find(a=>a.status==="pending");
- if(!n||pilotReviewContext()||executions.some(x=>["running","waiting_approval","review_required","blocked"].includes(x.status)))return;
+ const n=pilotNextQueuedAction();
+ if(!n||n.status!=="ready"||pilotReviewContext()||pilotRelevantInterruption())return;
  const btn=document.getElementById("executeAction");
  pilotExecutionRequestActive=true;
  if(btn){btn.disabled=true;btn.classList.add("launching");}
