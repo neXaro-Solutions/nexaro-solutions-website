@@ -2129,6 +2129,18 @@ body{background:radial-gradient(ellipse 72vw 60vw at 92% -10%,rgba(145,255,62,.1
 }
 @media(prefers-reduced-motion:reduce){.pilot-review-editable .pilot-decision-go{transition:none!important}}
 
+
+/* Execution clarity: one live state, no false landing badge during the next takeoff. */
+.pilot-run-live{
+ display:flex;align-items:center;gap:10px;padding:12px 14px;margin:10px 0 14px;
+ border:1px solid rgba(147,218,111,.38);border-radius:16px;background:#f2ffeb;
+ color:#375d32;font-size:12px;font-weight:850;line-height:1.45;
+}
+.pilot-run-live:before{content:"";flex:0 0 8px;width:8px;height:8px;border-radius:50%;
+ background:#86ee31;box-shadow:0 0 0 5px rgba(150,247,74,.16)}
+.pilot-home #executeAction:disabled,.pilot-decision-go:disabled{cursor:progress;filter:brightness(.98);opacity:.75}
+#pilotNextActionPanel:not(.pilot-action-landed) .pilot-home-action-start{transition:filter .2s ease}
+
 </style></head>
 <body>
 <section id="auth" class="auth"><div class="box">
@@ -2443,8 +2455,8 @@ function home(){
           '<p>Dieser Ausführungsschritt benötigt Aufmerksamkeit oder läuft noch. Pilot startet keine weitere Aktion, bis er geklärt ist.</p>'+
           '<div class="btns"><button type="button" class="btn ai" data-jump="execution">Ausführung prüfen ↗</button></div></div>':
        n?'<div class="command-card">'+
-        '<div class="command-title">'+esc(n.title||"Nächsten Schritt bearbeiten")+'</div>'+
-        '<p class="muted">'+esc(n.objective||"Pilot übernimmt die nächste Aufgabe und prüft das Ergebnis.")+'</p>'+
+        '<div class="command-title">'+esc((n.title||"Nächsten Schritt bearbeiten").replace(/^Nächsten Schritt für [„"]?/i,"").replace(/[“"]? ausführen$/i,""))+'</div>'+
+        '<p class="muted">'+esc((n.objective||"Pilot übernimmt die nächste Aufgabe und prüft das Ergebnis.").slice(0,165))+(String(n.objective||"").length>165?" …":"")+'</p>'+
         '<div class="pilot-home-action-buttons"><button type="button" class="btn ai pilot-home-action-start" id="executeAction" data-action="'+esc(n.id)+'" '+(pilotAutoSession?.active?'disabled':'')+'>✈ Nächsten Schritt ausführen</button>'+
         '<details class="pilot-home-action-more"><summary>Weitere Optionen</summary><div class="pilot-home-option-buttons">'+
         '<button type="button" class="btn" id="completeAction" data-action="'+esc(n.id)+'">Als erledigt markieren</button>'+
@@ -2891,7 +2903,7 @@ function nxOpenNext(){
   const mask=document.createElement("div");mask.className="nx-mask";
   const safe=esc;
   mask.innerHTML='<section class="nx-modal" role="dialog" aria-modal="true" aria-labelledby="nxTitle" aria-describedby="nxDesc">'+
-    '<div class="nx-top"><div class="nx-symbol" aria-hidden="true">✦</div><span class="nx-kicker">neXaro · PILOT · LUMEN 2026.10.08.25</span><button type="button" class="nx-close" aria-label="Schließen">×</button></div>'+
+    '<div class="nx-top"><div class="nx-symbol" aria-hidden="true">✦</div><span class="nx-kicker">neXaro · PILOT · LUMEN 2026.10.08.26</span><button type="button" class="nx-close" aria-label="Schließen">×</button></div>'+
     '<h2 id="nxTitle">'+safe(config.title||"Pilot fragt nach")+'</h2><p class="nx-description" id="nxDesc">'+safe(config.description||"Bitte ergänze die noch fehlenden Angaben.")+'</p>'+
     '<form novalidate><div class="nx-fields">'+fields.map((f,i)=>'<div class="nx-field"><label for="nxInput'+i+'">'+safe(f.label)+'</label>'+
       (f.short?'<input id="nxInput'+i+'" type="text" name="'+safe(f.key)+'" maxlength="500" placeholder="'+safe(f.placeholder||"")+'" data-required="'+(f.required?"1":"0")+'">':
@@ -3286,6 +3298,7 @@ function pilotTrack(f,frames,duration,iterations,finished){
 function pilotStartCruise(f){
  if(activePilotFlight!==f||f.phase!=="takeoff")return;
  f.phase="cruise";
+ if(f.label?.textContent==="Pilot hebt vom Startbutton ab …")f.label.textContent="✦ Pilot arbeitet an deinem Auftrag …";
  f.cruiseStartedAt=performance.now();
  const frames=pilotMotion.curveFrames(t=>pilotOrbit(f,t),204);
  pilotTrack(f,frames,5100,Infinity,null);
@@ -3493,13 +3506,84 @@ async function confirmPilotResult(){
    pilotNotice(String(e.message||e),"error");
  }finally{finishPilotFlight();if(btn?.isConnected)btn.disabled=false}
 }
+/* LUMEN LIVE EXECUTION — real execution_steps, not artificial percent animations. */
+let pilotExecutionRequestActive=false;
+let pilotStageWatcher=null;
+function pilotStageMessage(step,seconds=0){
+ const names={
+   research:"Pilot prüft gerade die Quellen",
+   reason:"Pilot erstellt dein Arbeitsergebnis",
+   create_result:"Pilot speichert das Ergebnis",
+   verify:"Pilot kontrolliert die Qualität",
+   progress:"Pilot aktualisiert den Auftragsstand",
+   starting:"Pilot startet den Arbeitsschritt"
+ };
+ const label=names[step]||"Pilot arbeitet an deinem Auftrag";
+ const duration=seconds>=5?" · "+Math.round(seconds)+" s":"";
+ return label+duration+(seconds>=35?" · sorgfältige Prüfung läuft":"");
+}
+function pilotUpdateStage(label){
+ PS.textContent=label;setPilotFlightPhase(label);
+ let tag=document.getElementById("pilotRunStage");
+ if(!tag){
+   const anchor=document.querySelector("#pilotNextActionPanel .command-card");
+   if(anchor){
+     tag=document.createElement("div");tag.id="pilotRunStage";
+     tag.className="pilot-run-live";tag.setAttribute("role","status");
+     tag.setAttribute("aria-live","polite");
+     const b=anchor.querySelector(".pilot-home-action-buttons");
+     if(b)anchor.insertBefore(tag,b);
+     else anchor.append(tag);
+   }
+ }
+ if(tag)tag.textContent=label;
+}
+function pilotWatchExecution({actionId=null,goalId=null}={}){
+ if(pilotStageWatcher)pilotStageWatcher.stop();
+ const watcher={stopped:false,timer:null,busy:false,started:Date.now(),lastStep:"starting",stop:null};
+ const tick=async()=>{
+   if(watcher.stopped||watcher.busy||!user)return;
+   watcher.busy=true;
+   try{
+     let query=sb.from("executions").select("id,status,created_at");
+     if(actionId)query=query.eq("action_id",actionId);
+     else if(goalId)query=query.eq("goal_id",goalId);
+     else return;
+     const latest=await query.order("created_at",{ascending:false}).limit(1).maybeSingle();
+     if(latest.error||!latest.data||watcher.stopped)return;
+     if(latest.data.status!=="running"){return}
+     const st=await sb.from("execution_steps").select("step_key,status,started_at")
+       .eq("execution_id",latest.data.id).order("step_order");
+     if(st.error||watcher.stopped)return;
+     const running=(st.data||[]).find(x=>x.status==="running");
+     const key=running?.step_key||watcher.lastStep||"starting";
+     watcher.lastStep=key;
+     const seconds=Math.floor((Date.now()-watcher.started)/1000);
+     pilotUpdateStage(pilotStageMessage(key,seconds));
+   }catch{}finally{watcher.busy=false}
+ };
+ watcher.stop=()=>{
+   watcher.stopped=true;
+   if(watcher.timer!==null)clearInterval(watcher.timer);
+   if(pilotStageWatcher===watcher)pilotStageWatcher=null;
+ };
+ pilotStageWatcher=watcher;
+ pilotUpdateStage(pilotStageMessage("starting"));
+ watcher.timer=setInterval(()=>{void tick()},4200);
+ void tick();
+ return watcher;
+}
+
 async function executeAction(){
- if(pilotAutoSession?.active)return;
+ if(pilotAutoSession?.active||pilotExecutionRequestActive)return;
  const n=actions.find(a=>a.status==="ready")||actions.find(a=>a.status==="pending");
  if(!n||pilotReviewContext()||executions.some(x=>["running","waiting_approval","review_required","blocked"].includes(x.status)))return;
- const btn=document.getElementById("executeAction");btn?.classList.add("launching");
+ const btn=document.getElementById("executeAction");
+ pilotExecutionRequestActive=true;
+ if(btn){btn.disabled=true;btn.classList.add("launching");}
+ document.getElementById("pilotNextActionPanel")?.classList.remove("pilot-action-landed");
  startPilotFlight(btn);
- PS.textContent="Pilot hebt ab …";
+ const watcher=pilotWatchExecution({actionId:n.id});
  try{
    const r=await sb.functions.invoke("execution-engine",{body:{operation:"start",action_id:n.id}});
    if(r.error)throw await pilotApiError(r,"Die Aktion konnte nicht ausgeführt werden.");
@@ -3519,7 +3603,16 @@ async function executeAction(){
    await telemetry("incident",{goal_id:n.goal_id||goals[0]?.id||null,source:"execution",severity:"error",error_code:"EXECUTION_FAILED",message:String(e.message||e)});
    await load().catch(()=>{});render();
    pilotNotice(String(e.message||e),"error");
- }finally{finishPilotFlight();setTimeout(()=>btn?.classList.remove("launching"),700)}
+ }finally{
+   watcher?.stop();
+   pilotExecutionRequestActive=false;
+   finishPilotFlight();
+   setTimeout(()=>{
+     btn?.classList.remove("launching");
+     if(btn?.isConnected)btn.disabled=false;
+     document.getElementById("pilotRunStage")?.remove();
+   },450);
+ }
 }
 async function decideExecution(v,approved){const [execution_id,step_id]=v.split(":");const reason=approved?null:await pilotAskText("Warum möchtest du diese Aktion ablehnen?",{title:"Freigabe ablehnen",placeholder:"Optionaler Grund …"});if(!approved&&reason===null)return;PS.textContent=approved?"Freigabe wird verarbeitet …":"Aktion wird abgebrochen …";try{const r=await sb.functions.invoke("execution-engine",{body:{operation:"approve",execution_id,step_id,approved,reason}});if(r.error&&r.data?.status!=="blocked")throw r.error;await load();render();PS.textContent="Pilot bereit";if(r.data?.status==="blocked")pilotNotice("Freigabe wurde erfasst. Die externe Capability ist noch nicht verbunden; Pilot hat deshalb nicht ausgeführt.")}catch(e){PS.textContent="Pilot bereit";pilotNotice(e.message||String(e))}}
 async function enter(session){user=session.user;A.classList.add("hidden");APP.classList.remove("hidden");try{await load();render();if(goals[0])void startGoalResearch(goals[0].id);telemetry("event",{event_name:"session_entered",event_category:"activation",properties:{has_goal:!!goals[0]}})}catch(e){telemetry("incident",{source:"app_load",severity:"error",error_code:"LOAD_FAILED",message:e.message||String(e)});pilotNotice(e.message)}}
