@@ -1516,6 +1516,20 @@ input,textarea{border-radius:var(--radius-input)}.btn{border-radius:var(--radius
 .goal-resolution-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:18px}
 .goal-resolution-actions .btn{min-height:48px}
 @media(max-width:560px){.goal-resolution-card{padding:20px;border-radius:22px}.goal-resolution-card h3{font-size:24px}.goal-resolution-actions{grid-template-columns:1fr}}
+
+/* neXaro Dialog Engine — shared light UI on desktop and iPhone */
+.nx-mask{position:fixed;inset:0;z-index:14000;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(236,243,238,.8);backdrop-filter:blur(17px);-webkit-backdrop-filter:blur(17px)}
+.nx-modal{position:relative;width:min(540px,100%);max-height:88dvh;overflow-y:auto;overscroll-behavior:contain;border:1px solid #e0e9dc;border-radius:28px;padding:28px;background:radial-gradient(circle at 98% 0,rgba(151,255,32,.19),transparent 180px),radial-gradient(circle at 0 100%,rgba(255,119,23,.08),transparent 220px),#fff;box-shadow:0 28px 85px rgba(22,43,29,.16);color:#1a241c;animation:nx-rise .23s ease-out both}
+.nx-modal:before{content:"";position:absolute;top:0;left:22px;right:22px;height:4px;border-radius:0 0 6px 6px;background:linear-gradient(90deg,#96fa25,#68de26,#ff7317)}
+.nx-top{display:flex;align-items:center;gap:12px;margin-bottom:16px}.nx-symbol{display:grid;place-items:center;width:48px;height:48px;border-radius:16px;background:#efffe6;border:1px solid #d6f3c5;color:#487328;font-size:27px}.nx-kicker{font-size:10px;letter-spacing:.17em;color:#718075;font-weight:850}.nx-close{margin-left:auto;background:#fff;border:1px solid #e0e8e0;color:#516354;border-radius:12px;width:38px;height:38px;font-size:24px;cursor:pointer}
+.nx-modal h2{font-size:clamp(24px,5vw,30px);letter-spacing:-.04em;line-height:1.15;margin:0 0 10px}.nx-description{white-space:pre-wrap;font-size:14px;line-height:1.6;color:#627166;margin:0 0 16px}
+.nx-fields{display:grid;gap:13px;margin-top:16px}.nx-field label{display:block;color:#33473b;font-size:12px;font-weight:800;margin-bottom:8px}.nx-field input,.nx-field textarea{width:100%;background:#fff!important;border:1px solid #d8e4da!important;border-radius:14px!important;padding:14px!important;font-size:16px!important;line-height:1.45;color:#182619!important;box-shadow:none!important}.nx-field textarea{min-height:98px;resize:vertical}.nx-field :is(input,textarea):focus{outline:0;border-color:#8be822!important;box-shadow:0 0 0 4px rgba(141,255,47,.22)!important}.nx-hint{display:block;margin-top:6px;color:#758277;font-size:12px;line-height:1.45}
+.nx-warning{padding:10px 12px;background:#fff3e8;border-radius:12px;color:#a74711;font-size:13px;margin:12px 0}.nx-actions{display:grid;gap:9px;margin-top:20px}.nx-action{min-height:51px;padding:11px 15px;background:#fff;border:1px solid #dce6dc;border-radius:13px;font-size:14px;font-weight:830;color:#304132;cursor:pointer;white-space:normal}.nx-action.accent{background:linear-gradient(110deg,#a0ff32,#79e92a);border-color:#95ec5d;color:#1f3816;box-shadow:0 8px 22px rgba(104,220,38,.18)}.nx-action.orange{border-color:#ffd3ae;background:#fff7ed;color:#9b470f}.nx-foot{font-size:11px;color:#748176;text-align:center;margin:12px 0 0}.nx-modal [hidden]{display:none!important}
+.nx-action:focus-visible,.nx-close:focus-visible{outline:3px solid #ff7417;outline-offset:2px}
+.auth-modal-backdrop{background:rgba(236,243,238,.74)!important}.auth-modal-card{box-shadow:0 28px 85px rgba(22,43,29,.16)!important}
+@keyframes nx-rise{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
+@media(max-width:660px){.nx-mask{align-items:flex-end;padding:8px 8px max(8px,env(safe-area-inset-bottom))}.nx-modal{width:100%;max-height:calc(100dvh - env(safe-area-inset-top) - 16px);padding:25px 20px 22px;border-radius:26px 26px 19px 19px}}
+@media(prefers-reduced-motion:reduce){.nx-modal{animation:none}}
 </style></head>
 <body>
 <section id="auth" class="auth"><div class="box">
@@ -1670,7 +1684,7 @@ function executionView(){
 function goalsView(){return '<div class="card"><div class="section-head"><div><div class="ey">ZIELSTEUERUNG</div><h2>Ziele</h2></div><span class="badge">'+goals.length+' aktiv / vorhanden</span></div><p class="muted">Die Erfolgsampel zeigt, wie nah jedes Ziel am messbaren Ergebnis liegt. Echte Outcome-Werte haben Vorrang vor reinem Aufgabenfortschritt.</p>'+(goals.map(g=>{const s=goalSuccessMap[g.id]||{percent:0,level:"red",label:"Noch nicht gemessen",source:"Fortschritt"};return '<div class="goal-success-item"><div class="goal-success-copy"><div><span class="badge '+(g.status==="active"?"green":"")+'">'+esc(deStatus(g.status))+'</span></div><strong>'+esc(g.title)+'</strong><div class="muted">'+esc(g.desired_outcome||"")+'</div><div class="goal-meta"><span class="badge">'+esc(g.domain?.primary||"general")+'</span><span class="badge">'+esc(g.readiness||"")+'</span></div></div>'+successGaugeHtml(s,true)+'</div>'}).join("")||'<p class="muted">Noch keine Ziele.</p>')+'</div>'}
 function documentsView(){return '<div class="grid"><div class="card"><h2>Dokumente</h2><p class="muted">TXT, MD, CSV, JSON, XML, PDF und DOCX werden direkt verarbeitet. Gescannte PDFs werden sauber als OCR erforderlich erkannt.</p><div class="field"><label>Datei</label><input id="fileInput" type="file" accept="image/*,.txt,.md,.csv,.json,.xml,.pdf,.docx,text/plain,text/csv,application/json,application/pdf"></div><div class="btns"><button id="uploadDoc" class="btn primary">Hochladen & analysieren</button></div></div><div class="card"><h3>Dokumente</h3>'+(documents.map(d=>'<div class="item"><strong>'+esc(d.title||d.filename)+'</strong><div class="muted">'+esc(d.mime_type||"")+'</div><div style="margin-top:7px"><span class="badge '+(d.processing_status==="ready"?"green":"")+'">'+esc(d.processing_status)+'</span></div></div>').join("")||'<p class="muted">Noch keine Dokumente.</p>')+'</div></div>'}
 function resultsView(){return '<div class="card"><h2>Ergebnisse Library</h2>'+(results.map(r=>{const c=claims.filter(x=>x.result_id===r.id),evCount=evidence.filter(e=>c.some(x=>x.id===e.claim_id)).length,co=completeness.find(x=>x.document_id===r.structured_content?.document_id),canva=r.result_type==="canva_design";return '<div class="item"><div><span class="badge '+(r.quality_status==="ready"?"green":"orange")+'">'+esc(deStatus(r.quality_status||"draft"))+'</span> <span class="badge">v'+r.version+'</span></div><strong style="margin-top:8px">'+esc(r.title)+'</strong><div class="muted" style="white-space:pre-wrap">'+esc(r.content||"")+'</div>'+(r.result_type==="research_analysis"&&Array.isArray(r.structured_content?.sources)?'<div style="margin-top:12px"><strong>Quellen</strong>'+r.structured_content.sources.map(s=>'<div class="item"><span class="badge">'+esc(s.source_key||"source")+'</span><strong>'+esc(s.title||s.url||"Quelle")+'</strong><div class="muted">Belege '+Math.round(Number(s.evidence_score||0)*100)+'%</div>'+(s.url?'<a class="btn" target="_blank" rel="noopener" href="'+esc(s.url)+'">Quelle öffnen</a>':'')+'</div>').join("")+'</div>':'')+(canva?'<div class="btns"><span class="badge green">Design bereit</span></div>':'<div class="stat"><span class="muted">Aussagen</span><strong>'+c.length+'</strong></div><div class="stat"><span class="muted">Belege</span><strong>'+evCount+'</strong></div><div class="stat"><span class="muted">Vollständigkeit</span><strong>'+esc(co?.readiness||r.structured_content?.completeness?.readiness||"—")+'</strong></div><div class="btns"><button class="btn primary" data-canva="'+r.id+':presentation">✦ Präsentation gestalten</button><button class="btn" data-canva="'+r.id+':doc">Dokument gestalten</button><button class="btn" data-feedback="'+r.id+':up">👍 Hilfreich</button><button class="btn" data-feedback="'+r.id+':down">👎 Verbessern</button></div>')+'</div>'}).join("")||'<p class="muted">Noch keine Ergebnisse.</p>')+'</div>'}
-async function uploadDocument(){const f=document.getElementById("fileInput")?.files?.[0];if(!f)return;if(!goals[0])return alert("Bitte zuerst ein aktives Ziel anlegen.");const btn=document.getElementById("uploadDoc");btn.disabled=true;btn.textContent="Verarbeitung läuft …";PS.textContent="Pilot verarbeitet Anhang …";try{await processCommandAttachment({file:f},goals[0].id,goals[0].description||goals[0].desired_outcome||goals[0].title);await load();await telemetry("event",{goal_id:goals[0]?.id||null,event_name:"document_processed",event_category:"value",properties:{document_count:documents.length,result_count:results.length}});PS.textContent="Pilot bereit";render()}catch(e){PS.textContent="Pilot bereit";await telemetry("incident",{goal_id:goals[0]?.id||null,source:"documents",severity:"error",error_code:"DOCUMENT_FAILED",message:e.message||String(e)});alert(e.message||String(e));btn.disabled=false;btn.textContent="Hochladen & analysieren"}}
+async function uploadDocument(){const f=document.getElementById("fileInput")?.files?.[0];if(!f)return;if(!goals[0])return pilotNotice("Bitte zuerst ein aktives Ziel anlegen.");const btn=document.getElementById("uploadDoc");btn.disabled=true;btn.textContent="Verarbeitung läuft …";PS.textContent="Pilot verarbeitet Anhang …";try{await processCommandAttachment({file:f},goals[0].id,goals[0].description||goals[0].desired_outcome||goals[0].title);await load();await telemetry("event",{goal_id:goals[0]?.id||null,event_name:"document_processed",event_category:"value",properties:{document_count:documents.length,result_count:results.length}});PS.textContent="Pilot bereit";render()}catch(e){PS.textContent="Pilot bereit";await telemetry("incident",{goal_id:goals[0]?.id||null,source:"documents",severity:"error",error_code:"DOCUMENT_FAILED",message:e.message||String(e)});pilotNotice(e.message||String(e));btn.disabled=false;btn.textContent="Hochladen & analysieren"}}
 function canvaView(){return '<div class="grid"><div class="card"><h2>Gestaltung</h2><p class="muted">Pilot überführt geprüfte Inhalte in visuelle Dokumente und Präsentationen. Analyse, Freigabe und Ergebnissteuerung bleiben vollständig in Pilot.</p><div class="stat"><span class="muted">Verbindung</span><strong>'+(canvaStatus?.connected?'Verbunden':'Nicht verbunden')+'</strong></div><div class="stat"><span class="muted">Generative Gestaltung</span><strong>Dokumente & Präsentationen</strong></div><div class="stat"><span class="muted">Markenvorlagen-Automatik</span><strong>Vorlagen / Designs</strong></div><div class="btns">'+(!canvaStatus?.connected?'<button id="connectCanva" class="btn primary">Gestaltungsmodul</button>':'<span class="badge green">Gestaltungsmodul bereit</span>')+'</div></div><div class="card"><h3>Design-Aufträge</h3>'+(designJobs.map(j=>'<div class="item"><span class="badge '+(j.status==="completed"?"green":j.status==="failed"?"orange":"")+'">'+esc(deStatus(j.status))+'</span><strong>'+esc(j.design_type)+'</strong><div class="muted">'+esc(j.brief?.text||"Designauftrag")+'</div><div class="btns">'+(j.status==="running"?'<button class="btn" data-canva-poll="'+j.id+'">Status aktualisieren</button>':'')+(j.status==="completed"?'<span class="badge green">Design fertig</span>':'')+'</div></div>').join("")||'<p class="muted">Noch keine Design-Aufträge.</p>')+'</div></div>'}
 function roadmap(){if(!effectiveAdmin())return home();const c=features.reduce((a,f)=>(a[f.status]=(a[f.status]||0)+1,a),{}),done=c.ready||0,total=features.length,pct=total?Math.round(done/total*100):0;return '<div class="card roadmap-card"><div class="section-head"><div><div class="ey">NUR ADMIN</div><h2>Entwicklungsplan</h2></div><button class="btn" data-jump="alpha">Systemtest öffnen</button></div><p class="muted">Umgesetzte Funktionen sind abgehakt. Der Status wird automatisch aus technischen Verifikationsnachweisen aktualisiert; offene oder spätere Funktionen bleiben sichtbar und werden nicht vergessen.</p><div class="roadmap-auto"><span class="dot"></span><strong>Automatische Statuspflege aktiv</strong><small>Verifiziert → automatisch grün</small></div><div class="roadmap-progress"><div><strong>'+done+' / '+total+' erledigt</strong><span>'+pct+'%</span></div><div class="progress-track"><div class="progress-bar" style="width:'+pct+'%"></div></div></div><div class="btns roadmap-summary"><span class="badge green">✓ Erledigt '+done+'</span><span class="badge">MVP '+(c.mvp||0)+'</span><span class="badge">Alpha '+(c.alpha||0)+'</span><span class="badge">Geplant '+(c.planned||0)+'</span><span class="badge orange">Zurückgestellt '+(c.deferred||0)+'</span></div><div class="roadmap-list">'+features.map(f=>{const ready=f.status==="ready";return '<div class="roadmap-item '+(ready?"done":"")+'"><span class="roadmap-check">'+(ready?"✓":"")+'</span><div><strong>'+f.workspace_number+'. '+esc(f.name)+'</strong><small>'+esc(f.priority)+'</small></div><span class="badge '+(ready?"green":"")+'">'+(ready?"Erledigt":esc(deStatus(f.status)))+'</span></div>'}).join("")+'</div></div>'}
 function alphaView(){if(!effectiveAdmin())return home();const passed=readiness.filter(x=>x.status==="passed").length,total=readiness.length,last=evalRuns[0],aiCost=aiRequests.reduce((s,x)=>s+Number(x.actual_cost||0),0);return '<div class="grid"><div class="card"><h2>Bereitschaft der privaten Testphase</h2><div style="font-size:42px;font-weight:900">'+passed+' / '+total+'</div><p class="muted">Pflichtchecks bestanden</p>'+readiness.map(x=>'<div class="stat"><span class="muted">'+esc(x.description)+'</span><strong>'+esc(deStatus(x.status))+'</strong></div>').join("")+'<div class="btns"><button id="runEvals" class="btn primary">Prüfsuite ausführen</button><button id="runAlphaE2E" class="btn ai">✦ Alpha-Systemtest starten</button></div><div id="e2eStatus" class="muted" style="margin-top:12px">Der Systemtest nutzt isolierte Testdaten und räumt sie automatisch wieder auf.</div></div><div><div class="card"><h3>Prüfung</h3>'+(last?'<div class="stat"><span class="muted">Status</span><strong>'+esc(last.status)+'</strong></div><div class="stat"><span class="muted">Bewertung</span><strong>'+Math.round(Number(last.score||0)*100)+'%</strong></div><div class="stat"><span class="muted">Fälle</span><strong>'+last.passed_cases+' / '+last.total_cases+'</strong></div>':'<p class="muted">Noch kein Eval-Run.</p>')+'</div><div class="card" style="margin-top:20px"><h3>KI-Kostenmonitor</h3><div class="stat"><span class="muted">Anfragen</span><strong>'+aiRequests.length+'</strong></div><div class="stat"><span class="muted">Aktuelle Kosten</span><strong>'+aiCost.toFixed(4)+'</strong></div><div class="stat"><span class="muted">Ausweichrouten</span><strong>'+aiRequests.filter(x=>x.fallback_used).length+'</strong></div></div><div class="card" style="margin-top:20px"><h3>Hinweise</h3>'+(notifications.map(n=>'<div class="item"><span class="badge">'+esc(n.priority)+'</span><strong>'+esc(n.title)+'</strong><div class="muted">'+esc(n.body)+'</div></div>').join("")||'<p class="muted">Keine offenen Hinweise.</p>')+'</div></div></div>'}
@@ -1726,7 +1740,7 @@ async function changeAdminRole(el){
     if(r.error)throw new Error(r.data?.error||r.error.message||"Rolle konnte nicht geändert werden");
     adminData=null;await loadAdminConsole(true);render();
   }catch(e){
-    alert(e.message||String(e));
+    pilotNotice(e.message||String(e));
     if(previous)el.value=previous;
   }finally{el.disabled=false}
 }
@@ -1746,8 +1760,8 @@ function addAttachments(files){
   const incoming=Array.from(files||[]);
   const maxCount=5,maxSize=15*1024*1024;
   for(const file of incoming){
-    if(pendingAttachments.length>=maxCount){alert("Maximal 5 Anhänge pro Auftrag.");break}
-    if(file.size>maxSize){alert(file.name+" ist größer als 15 MB und wurde nicht hinzugefügt.");continue}
+    if(pendingAttachments.length>=maxCount){pilotNotice("Maximal 5 Anhänge pro Auftrag.");break}
+    if(file.size>maxSize){pilotNotice(file.name+" ist größer als 15 MB und wurde nicht hinzugefügt.");continue}
     const duplicate=pendingAttachments.some(x=>x.file.name===file.name&&x.file.size===file.size);
     if(!duplicate)pendingAttachments.push({file});
   }
@@ -1821,7 +1835,7 @@ async function processPendingAttachments(goalId,taskText){
 }
 
 function bind(){
-  document.querySelectorAll("[data-view]").forEach(b=>b.onclick=async()=>{current=b.dataset.view;if(current==="admin"&&isAdmin){try{await loadAdminConsole()}catch(e){alert(e.message||String(e))}}render()});
+  document.querySelectorAll("[data-view]").forEach(b=>b.onclick=async()=>{current=b.dataset.view;if(current==="admin"&&isAdmin){try{await loadAdminConsole()}catch(e){pilotNotice(e.message||String(e))}}render()});
   document.querySelectorAll("[data-jump]").forEach(b=>b.onclick=()=>{current=b.dataset.jump;render()});
   document.getElementById("createGoal")?.addEventListener("click",createGoal);
   document.getElementById("executeAction")?.addEventListener("click",executeAction);
@@ -1837,21 +1851,70 @@ function bind(){
   document.querySelectorAll("[data-canva-poll]").forEach(b=>b.onclick=()=>pollCanva(b.dataset.canvaPoll));
   document.querySelectorAll("[data-exec-approve]").forEach(b=>b.onclick=()=>decideExecution(b.dataset.execApprove,true));
   document.querySelectorAll("[data-exec-reject]").forEach(b=>b.onclick=()=>decideExecution(b.dataset.execReject,false));
-  document.getElementById("loadAdmin")?.addEventListener("click",async()=>{try{await loadAdminConsole(true);render()}catch(e){alert(e.message||String(e))}});
-  document.getElementById("refreshAdmin")?.addEventListener("click",async()=>{try{adminData=null;await loadAdminConsole(true);render()}catch(e){alert(e.message||String(e))}});
+  document.getElementById("loadAdmin")?.addEventListener("click",async()=>{try{await loadAdminConsole(true);render()}catch(e){pilotNotice(e.message||String(e))}});
+  document.getElementById("refreshAdmin")?.addEventListener("click",async()=>{try{adminData=null;await loadAdminConsole(true);render()}catch(e){pilotNotice(e.message||String(e))}});
   document.querySelectorAll("[data-role-user]").forEach(el=>{el.dataset.previous=el.value;el.onchange=()=>changeAdminRole(el)});
   document.getElementById("customerPreviewToggle")?.addEventListener("click",()=>{customerPreview=!customerPreview;if(customerPreview&&["roadmap","alpha","admin"].includes(current))current="home";render()});
   bindAttachments();
 }
-function askGoalResolution(candidate){
-  return new Promise(resolve=>{
-    const overlay=document.createElement("div");
-    overlay.className="goal-resolution-overlay";
-    overlay.innerHTML='<div class="goal-resolution-card"><div class="ey">PILOT IST SICH NICHT SICHER</div><h3>Geht es um dieses bestehende Ziel?</h3><div class="goal-resolution-target"><strong>'+esc(candidate?.title||"Bestehendes Ziel")+'</strong><p>'+esc(candidate?.desired_outcome||candidate?.description||"")+'</p></div><p class="muted">Wenn du ein neues Ziel startest, beginnt Pilot bewusst bei Null und baut Ziel, Plan und Kontext neu auf.</p><div class="goal-resolution-actions"><button class="btn primary" data-resolution="existing">Ja, dieses Ziel</button><button class="btn" data-resolution="new">Neues Ziel erstellen</button></div></div>';
-    document.body.appendChild(overlay);
-    overlay.querySelector('[data-resolution="existing"]').onclick=()=>{overlay.remove();resolve("existing")};
-    overlay.querySelector('[data-resolution="new"]').onclick=()=>{overlay.remove();resolve("new")};
+
+/* Universal neXaro dialog queue. No native browser prompt/alert is used by Pilot. */
+const nxDialogQueue=[];let nxDialogActive=false;
+function nxDialog(config={}){
+  return new Promise(resolve=>{nxDialogQueue.push({config,resolve});nxOpenNext()});
+}
+function nxOpenNext(){
+  if(nxDialogActive||!nxDialogQueue.length)return;
+  nxDialogActive=true;
+  const {config,resolve}=nxDialogQueue.shift(),fields=config.fields||[];
+  const buttons=config.buttons||[{value:"submit",label:fields.length?"Weiter":"Verstanden",primary:true}];
+  const prev=document.activeElement,prevOverflow=document.body.style.overflow;
+  const mask=document.createElement("div");mask.className="nx-mask";
+  const safe=esc;
+  mask.innerHTML='<section class="nx-modal" role="dialog" aria-modal="true" aria-labelledby="nxTitle" aria-describedby="nxDesc">'+
+    '<div class="nx-top"><div class="nx-symbol" aria-hidden="true">✦</div><span class="nx-kicker">neXaro · PILOT</span><button type="button" class="nx-close" aria-label="Schließen">×</button></div>'+
+    '<h2 id="nxTitle">'+safe(config.title||"Pilot fragt nach")+'</h2><p class="nx-description" id="nxDesc">'+safe(config.description||"Bitte ergänze die noch fehlenden Angaben.")+'</p>'+
+    '<form novalidate><div class="nx-fields">'+fields.map((f,i)=>'<div class="nx-field"><label for="nxInput'+i+'">'+safe(f.label)+'</label>'+
+      (f.short?'<input id="nxInput'+i+'" type="text" name="'+safe(f.key)+'" maxlength="500" placeholder="'+safe(f.placeholder||"")+'" data-required="'+(f.required?"1":"0")+'">':
+       '<textarea id="nxInput'+i+'" name="'+safe(f.key)+'" maxlength="3000" placeholder="'+safe(f.placeholder||"")+'" data-required="'+(f.required?"1":"0")+'"></textarea>')+
+      (f.hint?'<small class="nx-hint">'+safe(f.hint)+'</small>':'')+'</div>').join("")+'</div><p class="nx-warning" hidden role="alert">Bitte ergänze zuerst das erforderliche Feld.</p>'+
+    '<div class="nx-actions">'+buttons.map((b,i)=>'<button type="'+(b.value==="submit"?"submit":"button")+'" class="nx-action '+(b.primary?"accent":b.orange?"orange":"")+'" data-option="'+i+'">'+safe(b.label)+'</button>').join("")+
+    (config.cancelable===false?'':'<button type="button" class="nx-action" data-cancel>Abbrechen</button>')+'</div></form>'+
+    '<p class="nx-foot">Deine Angaben werden nur im passenden Auftrag verwendet.</p></section>';
+  document.body.appendChild(mask);document.body.style.overflow="hidden";
+  let settled=false;
+  const finish=value=>{if(settled)return;settled=true;mask.removeEventListener("keydown",keyHandler);mask.remove();document.body.style.overflow=prevOverflow;try{prev?.focus?.({preventScroll:true})}catch{}nxDialogActive=false;resolve(value);queueMicrotask(nxOpenNext)};
+  const keyHandler=e=>{if(e.key==="Escape"&&config.cancelable!==false){e.preventDefault();finish(null)}if(e.key==="Tab"){const items=[...mask.querySelectorAll("button,input,textarea")];if(e.shiftKey&&document.activeElement===items[0]){e.preventDefault();items.at(-1).focus()}else if(!e.shiftKey&&document.activeElement===items.at(-1)){e.preventDefault();items[0].focus()}}};
+  mask.addEventListener("keydown",keyHandler);
+  mask.querySelector(".nx-close").onclick=()=>finish(null);
+  mask.querySelector("[data-cancel]")?.addEventListener("click",()=>finish(null));
+  mask.querySelectorAll("[data-option]").forEach(el=>el.onclick=()=>{const chosen=buttons[Number(el.dataset.option)];if(chosen.value!=="submit")finish(chosen.value)});
+  mask.querySelector("form").onsubmit=e=>{e.preventDefault();const answer={};for(const input of mask.querySelectorAll("input,textarea")){const value=input.value.trim();if(input.dataset.required==="1"&&!value){mask.querySelector(".nx-warning").hidden=false;input.focus();return}answer[input.name]=value}finish(fields.length?answer:"submit")};
+  mask.querySelector("input,textarea,.nx-action.accent,.nx-action")?.focus({preventScroll:true});
+}
+function pilotNotice(message,type){
+  const t=String(message?.message||message||"");
+  return nxDialog({title:type==="error"||/fehl|konnte nicht|error|ungültig/i.test(t)?"Pilot benötigt deine Aufmerksamkeit":"Nachricht von Pilot",description:t,buttons:[{value:"submit",label:"Verstanden",primary:true}],cancelable:false});
+}
+async function pilotAskText(label,{title="Eine kurze Rückfrage",placeholder="",required=false,short=false}={}){
+  const answer=await nxDialog({title,description:"Pilot benötigt diese Angabe für den nächsten Schritt.",fields:[{key:"value",label,placeholder,required,short}],buttons:[{value:"submit",label:"Übernehmen",primary:true}]});
+  return answer?.value??null;
+}
+async function pilotAskQuestions(questions){
+  const qs=(questions||[]).slice(0,3);
+  const business=qs[0]?.key==="business_idea";
+  const answer=await nxDialog({
+    title:business?"Welche Geschäftsidee hast du?":"Pilot hat noch eine Frage",
+    description:business?"Zuerst klären wir, welches Unternehmen du aufbauen möchtest. Das Budget besprechen wir erst, wenn es gebraucht wird.":"Pilot fragt nur das ab, was für den nächsten sinnvollen Schritt fehlt.",
+    fields:qs.map(q=>({key:q.key,label:q.question_de||q.question_en||"Deine Antwort",hint:q.hint_de||"",placeholder:q.placeholder_de||"",required:q.required!==false})),
+    buttons:[{value:"submit",label:"Weiter zum Plan",primary:true},...(business?[{value:"develop",label:"Geschäftsidee gemeinsam entwickeln",orange:true}]:[])]
   });
+  if(answer==="develop")return {business_idea:"Die Geschäftsidee ist noch offen; Pilot soll gemeinsam mit mir Ideen entwickeln."};
+  return answer;
+}
+
+async function askGoalResolution(candidate){
+  return nxDialog({title:"Gehört das zum bestehenden Ziel?",description:"Bestehendes Ziel: "+(candidate?.title||"Unbenannt")+"\n"+(candidate?.desired_outcome||candidate?.description||"")+"\n\nPilot kann damit fortfahren oder ein neues Ziel anlegen.",buttons:[{value:"existing",label:"Bestehendes Ziel fortsetzen",primary:true},{value:"new",label:"Neues Ziel anlegen",orange:true}]});
 }
 async function createGoal(){
   const text=document.getElementById("goalText").value.trim();
@@ -1873,6 +1936,7 @@ async function createGoal(){
     if(data.stage==="goal_resolution"){
       PS.textContent="Pilot prüft den Zusammenhang …";
       const choice=await askGoalResolution(data.candidate_goal);
+       if(choice===null){PS.textContent="Pilot bereit";btn.disabled=false;btn.textContent="✈ Pilot jetzt starten";btn.classList.remove("launching");return;}
 
       if(choice==="existing"){
         r=await sb.functions.invoke("pilot-intelligence",{body:{input:text,existing_goal_id:data.candidate_goal.id}});
@@ -1885,12 +1949,8 @@ async function createGoal(){
     }
 
     if(data.stage==="clarification"){
-      const answers={};
-      for(const q of data.questions||[]){
-        const ans=window.prompt(q.question_de||q.question_en||"Weitere Angabe");
-        if(ans)answers[q.key]=ans;
-      }
-
+      const answers=await pilotAskQuestions(data.questions);
+      if(!answers){PS.textContent="Pilot bereit";btn.disabled=false;btn.textContent="✈ Pilot jetzt starten";btn.classList.remove("launching");return;}
       PS.textContent="Pilot plant …";
       r=await sb.functions.invoke("pilot-intelligence",{body:{input:text,intent:data.intent,answers,force_new_goal:true}});
       if(r.error)throw new Error(r.data?.error||r.error.message||"Pilot konnte den Plan nicht erstellen.");
@@ -1925,23 +1985,45 @@ async function createGoal(){
     render();
   }catch(e){
     PS.textContent="Pilot bereit";
-    alert(e.message||String(e));
+    pilotNotice(e.message||String(e));
     btn.disabled=false;
     btn.textContent="✈ Pilot jetzt starten";
     btn.classList.remove("launching");
   }
 }
-async function completeAction(withOutcome,blocked){const n=actions.find(a=>a.status==="ready")||actions.find(a=>a.status==="pending");if(!n)return;let outcome=null;if(withOutcome){const metric=window.prompt("Welche Kennzahl möchtest du messen? Zum Beispiel: Leads");if(metric){const current=window.prompt("Aktueller Wert?");const target=window.prompt("Zielwert?");const unit=window.prompt("Einheit? Zum Beispiel: Leads, %, EUR")||"";outcome={metric,current_value:Number(current||0),target:Number(target||0),unit}}}PS.textContent="Pilot aktualisiert Fortschritt …";try{const r=await sb.functions.invoke("progress-engine",{body:{action_id:n.id,outcome,blocked}});if(r.error)throw r.error;await load();await telemetry("event",{goal_id:goals[0]?.id||null,event_name:"progress_updated",event_category:"outcome",properties:{outcome_attached:!!outcome,blocked:!!blocked}});PS.textContent="Pilot bereit";render()}catch(e){PS.textContent="Pilot bereit";await telemetry("incident",{goal_id:goals[0]?.id||null,source:"progress",severity:"error",error_code:"PROGRESS_FAILED",message:e.message||String(e)});alert(e.message||String(e))}}
-async function sendFeedback(v){const [id,rating]=v.split(":");let reason=null;if(rating==="down")reason=window.prompt("Was sollte verbessert werden?")||null;await telemetry("feedback",{goal_id:goals[0]?.id||null,target_type:"result",target_id:id,rating,reason});await telemetry("event",{goal_id:goals[0]?.id||null,event_name:"result_feedback",event_category:"feedback",properties:{rating}});alert("Danke – Feedback gespeichert.")}
+async function completeAction(withOutcome,blocked){
+  const n=actions.find(a=>a.status==="ready")||actions.find(a=>a.status==="pending");if(!n)return;
+  let outcome=null;
+  if(withOutcome){
+    const values=await nxDialog({title:"Ergebnis und Fortschritt",description:"Die Messwerte erfassen wir in einem einzigen Schritt.",fields:[
+      {key:"metric",label:"Kennzahl",placeholder:"z. B. Kontakte",required:true,short:true},
+      {key:"current",label:"Aktueller Wert",placeholder:"z. B. 15",required:true,short:true},
+      {key:"target",label:"Zielwert",placeholder:"z. B. 20",required:true,short:true},
+      {key:"unit",label:"Einheit (optional)",placeholder:"z. B. Leads, %, EUR",short:true}
+    ],buttons:[{value:"submit",label:"Fortschritt speichern",primary:true}]});
+    if(!values)return;
+    const current=Number(values.current.replace(",",".")),target=Number(values.target.replace(",","."));
+    if(!Number.isFinite(current)||!Number.isFinite(target)){pilotNotice("Bitte gib gültige Zahlen für aktuellen Wert und Zielwert ein.","error");return;}
+    outcome={metric:values.metric,current_value:current,target,unit:values.unit||""};
+  }
+  PS.textContent="Pilot aktualisiert Fortschritt …";
+  try{
+    const r=await sb.functions.invoke("progress-engine",{body:{action_id:n.id,outcome,blocked}});
+    if(r.error)throw r.error;
+    await load();await telemetry("event",{goal_id:goals[0]?.id||null,event_name:"progress_updated",event_category:"outcome",properties:{outcome_attached:!!outcome,blocked:!!blocked}});
+    PS.textContent="Pilot bereit";render();
+  }catch(e){PS.textContent="Pilot bereit";await telemetry("incident",{goal_id:goals[0]?.id||null,source:"progress",severity:"error",error_code:"PROGRESS_FAILED",message:e.message||String(e)});pilotNotice(e.message||String(e),"error");}
+}
+async function sendFeedback(v){const [id,rating]=v.split(":");let reason=null;if(rating==="down")reason=await pilotAskText("Was sollte verbessert werden?",{title:"Dein Feedback",placeholder:"Was soll Pilot verbessern?"});if(reason===null)return;await telemetry("feedback",{goal_id:goals[0]?.id||null,target_type:"result",target_id:id,rating,reason});await telemetry("event",{goal_id:goals[0]?.id||null,event_name:"result_feedback",event_category:"feedback",properties:{rating}});pilotNotice("Danke – Feedback gespeichert.")}
 async function runAlphaE2E(){const btn=document.getElementById("runAlphaE2E"),s=document.getElementById("e2eStatus");if(btn)btn.disabled=true;if(s)s.textContent="Systemtest läuft: Ausführung → Pilot-Synthese → Ergebnis → Prüfung → Fortschritt …";PS.textContent="Pilot prüft das System …";try{const r=await sb.functions.invoke("alpha-e2e-selftest",{body:{}});if(r.error)throw Object.assign(new Error(r.data?.error||r.error.message||"E2E-Test fehlgeschlagen"),{detail:r.data});const checks=r.data?.checks||[];if(s)s.innerHTML='<strong>Systemtest bestanden ✓</strong><br>'+checks.map(c=>(c.passed?'✓ ':'✕ ')+esc(c.check)).join('<br>');await load();render();PS.textContent="Pilot bereit"}catch(e){const d=e.detail||{};const checks=d.checks||[];if(s)s.innerHTML='<strong>Systemtest fehlgeschlagen</strong><br>'+esc(d.error||e.message||String(e))+(checks.length?'<br>'+checks.map(c=>(c.passed?'✓ ':'✕ ')+esc(c.check)).join('<br>'):'');PS.textContent="Prüfung erforderlich";await load();render()}finally{if(btn)btn.disabled=false}}
-async function runEvals(){PS.textContent="Prüfung läuft …";try{const r=await sb.functions.invoke("evaluation-runner",{body:{suite:"alpha-core"}});if(r.error)throw r.error;await load();render();PS.textContent="Pilot bereit"}catch(e){PS.textContent="Pilot bereit";await telemetry("incident",{source:"evaluation",severity:"error",error_code:"EVAL_FAILED",message:e.message||String(e)});alert(e.message||String(e))}}
-async function connectCanva(){alert("Das Gestaltungsmodul wird zentral durch Pilot verwaltet.")}
-async function designWithCanva(v){const [id,type]=v.split(":");const r=results.find(x=>x.id===id);if(!r)return;const brief=["Create a professional neXaro-branded "+type+" based on this approved result. Use a light, premium layout with neon green and neon orange accents, high readability, and restrained visual energy. Preserve facts and wording accuracy.","","Title: "+r.title,"","Content:",String(r.content||"").slice(0,4200)].join("\\n");PS.textContent="Gestaltung wird vorbereitet …";try{const x=await sb.functions.invoke("canva-execution",{body:{action:"generate",goal_id:goals[0]?.id||null,source_result_id:r.id,design_type:type,brief}});if(x.error&&x.data?.status!=="canva_connection_required")throw x.error;if(x.data?.status==="canva_connection_required"){alert("Das Gestaltungsmodul wird aktuell vorbereitet. Pilot führt dich nicht zu externen Diensten weiter.");return}await load();current="canva";render();PS.textContent="Pilot bereit"}catch(e){PS.textContent="Pilot bereit";alert(e.message||String(e))}}
-async function pollCanva(id){PS.textContent="Designauftrag wird geprüft …";try{const x=await sb.functions.invoke("canva-execution",{body:{action:"poll",design_job_id:id}});if(x.error)throw x.error;await load();render();PS.textContent="Pilot bereit"}catch(e){PS.textContent="Pilot bereit";alert(e.message||String(e))}}
+async function runEvals(){PS.textContent="Prüfung läuft …";try{const r=await sb.functions.invoke("evaluation-runner",{body:{suite:"alpha-core"}});if(r.error)throw r.error;await load();render();PS.textContent="Pilot bereit"}catch(e){PS.textContent="Pilot bereit";await telemetry("incident",{source:"evaluation",severity:"error",error_code:"EVAL_FAILED",message:e.message||String(e)});pilotNotice(e.message||String(e))}}
+async function connectCanva(){pilotNotice("Das Gestaltungsmodul wird zentral durch Pilot verwaltet.")}
+async function designWithCanva(v){const [id,type]=v.split(":");const r=results.find(x=>x.id===id);if(!r)return;const brief=["Create a professional neXaro-branded "+type+" based on this approved result. Use a light, premium layout with neon green and neon orange accents, high readability, and restrained visual energy. Preserve facts and wording accuracy.","","Title: "+r.title,"","Content:",String(r.content||"").slice(0,4200)].join("\\n");PS.textContent="Gestaltung wird vorbereitet …";try{const x=await sb.functions.invoke("canva-execution",{body:{action:"generate",goal_id:goals[0]?.id||null,source_result_id:r.id,design_type:type,brief}});if(x.error&&x.data?.status!=="canva_connection_required")throw x.error;if(x.data?.status==="canva_connection_required"){pilotNotice("Das Gestaltungsmodul wird aktuell vorbereitet. Pilot führt dich nicht zu externen Diensten weiter.");return}await load();current="canva";render();PS.textContent="Pilot bereit"}catch(e){PS.textContent="Pilot bereit";pilotNotice(e.message||String(e))}}
+async function pollCanva(id){PS.textContent="Designauftrag wird geprüft …";try{const x=await sb.functions.invoke("canva-execution",{body:{action:"poll",design_job_id:id}});if(x.error)throw x.error;await load();render();PS.textContent="Pilot bereit"}catch(e){PS.textContent="Pilot bereit";pilotNotice(e.message||String(e))}}
 function startPilotFlight(btn){const layer=document.getElementById("pilotFlightLayer");if(!layer||!btn)return;const reduced=window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;if(reduced)return;const rect=btn.getBoundingClientRect();const plane=document.createElement("div");plane.className="pilot-plane";plane.textContent="✈";plane.style.left=(rect.left+rect.width*.58-23)+"px";plane.style.top=(rect.top+rect.height*.16-10)+"px";layer.appendChild(plane);plane.addEventListener("animationend",()=>plane.remove(),{once:true});setTimeout(()=>{if(plane.isConnected)plane.remove()},2000)}
-async function executeAction(){const n=actions.find(a=>a.status==="ready")||actions.find(a=>a.status==="pending");if(!n)return;const btn=document.getElementById("executeAction");btn?.classList.add("launching");startPilotFlight(btn);PS.textContent="Pilot hebt ab …";setTimeout(()=>{if(PS.textContent==="Pilot hebt ab …")PS.textContent="Pilot arbeitet …"},650);try{const r=await sb.functions.invoke("execution-engine",{body:{operation:"start",action_id:n.id}});if(r.error)throw r.error;await load();render();PS.textContent=r.data?.status==="waiting_approval"?"Freigabe erforderlich":"Pilot bereit";if(r.data?.status==="waiting_approval")alert("Pilot hat die Arbeit vorbereitet. Die externe Aktion wartet auf deine Freigabe.");if(r.data?.status==="review_required")alert("Pilot hat das Resultat erstellt. Aufgrund des Risikoprofils ist eine menschliche Prüfung erforderlich.")}catch(e){PS.textContent="Pilot bereit";await telemetry("incident",{goal_id:goals[0]?.id||null,source:"execution",severity:"error",error_code:"EXECUTION_FAILED",message:e.message||String(e)});alert(e.message||String(e))}finally{setTimeout(()=>btn?.classList.remove("launching"),700)}}
-async function decideExecution(v,approved){const [execution_id,step_id]=v.split(":");const reason=approved?null:(window.prompt("Warum möchtest du diese Aktion ablehnen?")||null);PS.textContent=approved?"Freigabe wird verarbeitet …":"Aktion wird abgebrochen …";try{const r=await sb.functions.invoke("execution-engine",{body:{operation:"approve",execution_id,step_id,approved,reason}});if(r.error&&r.data?.status!=="blocked")throw r.error;await load();render();PS.textContent="Pilot bereit";if(r.data?.status==="blocked")alert("Freigabe wurde erfasst. Die externe Capability ist noch nicht verbunden; Pilot hat deshalb nicht ausgeführt.")}catch(e){PS.textContent="Pilot bereit";alert(e.message||String(e))}}
-async function enter(session){user=session.user;A.classList.add("hidden");APP.classList.remove("hidden");try{await load();render();telemetry("event",{event_name:"session_entered",event_category:"activation",properties:{has_goal:!!goals[0]}})}catch(e){telemetry("incident",{source:"app_load",severity:"error",error_code:"LOAD_FAILED",message:e.message||String(e)});alert(e.message)}}
+async function executeAction(){const n=actions.find(a=>a.status==="ready")||actions.find(a=>a.status==="pending");if(!n)return;const btn=document.getElementById("executeAction");btn?.classList.add("launching");startPilotFlight(btn);PS.textContent="Pilot hebt ab …";setTimeout(()=>{if(PS.textContent==="Pilot hebt ab …")PS.textContent="Pilot arbeitet …"},650);try{const r=await sb.functions.invoke("execution-engine",{body:{operation:"start",action_id:n.id}});if(r.error)throw r.error;await load();render();PS.textContent=r.data?.status==="waiting_approval"?"Freigabe erforderlich":"Pilot bereit";if(r.data?.status==="waiting_approval")pilotNotice("Pilot hat die Arbeit vorbereitet. Die externe Aktion wartet auf deine Freigabe.");if(r.data?.status==="review_required")pilotNotice("Pilot hat das Resultat erstellt. Aufgrund des Risikoprofils ist eine menschliche Prüfung erforderlich.")}catch(e){PS.textContent="Pilot bereit";await telemetry("incident",{goal_id:goals[0]?.id||null,source:"execution",severity:"error",error_code:"EXECUTION_FAILED",message:e.message||String(e)});pilotNotice(e.message||String(e))}finally{setTimeout(()=>btn?.classList.remove("launching"),700)}}
+async function decideExecution(v,approved){const [execution_id,step_id]=v.split(":");const reason=approved?null:await pilotAskText("Warum möchtest du diese Aktion ablehnen?",{title:"Freigabe ablehnen",placeholder:"Optionaler Grund …"});if(!approved&&reason===null)return;PS.textContent=approved?"Freigabe wird verarbeitet …":"Aktion wird abgebrochen …";try{const r=await sb.functions.invoke("execution-engine",{body:{operation:"approve",execution_id,step_id,approved,reason}});if(r.error&&r.data?.status!=="blocked")throw r.error;await load();render();PS.textContent="Pilot bereit";if(r.data?.status==="blocked")pilotNotice("Freigabe wurde erfasst. Die externe Capability ist noch nicht verbunden; Pilot hat deshalb nicht ausgeführt.")}catch(e){PS.textContent="Pilot bereit";pilotNotice(e.message||String(e))}}
+async function enter(session){user=session.user;A.classList.add("hidden");APP.classList.remove("hidden");try{await load();render();telemetry("event",{event_name:"session_entered",event_category:"activation",properties:{has_goal:!!goals[0]}})}catch(e){telemetry("incident",{source:"app_load",severity:"error",error_code:"LOAD_FAILED",message:e.message||String(e)});pilotNotice(e.message)}}
 async function leave(){user=null;org=null;isAdmin=false;customerPreview=false;adminData=null;pendingAttachments=[];goalSuccessMap={};goals=[];features=[];plans=[];actions=[];contexts=[];milestones=[];documents=[];results=[];claims=[];evidence=[];completeness=[];progressEvents=[];outcomes=[];adaptations=[];pilotState=null;aiRequests=[];qualityContracts=[];consensusRuns=[];executions=[];executionSteps=[];designJobs=[];canvaStatus=null;notifications=[];readiness=[];evalRuns=[];APP.classList.add("hidden");A.classList.remove("hidden")}
 let authMode="login";
 const AUTHM=document.getElementById("authModal"),ME=document.getElementById("modalEmail"),MP=document.getElementById("modalPassword"),MP2=document.getElementById("modalPassword2"),MW=document.getElementById("repeatPasswordWrap"),PW=document.getElementById("privacyWrap"),AP=document.getElementById("acceptPrivacy"),SM=document.getElementById("submitAuth"),SW=document.getElementById("switchAuthMode"),RC=document.getElementById("resendConfirmation"),MM=document.getElementById("modalMessage"),CS=document.getElementById("confirmationState"),CE=document.getElementById("confirmationEmail"),CR=document.getElementById("confirmationResend"),CL=document.getElementById("confirmationLogin");
