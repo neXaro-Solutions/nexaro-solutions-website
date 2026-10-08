@@ -4785,9 +4785,13 @@ async function pilotMarketSearch(query){
 }
 function pilotMarketFromHome(text){
  const t=String(text||"").trim();
- if(!/^(?:finde|suche|vergleiche|zeige|ermittle|was kostet|wo (?:gibt es|finde ich))/i.test(t))return null;
- if(!/(?:preis(?:e|vergleich)?|angebote?|günstig|kaufen)/i.test(t))return null;
- return t.replace(/^(?:(?:finde|suche|vergleiche|zeige|ermittle)(?:\s+(?:mir|bitte|die|den|das|einen|eine|günstigste[nrms]?|beste[nrms]?|angebote?|preise?))*\s+(?:für\s+)?|was kostet\s+|wo (?:gibt es|finde ich)\s+)/i,"").replace(/[?.!]$/,"").trim()||t;
+ if(/^(?:was kostet|wie viel kostet|wieviel kostet|wie teuer ist)\s+/i.test(t))
+   return t.replace(/^(?:was kostet|wie viel kostet|wieviel kostet|wie teuer ist)\s+/i,"").replace(/[?.!]$/,"").trim()||null;
+ if(!/^(?:finde|suche|vergleiche|zeige|ermittle)\s+/i.test(t))return null;
+ if(!/(?:preis\w*|angebot\w*|günstig\w*|kaufen)/i.test(t))return null;
+ const query=t.replace(/^(?:finde|suche|vergleiche|zeige|ermittle)\s+(?:(?:mir|bitte|die|den|das|einen|eine|günstig\w*|best\w*|preis\w*|angebot\w*)\s+)*(?:für\s+)?/i,"")
+   .replace(/[?.!]$/,"").trim();
+ return query.length>=3?query:t;
 }
 
 function render(){if(!effectiveAdmin()&&["roadmap","alpha","admin"].includes(current))current="home";applyRoleUI();document.querySelectorAll("[data-view]").forEach(b=>b.classList.toggle("active",b.dataset.view===current));T.textContent={home:"Pilot",goals:"Aufträge",documents:"Dokumente",results:"Ergebnisse",market:"Angebote",notifications:"Mitteilungen",execution:"Ausführung",canva:"Gestaltung",roadmap:"Entwicklungsplan",alpha:"Systemtest",admin:"Admin-Cockpit",me:"Einstellungen"}[current];V.dataset.screen=current;APP.dataset.screen=current;V.innerHTML={home:home,goals:goalsView,documents:documentsView,results:resultsView,market:pilotMarketView,notifications:pilotNotificationsView,execution:executionView,canva:canvaView,roadmap:roadmap,alpha:alphaView,admin:adminView,me:me}[current]();document.querySelectorAll(".side .nav[data-view]").forEach(b=>{if(b.dataset.view===current)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current")});bind();pilotBindSpatialUI();pilotSyncFlightScreen();pilotUpdateDock()}
