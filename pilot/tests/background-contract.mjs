@@ -29,16 +29,18 @@ const OWNER="11111111-1111-4111-8111-111111111111";
 const OTHER="22222222-2222-4222-8222-222222222222";
 const GOAL="33333333-3333-4333-8333-333333333333";
 const ORG="44444444-4444-4444-8444-444444444444";
-function scene({owner=OWNER,job=null}={}){
+function scene({owner=OWNER,job=null,actions=[],executions=[]}={}){
  let seq=0,handler=null,aiCalls=0;
  const rows={
-  goals:[{id:GOAL,owner_id:owner,organization_id:ORG,status:"active"}],
+  goals:[{id:GOAL,owner_id:owner,organization_id:ORG,status:"active",domain:{primary:"marketing"}}],
+  actions:actions.map(x=>({...x})),executions:executions.map(x=>({...x})),
   pilot_background_jobs:job?[{...job}]:[]
  };
  class Q{
   constructor(t){this.t=t;this.p=[];this.mode="select";this.value=null;this.size=null}
   select(){return this}
   eq(k,v){this.p.push(x=>x[k]===v);return this}
+  in(k,values){this.p.push(x=>values.includes(x[k]));return this}
   order(){return this}
   limit(n){this.size=n;return this}
   update(obj){this.mode="update";this.value=obj;return this}
@@ -114,6 +116,45 @@ assert.equal(r.data.job.max_steps,6);
 assert.equal(r.data.job.max_cost_usd,0.25);
 assert.equal(s.calls(),0,"Queuing cannot charge an AI provider");
 console.log("PASS First consent creates a capped, durable server-side job");
+const creative={id:"77777777-7777-4777-8777-777777777777",title:"Erstelle ein Social-Media-Konzept",
+ objective:"Erstelle konkrete Marketingtexte",status:"ready",owner_type:"pilot",
+ recommended_mode:"do_it",blocking:false,goal_id:GOAL};
+s=scene({actions:[creative]});
+r=await s.request({operation:"preflight",goal_id:GOAL});
+assert.equal(r.status,200);
+assert.equal(r.data.mode,"background");
+assert.equal(r.data.action_id,creative.id);
+assert.equal(s.rows.pilot_background_jobs.length,0);
+assert.equal(s.calls(),0);
+console.log("PASS Creative preflight confirms background capability without starting paid work");
+s=scene({actions:[{...creative,title:"Finanzplan und behördliche Anmeldung klären"}]});
+r=await s.request({operation:"preflight",goal_id:GOAL});
+assert.equal(r.status,200);
+assert.equal(r.data.mode,"interactive");
+assert.equal(s.rows.pilot_background_jobs.length,0);
+console.log("PASS Sensitive or external actions are routed to the interactive engine");
+s=scene({actions:[creative],executions:[{id:"running",goal_id:GOAL,status:"review_required"}]});
+r=await s.request({operation:"preflight",goal_id:GOAL});
+assert.equal(r.data.mode,"attention");
+assert.equal(r.data.reason,"EXISTING_GOAL_EXECUTION_NEEDS_REVIEW");
+s=scene({actions:[]});
+r=await s.request({operation:"preflight",goal_id:GOAL});
+assert.equal(r.data.mode,"finished");
+s=scene({owner:OTHER,actions:[creative]});
+r=await s.request({operation:"preflight",goal_id:GOAL});
+assert.equal(r.status,404);
+console.log("PASS Preflight honors human review, finished queues, and owner authorization");
+for(const code of [
+ 'pilotBackgroundCall("preflight",targetGoal.id)',
+ 'route.mode==="background"',
+ 'route.mode==="interactive"',
+ 'route.mode==="attention"',
+ 'void pilotContinueSafely(targetGoal.id,32)',
+ 'pilotBackgroundWorking(targetGoal.id)?'
+])assert(ui.includes(code),"One-click route missing: "+code);
+console.log("PASS One-click launch selects only verified background-capable work");
+
+
 r=await s.request({operation:"status",goal_id:GOAL});
 assert.equal(r.status,200);assert.equal(r.data.job.goal_id,GOAL);
 r=await s.request({operation:"pause",goal_id:GOAL});
