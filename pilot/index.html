@@ -1590,6 +1590,93 @@ input,textarea{border-radius:var(--radius-input)}.btn{border-radius:var(--radius
 @media(max-width:680px){#pilotFlightLayer .pilot-plane{width:58px!important;height:58px!important;font-size:35px!important}#pilotFlightLayer .pilot-plane::after{right:49px;width:78px}#pilotFlightLayer .pilot-flight-status{font-size:11px!important;padding:7px 10px!important}}
 @media(prefers-reduced-motion:reduce){#pilotNextActionPanel.pilot-action-landed .command-card{animation:none!important}}
 
+
+/* neXaro Pilot simplified command center: primary job composer always visible. */
+.pilot-home{width:100%;max-width:920px;margin:0 auto;display:flex;flex-direction:column;gap:18px;padding-bottom:30px}
+.pilot-home-card{background:#fff;border:1px solid #e4e9e1;border-radius:28px;padding:26px;box-shadow:0 14px 38px rgba(39,52,32,.055)}
+.pilot-home h2{font-size:clamp(20px,3.4vw,27px)!important;line-height:1.15;letter-spacing:-.035em;margin:0;color:#181d19}
+.pilot-home p{margin:0;color:#68726a;font-size:14px;line-height:1.55}
+.pilot-home-compose{border-color:#dbeacc;background:radial-gradient(circle at 95% 0%,rgba(157,255,69,.14),transparent 42%),#fff;box-shadow:0 18px 50px rgba(109,196,52,.08)}
+.pilot-home-card-head{display:flex;gap:14px;align-items:center;margin-bottom:20px}
+.pilot-home-card-head p{margin-top:6px}
+.pilot-home-mark,.pilot-home-icon-orange{flex:0 0 50px;width:50px;height:50px;display:grid;place-items:center;border-radius:18px;background:#ebffda;color:#3f771b;font-size:26px;font-weight:900}
+.pilot-home-icon-orange{flex-basis:44px;width:44px;height:44px;background:#fff1e6;color:#f17a16;font-size:25px}
+.pilot-home-input-label{display:block;font-weight:800;color:#344436;font-size:13px;margin:0 0 8px}
+.pilot-home #goalText{display:block;width:100%;min-height:130px;resize:vertical;border-radius:18px!important;border:1px solid #dce4dd!important;padding:16px 18px!important;background:#fbfcfb!important;color:#1a211d;font-size:15px;line-height:1.6;letter-spacing:0;outline:none;box-shadow:none!important}
+.pilot-home #goalText:focus{border-color:#86dc47!important;box-shadow:0 0 0 4px rgba(140,255,65,.13)!important;background:#fff!important}
+.pilot-home #goalText::placeholder{color:#89948b;opacity:1}
+.pilot-home-input-meta{display:flex;justify-content:space-between;align-items:start;gap:12px;margin:9px 2px 17px;color:#818c81;font-size:11px;line-height:1.5}
+#goalTextCount{white-space:nowrap;font-variant-numeric:tabular-nums;font-weight:750}
+.pilot-home-controls{display:flex;align-items:start;justify-content:space-between;gap:12px}
+.pilot-home-controls>.command-attachments{flex:1 1 auto;min-width:0;max-width:none;margin:0}
+.pilot-home .pilot-home-upload{min-height:52px;border:1px solid #dce3d9;background:#fff;border-radius:16px;font-size:13px;font-weight:750;padding:0 16px;box-shadow:none;color:#334136}
+.pilot-home .attachment-note{font-size:11px;color:#89918b}
+.pilot-home .pilot-home-primary,.pilot-home .pilot-home-action-start{background:linear-gradient(108deg,#a0ff43,#77ec19)!important;color:#173114!important;border:0!important;box-shadow:0 8px 26px rgba(119,224,35,.19)!important;border-radius:16px!important;min-height:54px!important;font-size:15px!important;line-height:1.2;font-weight:900!important;white-space:nowrap;flex:0 0 auto}
+.pilot-home .pilot-home-primary:focus-visible,.pilot-home .pilot-home-action-start:focus-visible,.pilot-home button:focus-visible{outline:3px solid #fd9626;outline-offset:3px}
+.pilot-home-admin{margin-top:12px;display:flex;justify-content:flex-end}
+.pilot-home-admin button{font-size:11px!important;min-height:34px!important;padding:5px 10px!important;color:#68736d;border-color:#e8ede6}
+.pilot-home-active-header,.pilot-home-next-head{display:flex;align-items:center;justify-content:space-between;gap:15px}
+.pilot-home-active-title{display:flex;align-items:center;gap:12px}
+.pilot-home-active-title p{margin-top:4px;font-size:12px}
+.pilot-home-textbutton{border:0;background:none;color:#456b31;font-weight:850;font-size:12px;white-space:nowrap;padding:8px;cursor:pointer}
+.pilot-home-goal-name{font-size:17px;font-weight:850;line-height:1.35;margin-top:20px;color:#253022;overflow-wrap:anywhere}
+.pilot-home-goal-meta{font-size:12px;line-height:1.4;color:#818b80;margin-top:5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pilot-home-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:18px 0 12px}
+.pilot-home-stat{min-width:0;border:1px solid #e7eae4;border-radius:15px;padding:13px;background:#fcfdfb;display:grid;grid-template-columns:auto 1fr;align-items:center;gap:2px 7px}
+.pilot-home-stat strong{font-size:15px;overflow-wrap:anywhere;color:#263323;line-height:1.3}
+.pilot-home-stat small{grid-column:1/-1;color:#858e84;font-size:11px;margin-top:3px}
+.pilot-home-dot{width:10px;height:10px;background:#83ef24;border-radius:50%;box-shadow:0 0 0 4px #ebffdc}
+.pilot-home-progress{height:7px;width:100%;background:#edf1e9;border-radius:99px;overflow:hidden}
+.pilot-home-progress-bar{height:100%;background:linear-gradient(90deg,#8bf22d,#ff922e);border-radius:99px;transition:width .3s ease}
+.pilot-home-next{margin:0!important}
+.pilot-home-eyebrow{display:block;color:#838d82;font-size:10px;letter-spacing:.15em;font-weight:900;margin-bottom:5px}
+.pilot-home-next .command-card{margin-top:16px;padding:18px;border-color:#e0e9da;background:#fbfdfa;border-radius:19px}
+.pilot-home-next .command-card .command-title{font-size:18px;font-weight:850;line-height:1.33;overflow-wrap:anywhere}
+.pilot-home-next .command-card p{margin:10px 0 17px;font-size:13px;overflow-wrap:anywhere}
+.pilot-home-action-buttons{display:flex;align-items:center;flex-wrap:wrap;gap:12px}
+.pilot-home-action-more{font-size:12px;color:#62745e}
+.pilot-home-action-more summary{cursor:pointer;font-weight:750;padding:8px}
+.pilot-home-option-buttons{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.pilot-home-option-buttons>.btn{font-size:12px;min-height:38px}
+.pilot-home-guide h2{font-size:19px!important;margin-bottom:18px}
+.pilot-home-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.pilot-home-steps>div{background:#f9fbf7;border:1px solid #edf1e9;border-radius:15px;padding:15px 12px;min-width:0}
+.pilot-home-stepnum{display:grid;place-items:center;background:#ecffd8;color:#488021;width:27px;height:27px;border-radius:50%;font-size:13px;font-weight:900;margin-bottom:12px}
+.pilot-home-step-orange{background:#fff0df;color:#ec791d}
+.pilot-home-steps strong{display:block;font-size:14px;color:#273427}
+.pilot-home-steps small{display:block;margin-top:5px;font-size:12px;color:#7d887d;line-height:1.45}
+.pilot-home-empty,.pilot-home-empty-inline{border:1px dashed #d9e6d3;border-radius:18px;background:#f9fff5;padding:17px 19px;font-size:13px;line-height:1.6;color:#67805f}
+.pilot-home-empty-inline{margin-top:15px}
+@media(max-width:680px){
+ .pilot-home{gap:12px;padding-bottom:18px}
+ .pilot-home-card{border-radius:23px;padding:18px}
+ .pilot-home-card-head{gap:10px;margin-bottom:16px}
+ .pilot-home-mark{width:44px;height:44px;flex-basis:44px;border-radius:14px;font-size:22px}
+ .pilot-home h2{font-size:21px!important}
+ .pilot-home p{font-size:13px}
+ .pilot-home #goalText{min-height:126px;font-size:16px}
+ .pilot-home-controls{flex-direction:column;gap:12px}
+ .pilot-home-controls>.command-attachments{width:100%}
+ .pilot-home .pilot-home-primary{width:100%;min-height:56px!important;font-size:16px!important}
+ .pilot-home-active-header{align-items:flex-start}
+ .pilot-home-active-title{gap:9px}
+ .pilot-home-active-title p{max-width:180px}
+ .pilot-home-textbutton{padding:7px 0;font-size:11px}
+ .pilot-home-summary{gap:6px}
+ .pilot-home-stat{padding:10px 8px;border-radius:12px}
+ .pilot-home-stat strong{font-size:13px}
+ .pilot-home-stat small{font-size:10px}
+ .pilot-home-steps{gap:6px}
+ .pilot-home-steps>div{padding:12px 8px}
+ .pilot-home-steps strong{font-size:12px}
+ .pilot-home-steps small{font-size:10px}
+ .pilot-home-next .command-card .command-title{font-size:17px}
+ .pilot-home .pilot-home-action-start{width:100%;white-space:normal}
+ .pilot-home-action-buttons{display:block}
+ .pilot-home-action-more{margin-top:10px}
+}
+@media(max-width:380px){.pilot-home-active-header{flex-wrap:wrap}.pilot-home-textbutton{margin-left:52px}.pilot-home-stat strong{font-size:12px}}
+
 </style></head>
 <body>
 <section id="auth" class="auth"><div class="box">
@@ -1711,29 +1798,67 @@ function successGaugeHtml(s,compact=false){
 function avatarIcon(v){return ({general:"X",business:"↗",creative:"✦",medical:"✚",document:"⌑",technical:"⌘"})[v||"general"]||"X"}
 function moduleState(aktiv,done,warn=false){return warn?"warn":aktiv?"live":done?"done":""}
 function home(){
-  const g=goals[0];
-  if(!g)return '<div class="machine-page"><section class="core-stage command-stage future-machine-stage"><div class="core-copy"><div class="system-kicker"><span class="live-pulse"></span>PILOT-ZENTRALE · SYSTEM AKTIV</div><h2 class="machine-title">Gib Pilot ein Ziel.<br><em>Die Maschine baut den Weg.</em></h2><p class="machine-sub machine-promise">Pilot merkt sich Zusammenhänge, passt seine Strategie dynamisch an und führt Aufgaben bis zum Ergebnis aus – <strong>nicht nur bis zur ersten Antwort.</strong></p><div class="machine-triad"><div><span class="triad-icon">▣</span><strong>Merkt sich Kontext</strong><small>Zusammenhänge bleiben im Arbeitsbereich erhalten.</small></div><div><span class="triad-icon">⚙</span><strong>Passt sich an</strong><small>Pilot wählt den nächsten sinnvollen Weg dynamisch.</small></div><div><span class="triad-icon">◎</span><strong>Erledigt bis zum Abschluss</strong><small>Plant, führt aus, prüft und liefert Ergebnisse.</small></div></div><div class="field command-input" style="max-width:760px;margin-top:26px"><label><span>AUFTRAG / ZIEL</span><b>KOMMANDOZENTRALE</b></label><textarea id="goalText" placeholder="Beschreibe, was du erreichen willst. Pilot nutzt den vorhandenen Kontext, plant eigenständig die nächsten Schritte und führt die Aufgabe bis zum Ergebnis aus."></textarea><div class="command-signal"><span></span><span></span><span></span><em>KONTEXT BLEIBT ERHALTEN</em></div></div><div class="command-attachments"><div class="attachment-actions"><button class="attach-btn" type="button" data-attach-kind="photo">＋ Foto</button><button class="attach-btn" type="button" data-attach-kind="document">＋ Dokument</button><button class="attach-btn" type="button" data-attach-kind="file">＋ Datei</button><span class="attachment-note">Pilot bezieht Anhänge in den Auftrag ein.</span></div><input id="attachmentPhotoInput" class="hidden-file" type="file" accept="image/*" capture="environment" multiple><input id="attachmentDocumentInput" class="hidden-file" type="file" accept=".pdf,.docx,.txt,.md,.csv,.json,.xml,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,text/csv,application/json,application/xml" multiple><input id="attachmentFileInput" class="hidden-file" type="file" accept="image/*,.pdf,.docx,.txt,.md,.csv,.json,.xml" multiple><div id="attachmentTray" class="attachment-tray"></div></div><div class="btns launch-row"><button id="createGoal" class="btn ai launch-primary">✈ Pilot jetzt starten →</button>'+(isAdmin?'<button id="diagnoseSafety" class="btn" style="min-height:44px">🛡️ Verbindung prüfen</button>':'')+'<span class="launch-hint">Verstehen & merken → Recherchieren → Analysieren → Ausführen → Prüfen → Ergebnis</span></div></div><div class="core-orbit machine-logic future-logic"><div class="core-ring"></div><div class="core-engine">X</div><span class="orbit-node n1">MERKT SICH KONTEXT</span><span class="orbit-node n2">PASST SICH AN</span><span class="orbit-node n3">ERLEDIGT BIS ZUM ABSCHLUSS</span><div class="machine-gear gear-a"></div><div class="machine-gear gear-b"></div><div class="machine-flow flow-a">RECHERCHE</div><div class="machine-flow flow-b">ANALYSE</div><div class="machine-flow flow-c">PRÜFUNG</div></div></section></div>';
+  const g=goals[0]||null;
   const n=actions.find(a=>a.status==="ready")||actions.find(a=>a.status==="pending");
-  const total=milestones.reduce((s,m)=>s+Number(m.weight||1),0)||1;
-  const done=milestones.filter(m=>m.status==="completed").reduce((s,m)=>s+Number(m.weight||1),0);
-  const progress=Math.round(done/total*100);
-  const ex=executions[0],steps=ex?executionSteps.filter(s=>s.execution_id===ex.id).sort((a,b)=>a.step_order-b.step_order):[];
-  const aktivKey=steps.find(s=>s.status==="running"||s.status==="waiting_approval"||s.status==="waiting_review")?.step_key||"";
-  const latestOutcome=outcomes[0];
-  const success=goalSuccessMap[g.id]||successFromData(milestones,outcomes);
-  const hasResearch=contexts.some(c=>c.context_type==="research")||steps.some(s=>s.step_key==="research"&&s.status==="completed");
-  const hasSynthesis=!!consensusRuns[0];
-  const synthDecision=consensusRuns[0]?.decision||"Bereit";
-  const statusLabel=ex?.status||"ready";
-  const modules=[
-    ["Recherche","Evidenz-Engine",moduleState(aktivKey==="research",hasResearch)],
-    ["Analyse","Analyse-Engine",moduleState(aktivKey==="reason",hasSynthesis)],
-    ["Gegenprüfung","Qualitätsabgleich",moduleState(aktivKey==="reason",hasSynthesis)],
-    ["Synthese","Pilot-Synthese",moduleState(aktivKey==="reason",hasSynthesis)],
-    ["Ausführung","Ausführungs-Engine",moduleState(!!aktivKey&&aktivKey!=="verify"&&aktivKey!=="progress",ex?.status==="completed")],
-    ["Prüfung","Qualitätsprüfung",moduleState(aktivKey==="verify",steps.some(s=>s.step_key==="verify"&&s.status==="completed"),ex?.status==="review_required")]
-  ];
-  return '<div class="machine-page"><section class="core-stage"><div class="core-copy"><div class="system-kicker"><span class="live-pulse"></span>PILOT-ZENTRALE · '+esc(statusLabel.toUpperCase())+'</div><h2 class="machine-title">Ziel erkannt.<br><em>System arbeitet auf Wirkung.</em></h2><p class="machine-sub">'+esc(g.desired_outcome||g.description||g.title)+'</p><div class="machine-metrics"><div class="machine-metric"><span>Missionsfortschritt</span><strong>'+progress+'%</strong></div><div class="machine-metric"><span>Analyseebene</span><strong>'+(hasSynthesis?'mehrstufig aktiv':'Bereit')+'</strong></div><div class="machine-metric"><span>Ergebnisse</span><strong>'+results.length+'</strong></div><div class="machine-metric"><span>Status</span><strong>'+esc(deStatus(statusLabel))+'</strong></div></div><div class="hero-success">'+successGaugeHtml(success)+'</div></div><div class="core-orbit"><div class="core-ring"></div><div class="core-engine">'+avatarIcon(pilotState?.avatar_variant||"general")+'</div><span class="orbit-node n1">'+esc(pilotState?.domain_key||g.domain?.primary||"GENERAL").toUpperCase()+'</span><span class="orbit-node n2">'+(ex?"LAUF "+esc(deStatus(ex.status)).toUpperCase():"AUSFÜHRUNG BEREIT")+'</span><span class="orbit-node n3">'+(pilotState?.risk_level?"RISIKO "+esc(pilotState.risk_level).toUpperCase():"PRÜFUNG")+'</span></div></section><section class="ai-rail">'+modules.map((m,i)=>'<div class="ai-module '+m[2]+'"><div><div class="ey">PILOT-MODUL '+String(i+1).padStart(2,"0")+'</div><div class="module-name">'+m[0]+'</div></div><div class="module-state">'+m[1]+'</div></div>').join("")+'</section><div class="operations-grid"><div><section class="operation-panel" id="pilotNextActionPanel"><div class="ey">AKTIVER AUFTRAG</div><h3 class="op-title">Nächste operative Aktion</h3>'+(isAdmin?'<button class="btn pilot-flight-preview" id="pilotLandingPreview" type="button">✈ Flug &amp; Landung testen</button>':'')+(n?'<div class="command-card"><div class="command-title">'+esc(n.title)+'</div><p class="muted">'+esc(n.objective||"")+'</p><div class="btns"><button class="btn ai" id="executeAction" data-action="'+n.id+'">✦ Pilot jetzt starten</button><button class="btn" id="completeAction" data-action="'+n.id+'">Erledigt</button><button class="btn" id="completeWithOutcome" data-action="'+n.id+'">Ergebnis messen</button><button class="btn" id="markBlocked" data-action="'+n.id+'">Blockiert</button></div></div>':'<div class="command-card"><strong>Keine offene Aktion</strong><p class="muted">Die aktuelle Mission hat keinen ausstehenden nächsten Schritt.</p></div>')+'</section><section class="operation-panel" style="margin-top:18px"><div class="section-head"><div><div class="ey">ENTSCHEIDUNGSEBENE</div><h3 class="op-title" style="font-size:27px">Pilot-Synthese</h3></div><span class="badge '+(hasSynthesis?'green':'')+'">'+esc(synthDecision)+'</span></div><div class="ai-synthesis"><div class="ai-lane gpt"><div class="ey">ANALYSE A</div><strong>Hauptanalyse</strong><small>'+(hasSynthesis?'bewertet':'Bereit')+'</small></div><div class="synth-node"><span>→</span></div><div class="ai-lane claude"><div class="ey">ANALYSE B</div><strong>Gegenprüfung</strong><small>'+(hasSynthesis?'bewertet':'Bereit')+'</small></div></div><div class="tower-block" style="margin-top:12px"><div class="ey">SYNTHESE-ERGEBNIS</div><strong>'+esc(synthDecision)+'</strong><p class="muted" style="margin-bottom:0">Pilot bewertet Struktur, Evidenz und Qualitätsanforderungen und führt die stärkste Fassung weiter.</p></div></section>'+(ex?'<section class="operation-panel" style="margin-top:18px"><div class="section-head"><div><div class="ey">LIVE-PRODUKTIONSLINIE</div><h3 class="op-title" style="font-size:27px">Ausführungspipeline</h3></div><button class="btn" data-jump="execution">Lauf öffnen</button></div><div class="pipeline">'+steps.map((s,i)=>'<div class="pipe-step '+(s.status==="completed"?"done":s.status==="running"?"running":"")+'"><div class="pnum">'+String(i+1).padStart(2,"0")+' · '+esc(deStatus(s.status)).toUpperCase()+'</div><strong>'+esc(s.title)+'</strong></div>').join("")+'</div></section>':'')+'</div><aside class="control-tower"><section class="operation-panel"><div class="ey">STEUERZENTRALE</div><h3 class="op-title" style="font-size:25px">Systemsteuerung</h3><div class="tower-line"><span class="muted">Bereich</span><strong>'+esc(pilotState?.domain_key||g.domain?.primary||"general")+'</strong></div><div class="tower-line"><span class="muted">Arbeitsstatus</span><strong>'+esc(pilotState?.work_state||"wartet")+'</strong></div><div class="tower-line"><span class="muted">Risiko</span><strong>'+esc(pilotState?.risk_level||"low")+'</strong></div><div class="tower-line"><span class="muted">Belege</span><strong>'+(hasResearch?"aktiv":"bereit")+'</strong></div></section><section class="operation-panel"><div class="ey">MISSIONSFORTSCHRITT</div><div style="font-size:54px;font-weight:950;letter-spacing:-.06em;margin:8px 0">'+progress+'%</div><div class="progress-track"><div class="progress-bar" style="width:'+progress+'%"></div></div><p class="muted">'+done+' / '+total+' gewichtete Meilenstein-Anteile abgeschlossen.</p></section><section class="operation-panel"><div class="ey">WIRKUNGSSIGNAL</div>'+(latestOutcome?'<div class="tower-line"><span class="muted">'+esc(latestOutcome.metric)+'</span><strong>'+esc(latestOutcome.current_value)+' / '+esc(latestOutcome.target??"—")+' '+esc(latestOutcome.unit||"")+'</strong></div><span class="badge">'+esc(deStatus(latestOutcome.status))+'</span>':'<p class="muted">Noch kein messbares Ergebnissignal vorhanden.</p>')+'</section>'+(pilotState?.attention_required?'<section class="operation-panel attention"><div class="ey">MENSCHLICHE FREIGABE</div><h3>Prüfung erforderlich</h3><p class="muted">'+esc(pilotState.message||"")+'</p></section>':'')+'</aside></div></div>'
+  const total=milestones.reduce((sum,m)=>sum+Number(m.weight||1),0)||1;
+  const done=milestones.filter(m=>m.status==="completed").reduce((sum,m)=>sum+Number(m.weight||1),0);
+  const progress=g?Math.round(done/total*100):0;
+  const success=g?(goalSuccessMap[g.id]||successFromData(milestones,outcomes)):null;
+  const verified=g&&Number.isFinite(Number(success?.percent))?Math.max(0,Math.min(100,Math.round(Number(success.percent)))):progress;
+  const status=executions[0]?.status||g?.status||"ready";
+  const activeCount=goals.filter(g=>["active","in_progress","ready"].includes(String(g.status))).length||goals.length;
+  const mainTitle=g?(g.title||g.description||g.desired_outcome||"Aktives Ziel"):"";
+  const outcomeInfo=g?(g.desired_outcome||g.description||"Pilot kennt dein Ziel und setzt die nächsten Schritte um."):"";
+  const attachmentInputs='<input id="attachmentPhotoInput" class="hidden-file" type="file" accept="image/*" capture="environment" multiple>'+
+    '<input id="attachmentDocumentInput" class="hidden-file" type="file" accept=".pdf,.docx,.txt,.md,.csv,.json,.xml,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,text/csv,application/json,application/xml" multiple>'+
+    '<input id="attachmentFileInput" class="hidden-file" type="file" accept="image/*,.pdf,.docx,.txt,.md,.csv,.json,.xml" multiple>';
+  const composer='<section class="pilot-home-card pilot-home-compose" aria-labelledby="homeComposeTitle">'+
+      '<div class="pilot-home-card-head"><div class="pilot-home-mark" aria-hidden="true">✦</div><div>'+
+      '<h2 id="homeComposeTitle">Auftrag beginnen</h2><p>Beschreibe, was Pilot für dich erledigen soll.</p></div></div>'+
+      '<label class="pilot-home-input-label" for="goalText">Dein Auftrag</label>'+
+      '<textarea id="goalText" rows="4" maxlength="3000" placeholder="z. B. Ich möchte ein Garten- und Landschaftsbauunternehmen gründen."></textarea>'+
+      '<div class="pilot-home-input-meta"><span>Du kannst auch einen Folgeauftrag zu deinem bestehenden Ziel eingeben.</span><span id="goalTextCount">0 / 3000</span></div>'+
+      '<div class="pilot-home-controls"><div class="command-attachments"><div class="attachment-actions">'+
+      '<button class="attach-btn pilot-home-upload" type="button" data-attach-kind="file">＋ Foto / Dokument</button>'+
+      '<span class="attachment-note">Optional</span></div>'+attachmentInputs+'<div id="attachmentTray" class="attachment-tray" aria-live="polite"></div></div>'+
+      '<button id="createGoal" type="button" class="btn ai launch-primary pilot-home-primary">✈ Pilot jetzt starten →</button></div>'+
+      (isAdmin?'<div class="pilot-home-admin"><button id="diagnoseSafety" type="button" class="btn">🛡 Verbindung prüfen</button></div>':'')+
+    '</section>';
+  const active=g?'<section class="pilot-home-card pilot-home-active" aria-labelledby="homeActiveTitle">'+
+      '<div class="pilot-home-active-header"><div class="pilot-home-active-title"><span class="pilot-home-icon-orange" aria-hidden="true">◎</span><div>'+
+      '<h2 id="homeActiveTitle">Aktiver Auftrag</h2><p>Hier arbeitet Pilot an deinem bisherigen Ziel.</p></div></div>'+
+      '<button id="openActiveAction" type="button" class="pilot-home-textbutton">Auftrag öffnen →</button></div>'+
+      '<div class="pilot-home-goal-name">'+esc(mainTitle)+'</div>'+
+      '<div class="pilot-home-goal-meta">'+esc(outcomeInfo)+'</div>'+
+      '<div class="pilot-home-summary">'+
+       '<div class="pilot-home-stat"><span class="pilot-home-dot"></span><strong>'+esc(deStatus(status))+'</strong><small>Status</small></div>'+
+       '<div class="pilot-home-stat"><strong>'+verified+' %</strong><small>Zielerreichung</small></div>'+
+       '<div class="pilot-home-stat"><strong>'+activeCount+'</strong><small>Ziele vorhanden</small></div>'+
+      '</div>'+
+      '<div class="pilot-home-progress"><div class="pilot-home-progress-bar" style="width:'+verified+'%"></div></div>'+
+    '</section>':'<section class="pilot-home-empty">Noch kein aktiver Auftrag. Starte oben dein erstes Ziel – Pilot plant die nächsten Schritte mit dir.</section>';
+  const action=g?'<section class="pilot-home-card operation-panel pilot-home-next" id="pilotNextActionPanel" aria-labelledby="homeNextTitle">'+
+      '<div class="pilot-home-next-head"><div><span class="pilot-home-eyebrow">DEIN NÄCHSTER SCHRITT</span><h2 id="homeNextTitle">Nächste Aktion</h2></div>'+
+      (isAdmin?'<button class="btn pilot-flight-preview" id="pilotLandingPreview" type="button">✈ Flug &amp; Landung testen</button>':'')+
+      '</div>'+
+      (n?'<div class="command-card">'+
+        '<div class="command-title">'+esc(n.title||"Nächsten Schritt bearbeiten")+'</div>'+
+        '<p class="muted">'+esc(n.objective||"Pilot übernimmt die nächste Aufgabe und prüft das Ergebnis.")+'</p>'+
+        '<div class="pilot-home-action-buttons"><button type="button" class="btn ai pilot-home-action-start" id="executeAction" data-action="'+esc(n.id)+'">✈ Nächsten Schritt ausführen</button>'+
+        '<details class="pilot-home-action-more"><summary>Weitere Optionen</summary><div class="pilot-home-option-buttons">'+
+        '<button type="button" class="btn" id="completeAction" data-action="'+esc(n.id)+'">Als erledigt markieren</button>'+
+        '<button type="button" class="btn" id="completeWithOutcome" data-action="'+esc(n.id)+'">Ergebnis messen</button>'+
+        '<button type="button" class="btn" id="markBlocked" data-action="'+esc(n.id)+'">Blockierung melden</button></div></details></div></div>':
+        '<div class="pilot-home-empty-inline">Alle aktuell geplanten Schritte sind bearbeitet. Du kannst oben einen Folgeauftrag eingeben.</div>')+
+    '</section>':'';
+  const guide='<section class="pilot-home-card pilot-home-guide" aria-labelledby="pilotHowTitle">'+
+    '<h2 id="pilotHowTitle">So arbeitet Pilot</h2>'+
+    '<div class="pilot-home-steps">'+
+    '<div><span class="pilot-home-stepnum">1</span><strong>Verstehen</strong><small>Pilot klärt deinen Auftrag.</small></div>'+
+    '<div><span class="pilot-home-stepnum pilot-home-step-orange">2</span><strong>Planen</strong><small>Er erstellt die nächsten Schritte.</small></div>'+
+    '<div><span class="pilot-home-stepnum">3</span><strong>Ausführen</strong><small>Er arbeitet bis zum Ergebnis.</small></div>'+
+    '</div></section>';
+  return '<div class="pilot-home">'+composer+active+action+guide+'</div>';
 }
 
 function executionView(){
@@ -1936,6 +2061,12 @@ function bind(){
   document.querySelectorAll("[data-view]").forEach(b=>b.onclick=async()=>{current=b.dataset.view;if(current==="admin"&&isAdmin){try{await loadAdminConsole()}catch(e){pilotNotice(e.message||String(e))}}render()});
   document.querySelectorAll("[data-jump]").forEach(b=>b.onclick=()=>{current=b.dataset.jump;render()});
   document.getElementById("createGoal")?.addEventListener("click",createGoal);
+  document.getElementById("goalText")?.addEventListener("input",e=>{const c=document.getElementById("goalTextCount");if(c)c.textContent=String(e.target.value.length)+" / 3000"});
+  document.getElementById("openActiveAction")?.addEventListener("click",()=>{
+    const p=document.getElementById("pilotNextActionPanel");
+    if(p){p.scrollIntoView({behavior:"smooth",block:"center"});p.classList.add("pilot-action-landed")}
+    else{current="goals";render()}
+  });
   document.getElementById("pilotLandingPreview")?.addEventListener("click",previewPilotFlight);
   document.getElementById("diagnoseSafety")?.addEventListener("click",()=>pilotSafetyDiagnostic({show:true}));
   document.getElementById("executeAction")?.addEventListener("click",executeAction);
@@ -1972,7 +2103,7 @@ function nxOpenNext(){
   const mask=document.createElement("div");mask.className="nx-mask";
   const safe=esc;
   mask.innerHTML='<section class="nx-modal" role="dialog" aria-modal="true" aria-labelledby="nxTitle" aria-describedby="nxDesc">'+
-    '<div class="nx-top"><div class="nx-symbol" aria-hidden="true">✦</div><span class="nx-kicker">neXaro · PILOT · Alpha 2026.10.08.14</span><button type="button" class="nx-close" aria-label="Schließen">×</button></div>'+
+    '<div class="nx-top"><div class="nx-symbol" aria-hidden="true">✦</div><span class="nx-kicker">neXaro · PILOT · Alpha 2026.10.08.15</span><button type="button" class="nx-close" aria-label="Schließen">×</button></div>'+
     '<h2 id="nxTitle">'+safe(config.title||"Pilot fragt nach")+'</h2><p class="nx-description" id="nxDesc">'+safe(config.description||"Bitte ergänze die noch fehlenden Angaben.")+'</p>'+
     '<form novalidate><div class="nx-fields">'+fields.map((f,i)=>'<div class="nx-field"><label for="nxInput'+i+'">'+safe(f.label)+'</label>'+
       (f.short?'<input id="nxInput'+i+'" type="text" name="'+safe(f.key)+'" maxlength="500" placeholder="'+safe(f.placeholder||"")+'" data-required="'+(f.required?"1":"0")+'">':
