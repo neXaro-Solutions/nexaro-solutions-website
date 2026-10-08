@@ -94,6 +94,21 @@ function explicitLegalChoiceFromRecord(value:any,key:string):string|null{
   return null;
 }
 async function recoveredLegalChoice(sb:any,goalId:string,userId:string){
+  // The revision journal is authoritative; an explicit revocation must not
+  // resurrect an old legal-form choice from a cached result.
+  const journal=await sb.from("pilot_decision_journal")
+    .select("id,decision_value,event_type,created_at")
+    .eq("goal_id",goalId).eq("owner_id",userId).eq("decision_key","legal_form")
+    .order("id",{ascending:false}).limit(1);
+  if(journal.error)return {status:"unavailable",choice:null};
+  const current=journal.data?.[0];
+  if(current){
+    if(current.event_type==="revoke")return {status:"not_found",choice:null,provenance:"journal_revoked"};
+    const legal=legalFormCode(current.decision_value);
+    return legal?{status:"found",choice:legal,label:LEGAL_FORM_LABELS[legal],
+      provenance:"confirmed_decision_journal",recorded_at:current.created_at}:
+      {status:"unavailable",choice:null};
+  }
   const [mem,ctx,res]=await Promise.all([
     sb.from("goal_memories").select("memory_key,memory_type,source_type,content,updated_at")
       .eq("goal_id",goalId).eq("owner_id",userId).eq("active",true)
@@ -362,6 +377,24 @@ const pilotCorsHandler=async(req:Request)=>{
       importance:4,active:true,updated_at:new Date().toISOString()
     },{onConflict:"goal_id,memory_key"});
     if(memory.error)return Response.json({error:"confirmation_memory_update_failed"},{status:500,headers:H});
+    if(legalFormDecision){
+      // Only an explicitly clicked legal-form review is journalled, never an AI comparison.
+      // Service-owned write is permitted only after the user/goal/review ownership checks.
+      const sourceRef="execution:"+executionId;
+      const before=await sb.from("pilot_decision_journal")
+        .select("id").eq("goal_id",exReview.goal_id)
+        .eq("decision_key","legal_form").eq("source_ref",sourceRef).limit(1);
+      if(before.error)return Response.json({error:"decision_journal_read_failed"},{status:503,headers:H});
+      if(!before.data?.length){
+        const recorded=await admin.from("pilot_decision_journal").insert({
+          goal_id:exReview.goal_id,organization_id:exReview.goals.organization_id,owner_id:user.id,
+          decision_key:"legal_form",decision_value:selectedForm,event_type:"set",
+          source_type:"user_confirmed_review",source_ref:sourceRef
+        });
+        if(recorded.error&&recorded.error.code!=="23505")
+          return Response.json({error:"decision_journal_write_failed",retryable:true},{status:503,headers:H});
+      }
+    }
     const step=await sb.from("execution_steps").update({status:"completed",output:{confirmed_by_user:true,progress},completed_at:new Date().toISOString()})
       .eq("execution_id",executionId).eq("step_key","progress").eq("status","waiting_review");
     if(step.error)return Response.json({error:"confirmation_step_update_failed"},{status:500,headers:H});
