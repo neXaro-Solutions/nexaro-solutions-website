@@ -985,6 +985,60 @@ input,textarea{border-radius:var(--radius-input)}.btn{border-radius:var(--radius
     text-align:center;
   }
 }
+
+/* Command Center refinement v11 */
+.command-stage{isolation:isolate}
+.command-input{position:relative;z-index:4}
+.command-input label{display:flex;justify-content:space-between;align-items:center;gap:12px;color:#6f7780}
+.command-input label b{font-size:8px;letter-spacing:.18em;color:#a24a12;border:1px solid rgba(255,116,23,.22);padding:5px 7px;background:rgba(255,255,255,.68);clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,6px 100%,0 calc(100% - 6px))}
+.command-input textarea{
+  min-height:168px!important;
+  border-radius:0!important;
+  border:1px solid rgba(190,201,208,.95)!important;
+  background:linear-gradient(90deg,rgba(141,255,47,.035),transparent 20%,transparent 80%,rgba(255,116,23,.045)),rgba(255,255,255,.91)!important;
+  clip-path:polygon(0 0,calc(100% - 18px) 0,100% 18px,100% 100%,18px 100%,0 calc(100% - 18px));
+  box-shadow:inset 3px 0 var(--g),inset -3px 0 var(--o),0 18px 42px rgba(18,24,33,.07)!important;
+  padding:20px 22px 36px!important;
+  line-height:1.5;
+}
+.command-input textarea:focus{box-shadow:inset 3px 0 var(--g),inset -3px 0 var(--o),0 0 0 5px rgba(255,116,23,.07),0 22px 48px rgba(18,24,33,.09)!important}
+.command-signal{position:absolute;left:18px;right:18px;bottom:11px;display:flex;align-items:center;gap:5px;pointer-events:none}
+.command-signal span{width:5px;height:5px;border-radius:50%;background:var(--g2);box-shadow:0 0 9px rgba(102,219,19,.7)}
+.command-signal span:nth-child(2){background:#d6dce0;box-shadow:none}.command-signal span:nth-child(3){background:var(--o);box-shadow:0 0 9px rgba(255,116,23,.55)}
+.command-signal em{margin-left:5px;font-style:normal;font-size:7px;letter-spacing:.16em;font-weight:850;color:#818991}
+.launch-row{align-items:center!important;gap:13px!important}
+.launch-primary{min-height:52px!important;padding-inline:22px!important;font-size:15px!important;position:relative;overflow:hidden}
+.launch-primary:after{content:"";position:absolute;inset:0;transform:translateX(-120%);background:linear-gradient(100deg,transparent,rgba(255,255,255,.16),transparent)}
+.launch-primary.launching:after{animation:launchSweep .7s ease}
+.launch-hint{font-size:9px;letter-spacing:.08em;color:#7d858e;font-weight:700}
+@keyframes launchSweep{to{transform:translateX(120%)}}
+
+.machine-logic{opacity:.8!important}
+.machine-gear{position:absolute;border-radius:50%;border:12px dashed rgba(70,80,88,.16);box-shadow:inset 0 0 0 2px rgba(255,255,255,.72);animation:gearCW 18s linear infinite}
+.machine-gear:after{content:"";position:absolute;inset:27%;border-radius:50%;border:1px solid rgba(75,85,92,.18);background:rgba(255,255,255,.32)}
+.gear-a{width:92px;height:92px;right:12%;bottom:7%}
+.gear-b{width:62px;height:62px;right:2%;bottom:22%;border-width:9px;animation:gearCCW 13s linear infinite}
+.machine-flow{position:absolute;font-size:8px;letter-spacing:.13em;font-weight:900;color:#747d85;padding:6px 8px;background:rgba(255,255,255,.74);border:1px solid rgba(216,223,228,.9);backdrop-filter:blur(7px)}
+.flow-a{left:2%;top:30%}.flow-b{right:2%;top:30%}.flow-c{left:50%;bottom:1%;transform:translateX(-50%)}
+@keyframes gearCW{to{transform:rotate(360deg)}}@keyframes gearCCW{to{transform:rotate(-360deg)}}
+
+/* stronger mobile module navigation */
+@media(max-width:760px){
+  .side nav{justify-content:space-between;width:100%}
+  .nav{position:relative;min-width:0!important;flex:1 1 0!important;color:#626a73!important;border-radius:16px!important;transition:.2s ease!important}
+  .nav:before{content:"";position:absolute;top:5px;width:5px;height:5px;border-radius:50%;background:#d8dde1;opacity:0;transition:.2s ease}
+  .nav.active{background:linear-gradient(180deg,rgba(141,255,47,.12),rgba(255,116,23,.05))!important;color:#17191d!important;box-shadow:inset 0 -3px var(--g),0 8px 18px rgba(18,24,33,.05)!important}
+  .nav.active:before{opacity:1;background:var(--g2);box-shadow:0 0 0 4px rgba(141,255,47,.12)}
+  .nav.active span{font-weight:850}
+  .command-input textarea{min-height:150px!important}
+  .launch-row{display:grid!important;grid-template-columns:1fr!important}
+  .launch-primary{width:100%!important}
+  .launch-hint{text-align:center;line-height:1.45}
+  .machine-logic{right:-72px!important;opacity:.38!important}
+  .machine-gear{opacity:.9}
+  .gear-a{right:17%;bottom:5%}.gear-b{right:4%;bottom:20%}
+}
+@media(prefers-reduced-motion:reduce){.machine-gear,.launch-primary:after{animation:none!important}}
 </style></head>
 <body>
 <section id="auth" class="auth"><div class="box">
@@ -1061,7 +1115,7 @@ function avatarIcon(v){return ({general:"X",business:"↗",creative:"✦",medica
 function moduleState(aktiv,done,warn=false){return warn?"warn":aktiv?"live":done?"done":""}
 function home(){
   const g=goals[0];
-  if(!g)return '<div class="machine-page"><section class="core-stage"><div class="core-copy"><div class="system-kicker"><span class="live-pulse"></span>PILOT-ZENTRALE · BEREIT</div><h2 class="machine-title">Gib Pilot ein Ziel.<br><em>Die Maschine baut den Weg.</em></h2><p class="machine-sub">Pilot versteht den Auftrag, recherchiert, vergleicht KI-Modelle, erzeugt Ergebnisse und führt den nächsten sinnvollen Schritt aus.</p><div class="field" style="max-width:760px;margin-top:26px"><label>Mission / Ziel</label><textarea id="goalText" placeholder="Beschreibe, was du erreichen willst. Pilot zerlegt das Ziel in einen ausführbaren Ausführungsplan."></textarea></div><div class="btns"><button id="createGoal" class="btn ai">✦ Pilot-Zentrale initialisieren</button></div></div><div class="core-orbit"><div class="core-ring"></div><div class="core-engine">X</div><span class="orbit-node n1">RECHERCHE</span><span class="orbit-node n2">AUSFÜHRUNG</span><span class="orbit-node n3">PRÜFUNG</span></div></section><div class="ai-rail"><div class="ai-module"><div class="module-name">01 · Intent</div><div class="module-state">Ziel verstehen</div></div><div class="ai-module"><div class="module-name">02 · Recherche</div><div class="module-state">Belege aufbauen</div></div><div class="ai-module"><div class="module-name">03 · GPT</div><div class="module-state">Analyse</div></div><div class="ai-module"><div class="module-name">04 · Claude</div><div class="module-state">Analyse</div></div><div class="ai-module"><div class="module-name">05 · Synthese</div><div class="module-state">KI-Synthese</div></div><div class="ai-module"><div class="module-name">06 · Execute</div><div class="module-state">Ergebnis erzeugen</div></div></div></div>';
+  if(!g)return '<div class="machine-page"><section class="core-stage command-stage"><div class="core-copy"><div class="system-kicker"><span class="live-pulse"></span>PILOT-ZENTRALE · BEREIT</div><h2 class="machine-title">Gib Pilot ein Ziel.<br><em>Die Maschine baut den Weg.</em></h2><p class="machine-sub">Pilot versteht den Auftrag, recherchiert, vergleicht KI-Modelle, erzeugt Ergebnisse und führt den nächsten sinnvollen Schritt aus.</p><div class="field command-input" style="max-width:760px;margin-top:26px"><label><span>MISSION / ZIEL</span><b>COMMAND INPUT</b></label><textarea id="goalText" placeholder="Beschreibe, was du erreichen willst. Pilot zerlegt dein Ziel in einen ausführbaren Plan und startet die passenden KI-Module."></textarea><div class="command-signal"><span></span><span></span><span></span><em>BEREIT FÜR AUFTRAG</em></div></div><div class="btns launch-row"><button id="createGoal" class="btn ai launch-primary">✈ Pilot jetzt starten</button><span class="launch-hint">Verstehen → Recherchieren → Entscheiden → Ausführen → Prüfen</span></div></div><div class="core-orbit machine-logic"><div class="core-ring"></div><div class="core-engine">X</div><span class="orbit-node n1">RECHERCHE</span><span class="orbit-node n2">AUSFÜHRUNG</span><span class="orbit-node n3">PRÜFUNG</span><div class="machine-gear gear-a"></div><div class="machine-gear gear-b"></div><div class="machine-flow flow-a">GPT</div><div class="machine-flow flow-b">CLAUDE</div><div class="machine-flow flow-c">SYNTHESE</div></div></section><div class="ai-rail"><div class="ai-module"><div class="module-name">01 · Verstehen</div><div class="module-state">Ziel erfassen</div></div><div class="ai-module"><div class="module-name">02 · Recherche</div><div class="module-state">Belege aufbauen</div></div><div class="ai-module"><div class="module-name">03 · GPT</div><div class="module-state">Analyse</div></div><div class="ai-module"><div class="module-name">04 · Claude</div><div class="module-state">Analyse</div></div><div class="ai-module"><div class="module-name">05 · Synthese</div><div class="module-state">Bestes Ergebnis</div></div><div class="ai-module"><div class="module-name">06 · Ausführung</div><div class="module-state">Ergebnis erzeugen</div></div></div></div>';
   const n=actions.find(a=>a.status==="ready")||actions.find(a=>a.status==="pending");
   const total=milestones.reduce((s,m)=>s+Number(m.weight||1),0)||1;
   const done=milestones.filter(m=>m.status==="completed").reduce((s,m)=>s+Number(m.weight||1),0);
@@ -1100,13 +1154,13 @@ function me(){return '<div class="grid"><div class="card"><h2>Profil</h2><div cl
 function render(){document.querySelectorAll("[data-view]").forEach(b=>b.classList.toggle("active",b.dataset.view===current));T.textContent={home:"Zentrale",goals:"Ziele",documents:"Dokumente",results:"Ergebnisse",execution:"Ausführung",canva:"Canva",roadmap:"Entwicklungsplan",alpha:"Alpha",me:"Einstellungen"}[current];V.innerHTML={home:home,goals:goalsView,documents:documentsView,results:resultsView,execution:executionView,canva:canvaView,roadmap:roadmap,alpha:alphaView,me:me}[current]();bind()}
 function bind(){document.querySelectorAll("[data-view]").forEach(b=>b.onclick=()=>{current=b.dataset.view;render()});document.querySelectorAll("[data-jump]").forEach(b=>b.onclick=()=>{current=b.dataset.jump;render()});document.getElementById("createGoal")?.addEventListener("click",createGoal);document.getElementById("executeAction")?.addEventListener("click",executeAction);document.getElementById("uploadDoc")?.addEventListener("click",uploadDocument);document.getElementById("completeAction")?.addEventListener("click",()=>completeAction(false,false));document.getElementById("completeWithOutcome")?.addEventListener("click",()=>completeAction(true,false));document.getElementById("markBlocked")?.addEventListener("click",()=>completeAction(false,true));document.querySelectorAll("[data-feedback]").forEach(b=>b.onclick=()=>sendFeedback(b.dataset.feedback));document.getElementById("runEvals")?.addEventListener("click",runEvals);document.getElementById("runAlphaE2E")?.addEventListener("click",runAlphaE2E);document.getElementById("connectCanva")?.addEventListener("click",connectCanva);document.querySelectorAll("[data-canva]").forEach(b=>b.onclick=()=>designWithCanva(b.dataset.canva));document.querySelectorAll("[data-canva-poll]").forEach(b=>b.onclick=()=>pollCanva(b.dataset.canvaPoll));document.querySelectorAll("[data-exec-approve]").forEach(b=>b.onclick=()=>decideExecution(b.dataset.execApprove,true));document.querySelectorAll("[data-exec-reject]").forEach(b=>b.onclick=()=>decideExecution(b.dataset.execReject,false))}
 async function createGoal(){
-  const text=document.getElementById("goalText").value.trim();if(!text||!org)return;const btn=document.getElementById("createGoal");btn.disabled=true;btn.textContent="Pilot versteht …";PS.textContent="Pilot versteht …";
+  const text=document.getElementById("goalText").value.trim();if(!text||!org)return;const btn=document.getElementById("createGoal");btn.classList.add("launching");startPilotFlight(btn);btn.disabled=true;btn.textContent="✈ Pilot startet …";PS.textContent="Pilot hebt ab …";setTimeout(()=>{if(PS.textContent==="Pilot hebt ab …")PS.textContent="Pilot versteht …"},650);
   try{
     let r=await sb.functions.invoke("pilot-intelligence",{body:{input:text}});if(r.error)throw r.error;let data=r.data;
     if(data.stage==="clarification"){const answers={};for(const q of data.questions||[]){const ans=window.prompt(q.question_de||q.question_en||"Weitere Angabe");if(ans)answers[q.key]=ans}PS.textContent="Pilot plant …";r=await sb.functions.invoke("pilot-intelligence",{body:{input:text,intent:data.intent,answers}});if(r.error)throw r.error;data=r.data}
     if(data.stage!=="ready")throw new Error("Pilot konnte den Plan nicht abschließen.");
     PS.textContent="Pilot bereit";await load();telemetry("event",{goal_id:goals[0]?.id||null,event_name:"goal_created",event_category:"activation",properties:{domain:goals[0]?.domain?.primary||"general"}});render();
-  }catch(e){PS.textContent="Pilot bereit";alert(e.message||String(e));btn.disabled=false;btn.textContent="Pilot starten"}
+  }catch(e){PS.textContent="Pilot bereit";alert(e.message||String(e));btn.disabled=false;btn.textContent="✈ Pilot jetzt starten";btn.classList.remove("launching")}
 }
 async function completeAction(withOutcome,blocked){const n=actions.find(a=>a.status==="ready")||actions.find(a=>a.status==="pending");if(!n)return;let outcome=null;if(withOutcome){const metric=window.prompt("Welche Kennzahl möchtest du messen? Zum Beispiel: Leads");if(metric){const current=window.prompt("Aktueller Wert?");const target=window.prompt("Zielwert?");const unit=window.prompt("Einheit? Zum Beispiel: Leads, %, EUR")||"";outcome={metric,current_value:Number(current||0),target:Number(target||0),unit}}}PS.textContent="Pilot aktualisiert Fortschritt …";try{const r=await sb.functions.invoke("progress-engine",{body:{action_id:n.id,outcome,blocked}});if(r.error)throw r.error;await load();await telemetry("event",{goal_id:goals[0]?.id||null,event_name:"progress_updated",event_category:"outcome",properties:{outcome_attached:!!outcome,blocked:!!blocked}});PS.textContent="Pilot bereit";render()}catch(e){PS.textContent="Pilot bereit";await telemetry("incident",{goal_id:goals[0]?.id||null,source:"progress",severity:"error",error_code:"PROGRESS_FAILED",message:e.message||String(e)});alert(e.message||String(e))}}
 async function sendFeedback(v){const [id,rating]=v.split(":");let reason=null;if(rating==="down")reason=window.prompt("Was sollte verbessert werden?")||null;await telemetry("feedback",{goal_id:goals[0]?.id||null,target_type:"result",target_id:id,rating,reason});await telemetry("event",{goal_id:goals[0]?.id||null,event_name:"result_feedback",event_category:"feedback",properties:{rating}});alert("Danke – Feedback gespeichert.")}
