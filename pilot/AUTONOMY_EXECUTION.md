@@ -83,3 +83,20 @@ Zwei fachliche Titel („Für wen arbeiten wir?“ und „Das versprechen wir un
 **Futuristisches Produktgebot:** Transparente Lichtschichten, subtile Raster und Neon-Energie statt Formular- und Bürosoftware-Optik. Hauptaktion bleibt „⚡ Entscheidung steht. Pilot übernimmt.“. Backend-Autorisierung und Sicherheitsprüfung bleiben unverändert.
 
 **Prüfung:** JS kompiliert; neun Struktur-/Text-/UI-Checks bestanden. Reale iPhone-Bedienung und echte Bestätigung stehen noch zur Abnahme aus.
+
+
+## LUMEN 2026.10.08.26 – Laufzeitoptimierung & echter Verarbeitungsstatus
+
+**Auslöser:** Zwei echte iPhone-Ausführungsläufe des Baumpflege-Qualifikationsschritts brauchten jeweils rund 90 Sekunden und endeten ohne verwertbares Ergebnis. Supabase erfasste eine Recherchephase von ca. 41 Sekunden und eine zweite KI-Phase von 52–55 Sekunden. Ursachen: aufeinander folgende doppelte Best-of-AI-Synthese, GPT-Antwort außerhalb JSON-Format und OpenAI-Rate-Limit beim Fallback (429).
+
+**Änderungen:**
+
+- `research-intelligence v12` mit `sources_only:true`: liefert **tatsächlich gefundene Quellen** samt Quellensicherheit ohne die unnötige zweite KI-Synthese. Das ist *keine eigenständige Prüfung juristischer Aussagen*. Bei fehlenden oder schwachen Quellen bleibt die Fachprüfung offen.
+- `best-of-ai v17` unterstützt `fast_best`: zuerst eine Qualitätsvalidierung über Claude; OpenAI nur bei ungültigem/nicht verfügbarem Ergebnis als Fallback. Hochrisiko-`high_assurance` behält die Dualanbieter-Prüfung. Ein Fast-Modell darf nie unvollständige Pflichtfelder als Ergebnis liefern. Pro Aufruf gilt eine begrenzte Wartezeit.
+- `ai-gateway v23`: interactive-Modus mit nur einem Anbieter-Versuch (der übergeordnete Best-of-AI-Prozess steuert Fallback); zeitlich begrenzte Anfragen, kompaktere Ausgabe und OpenAI-JSON-Format über die Responses API. Die Standard-/High-Assurance-Routen bleiben bestehen.
+- `execution-engine v24`: verwendet `sources_only`, `fast_best` für normale Aufgaben, kompaktes Zielgedächtnis und maximal fünf echte Quellen mit gekürzten Auszügen. Bei quellenpflichtigen Aussagen wird eine tatsächliche Quellenkennung wie `[S1]` im Ergebnis verlangt; ohne diese Verknüpfung wird die Arbeit nicht als überprüft abgeschlossen. Fehlende Quellenbelege lösen bei Pilot-eigenen, risikoarmen Aufgaben keine unauflösbare manuelle Warteschleife aus, sondern einen erkennbaren Qualitätsfehler.
+- `pilot/index.html` LUMEN .26: Aktive Schritte werden aus `execution_steps` des eingeloggten Arbeitsbereichs abgefragt und mit einer realen Phasenanzeige dargestellt (Recherche, Erstellung, Speicherung, Prüfung, Fortschritt). Keine erfundenen Prozentwerte, kein starrer „Pilot hebt ab“-Text über die gesamte Bearbeitung, Startbutton gegen mehrfachen Start geschützt.
+- **Flug ≠ alle Folgeschritte:** Das Flugzeug landet nach der gerade abgeschlossenen Aktion. Ein begrenzter autonomer Folgearbeitslauf wird unabhängig davon fortgesetzt; seine Stufe bleibt sichtbar und ist nach dem aktuellen Schritt stoppbar. Damit überdehnt ein langer Auftrag nicht mehr die Flugdauer.
+- **UI-Sprache:** Der bestehende Live-Auftrag wird als „Qualifikation & Versicherungsschutz bei Baumpflege prüfen“ angezeigt; die ausführliche fachliche Aufgabe bleibt im `objective` erhalten.
+
+**Abnahme:** Source-Syntax, API-Versionen und unveränderte Besitzer-/Qualitäts-Schranken geprüft. `execution-engine` v24, `research-intelligence` v12, `best-of-ai` v17, `ai-gateway` v23 aktiv. **Noch kein neuer authentifizierter Test nach diesem Release.** Vorheriger zweiter Baumpflegeauftrag: zwei Fehlversuche, kein fertiges Resultat, Status `ready`. Keine Aussage über tatsächlich erreichte Ladezeiten oder Funktionsabnahme, bevor der nächste iPhone-Live-Lauf beobachtet ist.
