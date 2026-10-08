@@ -40,9 +40,9 @@ const mkAction=(id,status="ready",owner_type="pilot",created_at="2026-10-08T10:0
 });
 const baseGoal={id:GOAL,owner_id:USER,organization_id:ORGANIZATION,status:"active",
   title:"Testprojekt",desired_outcome:"Dokument",domain:{primary:"general"},success_criteria:[]};
-function createScenario({actions,executions=[],failSteps=false}){
+function createScenario({actions,executions=[],failSteps=false,goalDomain="general"}){
   const records={
-    goals:[{...baseGoal}],
+    goals:[{...baseGoal,domain:{primary:goalDomain}}],
     actions:actions.map(x=>({...x})),
     executions:executions.map(x=>({...x,goal_id:GOAL})),
     goal_memories:[],context_items:[],results:[],pilot_internal_knowledge:[],
@@ -183,4 +183,53 @@ await scenario("Failed step initialization rolls back running status",{
  assert.equal(state.records.executions[0].error_code,"EXECUTION_STEPS_CREATE_FAILED");
  assert.equal(state.records.execution_steps.length,0);
 });
-console.log("PASS All 7 live-handler policy and recovery simulations; no real accounts or network writes.");
+
+await scenario("Completed prerequisites unlock the next pending user step",{
+ actions:[{...a,status:"completed"}, {...b,status:"pending",owner_type:"user",recommended_mode:"together"}]
+},{operation:"next",goal_id:GOAL},({status,payload},state)=>{
+ assert.equal(status,200);
+ assert.equal(payload.status,"collaboration_required");
+ assert.equal(state.records.actions.find(x=>x.id===ACTION_B).status,"ready");
+ assert.equal(payload.next_action.id,ACTION_B);
+ assert.equal(state.fetchCount,0);
+});
+await scenario("Status check previews next unlock without mutating data",{
+ actions:[{...a,status:"completed"}, {...b,status:"pending",owner_type:"user",recommended_mode:"together"}]
+},{operation:"status",goal_id:GOAL},({status,payload},state)=>{
+ assert.equal(status,200);
+ assert.equal(payload.status,"collaboration_required");
+ assert.equal(payload.next_action.status,"ready");
+ assert.equal(state.records.actions.find(x=>x.id===ACTION_B).status,"pending");
+});
+await scenario("A blocked predecessor can never be bypassed",{
+ actions:[{...a,status:"blocked"}, {...b,status:"pending",owner_type:"user",recommended_mode:"together"}]
+},{operation:"next",goal_id:GOAL},({status,payload},state)=>{
+ assert.equal(status,200);
+ assert.equal(payload.status,"pending_prerequisite");
+ assert.equal(state.records.actions.find(x=>x.id===ACTION_B).status,"pending");
+});
+await scenario("User-owned decisions cannot be drafted by Autopilot",{
+ actions:[{...a,owner_type:"user",recommended_mode:"together"}]
+},{operation:"next",goal_id:GOAL},({status,payload},state)=>{
+ assert.equal(status,200);
+ assert.equal(payload.status,"collaboration_required");
+ assert.equal(state.records.executions.length,0);
+});
+await scenario("External writes still require manual authorization",{
+ actions:[{...a,title:"E-Mail senden",objective:"Send customer email",
+   owner_type:"joint",recommended_mode:"together"}]
+},{operation:"next",goal_id:GOAL},({status,payload},state)=>{
+ assert.equal(status,200);
+ assert.equal(payload.status,"collaboration_required");
+ assert.equal(state.records.executions.length,0);
+});
+await scenario("High-risk medical joint work never auto-starts",{
+ actions:[{...a,owner_type:"joint",recommended_mode:"together"}],
+ goalDomain:"medical_documentation"
+},{operation:"next",goal_id:GOAL},({status,payload},state)=>{
+ assert.equal(status,200);
+ assert.equal(payload.status,"collaboration_required");
+ assert.equal(state.records.executions.length,0);
+});
+
+console.log("PASS All 13 live-handler policy and recovery simulations; no real accounts or network writes.");
