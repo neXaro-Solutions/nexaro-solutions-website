@@ -1677,6 +1677,180 @@ input,textarea{border-radius:var(--radius-input)}.btn{border-radius:var(--radius
 }
 @media(max-width:380px){.pilot-home-active-header{flex-wrap:wrap}.pilot-home-textbutton{margin-left:52px}.pilot-home-stat strong{font-size:12px}}
 
+
+/* ==========================================================================
+   neXaro Pilot · LUMEN system identity 2026
+   NOT an office dashboard, not a CRM, not a dark sci-fi application.
+   Calm glass/ceramic interfaces, animated intelligence, neon energy signalling.
+   Functional accessibility and prioritised actions outrank decorative effects.
+   ========================================================================== */
+:root{--pilot-mist:#f6faf5;--pilot-neon:#8cff29;--pilot-neon-deep:#4cbb12;--pilot-flare:#ff7721;--pilot-ink:#19251d;--pilot-secondary:#728175;--pilot-line:rgba(110,151,107,.18);--pilot-glass:rgba(255,255,255,.82);--pilot-depth:0 20px 58px rgba(36,66,34,.075),0 2px 8px rgba(50,80,43,.027)}
+html{background:#f6faf7;scroll-behavior:smooth}
+body{background:radial-gradient(ellipse 72vw 60vw at 92% -10%,rgba(145,255,62,.17),transparent 75%),radial-gradient(ellipse 62vw 52vw at -13% 31%,rgba(255,123,41,.065),transparent 79%),linear-gradient(160deg,#fcfefd,#f4faf6 45%,#f8faf7 100%)!important;color:var(--pilot-ink);min-width:0}
+.shell{background:transparent}
+.side{background:rgba(255,255,255,.70)!important;border-color:rgba(136,168,133,.20)!important;backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px)}
+.side nav{gap:9px}
+.side .brand-meta{border-color:var(--pilot-line)}
+.side .brand-meta .ey{color:#798b79}
+.nav{position:relative!important;border:1px solid transparent!important;background:transparent!important;color:#697b70!important;transition:background .25s,border-color .25s,color .25s,box-shadow .25s!important}
+.nav:hover{background:rgba(239,255,229,.8)!important;color:#294b2c!important}
+.nav.active{background:linear-gradient(110deg,rgba(204,255,164,.54),rgba(255,255,255,.7))!important;border-color:rgba(146,231,94,.24)!important;color:#233723!important;box-shadow:inset 3px 0 #8cf52d,0 8px 22px rgba(107,210,64,.08)!important}
+.nav .pilot-nav-icon{display:inline-grid;place-items:center;width:26px;flex:0 0 26px;font-size:19px;font-weight:900;color:#658269;line-height:1}
+.nav.active .pilot-nav-icon{color:#4b9f26}
+.nav span:last-child{font-weight:800}
+.main{position:relative;isolation:isolate}
+.main:before{content:"";pointer-events:none;position:fixed;z-index:-1;top:6%;right:0;width:min(48vw,560px);height:min(48vw,560px);border-radius:50%;background:radial-gradient(circle,rgba(174,255,114,.12),transparent 65%);filter:blur(20px)}
+.head{padding-bottom:14px;border-bottom:1px solid rgba(151,182,145,.12)}
+.head .ey{font-size:10px;letter-spacing:.23em;color:#869584;font-weight:950}
+.head h1{font-size:clamp(29px,3.3vw,43px);letter-spacing:-.065em;line-height:1.04;color:#162418}
+.head .head-tool{background:rgba(255,255,255,.8);border:1px solid #e1e9e0;color:#495849;border-radius:99px}
+.head .status{background:rgba(250,255,247,.95)!important;border-color:#d5efc8!important;box-shadow:0 6px 24px rgba(65,157,30,.09);font-weight:800;color:#37552e}
+.head .status .dot{animation:pilotSignal 3.2s ease-in-out infinite}
+@keyframes pilotSignal{0%,100%{box-shadow:0 0 0 4px rgba(143,247,55,.17)}50%{box-shadow:0 0 0 7px rgba(143,247,55,.065)}}
+.pilot-screen{width:100%;max-width:1080px;margin:0 auto;display:flex;flex-direction:column;gap:22px;min-width:0}
+.pilot-screen-head{position:relative;min-height:186px;overflow:hidden;display:flex;align-items:center;justify-content:space-between;gap:24px;border:1px solid rgba(162,212,150,.24);border-radius:32px;padding:28px 33px;background:radial-gradient(ellipse at 88% 55%,rgba(142,255,60,.17),transparent 43%),radial-gradient(ellipse at 55% 140%,rgba(255,125,24,.07),transparent 45%),linear-gradient(130deg,rgba(255,255,255,.98),rgba(245,255,240,.83));box-shadow:var(--pilot-depth)}
+.pilot-screen-head::before{content:"";position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(107,168,88,.055) 1px,transparent 1px),linear-gradient(90deg,rgba(107,168,88,.055) 1px,transparent 1px);background-size:30px 30px;mask-image:linear-gradient(100deg,transparent 5%,#000 100%)}
+.pilot-screen-copy{position:relative;z-index:1;flex:1 1 auto;min-width:0;max-width:680px}
+.pilot-screen-kicker,.pilot-home-eyebrow{display:flex;align-items:center;gap:9px;color:#548044;font-size:10px!important;font-weight:950!important;letter-spacing:.18em!important;text-transform:uppercase}
+.pilot-screen-kicker::before{content:"";width:7px;height:7px;border-radius:50%;background:#8df829;box-shadow:0 0 0 5px rgba(142,255,49,.16)}
+.pilot-screen-head h2{margin:11px 0 10px;font-size:clamp(27px,4.4vw,47px);line-height:1.1;letter-spacing:-.055em;color:#172d1d}
+.pilot-screen-head p{font-size:14px;line-height:1.65;color:#6a7c6e;max-width:590px;margin:0}
+.pilot-intel-core{position:relative;flex:0 0 148px;width:148px;height:148px;display:grid;place-items:center;pointer-events:none}
+.pilot-intel-core::before,.pilot-intel-core::after{content:"";position:absolute;inset:8px;border-radius:50%;border:1px solid rgba(81,200,43,.34)}
+.pilot-intel-core::before{border-style:dashed;animation:pilotCoreOrbit 24s linear infinite}
+.pilot-intel-core::after{inset:23px;border-color:rgba(255,117,30,.30);border-top:3px solid #ff8834;animation:pilotCoreOrbit 13s linear infinite reverse}
+.pilot-intel-core span{position:relative;display:grid;place-items:center;border-radius:50%;width:67px;height:67px;background:radial-gradient(circle at 27% 21%,#fff,rgba(190,255,157,.94));border:1px solid rgba(121,232,77,.45);box-shadow:0 0 0 9px rgba(168,255,116,.12),0 0 32px rgba(146,255,76,.22);font-size:36px;color:#4aa522;text-shadow:0 0 10px rgba(124,245,63,.22)}
+@keyframes pilotCoreOrbit{to{transform:rotate(360deg)}}
+.pilot-screen-actions{display:flex;align-items:center;flex-wrap:wrap;gap:10px}
+.pilot-screen .card,.pilot-screen .operation-panel,.pilot-screen .item,.pilot-screen .goal-success-item{border-color:rgba(155,195,146,.19)!important;box-shadow:0 10px 36px rgba(36,65,34,.045)!important;background:rgba(255,255,255,.88)!important}
+.pilot-screen .card{border-radius:26px}
+.pilot-screen .operation-panel{border-radius:26px}
+.pilot-screen .grid{gap:14px}
+.pilot-screen .card>h2,.pilot-screen .card>h3,.pilot-screen .operation-panel h3{color:#233626;letter-spacing:-.045em}
+.pilot-screen .item{border-radius:19px}
+.pilot-screen .stat{border-color:rgba(128,182,111,.15)}
+.pilot-screen .badge{background:#f0f8ed;border:1px solid #e2efdc;color:#54744b;letter-spacing:.02em}
+.pilot-screen .badge.green{background:#e5ffd6;border-color:#c6f3aa;color:#467828}
+.pilot-screen .badge.orange{background:#fff1e3;border-color:#ffddba;color:#ba6325}
+.pilot-screen .btn.ai,.pilot-screen .btn.primary,.pilot-home .pilot-home-primary,.pilot-home .pilot-home-action-start{background:linear-gradient(110deg,#afff62 0%,#87f12b 56%,#78e41e 100%)!important;color:#183819!important;border:1px solid #8ded46!important;border-radius:18px!important;box-shadow:0 11px 28px rgba(124,231,39,.18)!important}
+.pilot-screen .btn.ai:hover,.pilot-screen .btn.primary:hover,.pilot-home .pilot-home-primary:hover,.pilot-home .pilot-home-action-start:hover{filter:brightness(1.03);box-shadow:0 12px 31px rgba(124,231,39,.25)!important}
+.pilot-screen .btn:not(.primary):not(.ai){border-radius:15px;background:rgba(255,255,255,.82);border-color:#dce8d8;color:#425d43}
+.pilot-screen .btn:focus-visible,.pilot-home .btn:focus-visible,.pilot-screen a:focus-visible{outline:3px solid #ff9633!important;outline-offset:3px}
+.pilot-home{max-width:1060px!important;gap:17px}
+.pilot-home .pilot-home-compose{position:relative;overflow:hidden;border:1px solid rgba(146,228,92,.37)!important;border-radius:34px!important;padding:clamp(20px,3.1vw,35px)!important;background:radial-gradient(circle at 95% 2%,rgba(155,255,83,.22),transparent 40%),radial-gradient(circle at 5% 96%,rgba(255,126,37,.065),transparent 37%),linear-gradient(140deg,#fff,rgba(249,255,246,.96))!important;box-shadow:0 24px 60px rgba(55,130,39,.078)!important}
+.pilot-home-compose:before{content:"";pointer-events:none;position:absolute;inset:0;background-image:linear-gradient(rgba(131,210,93,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(131,210,93,.045) 1px,transparent 1px);background-size:34px 34px;mask-image:linear-gradient(100deg,transparent 24%,black 100%)}
+.pilot-home .pilot-home-card-head,.pilot-home .pilot-home-input-label,.pilot-home #goalText,.pilot-home .pilot-home-input-meta,.pilot-home .pilot-home-controls,.pilot-home .pilot-home-admin{position:relative;z-index:1}
+.pilot-home .pilot-home-mark{border:1px solid #c0f2a0;background:radial-gradient(circle at 22% 15%,#fff,#d9ffc0)!important;box-shadow:0 0 0 6px rgba(170,255,95,.11),0 6px 24px rgba(123,238,66,.17);border-radius:20px}
+.pilot-home .pilot-home-card-head h2{font-size:clamp(25px,4vw,37px)!important;color:#19301b;letter-spacing:-.05em}
+.pilot-home .pilot-home-input-label{color:#6d9863;letter-spacing:.18em;text-transform:uppercase;font-size:10px}
+.pilot-home #goalText{border:1px solid #bfe5b6!important;border-radius:22px!important;background:linear-gradient(160deg,rgba(255,255,255,.98),rgba(247,255,243,.92))!important;min-height:155px!important;box-shadow:inset 0 0 0 1px rgba(143,255,66,.035)!important;font-size:16px!important}
+.pilot-home #goalText:focus{border-color:#82ed31!important;box-shadow:0 0 0 4px rgba(141,255,50,.13),0 0 26px rgba(141,255,50,.06)!important}
+.pilot-home .pilot-home-active{border-radius:27px!important;background:linear-gradient(104deg,rgba(255,255,255,.98),rgba(248,255,246,.91))!important}
+.pilot-home .pilot-home-active-title h2{font-size:21px!important}
+.pilot-home .pilot-home-summary{margin:14px 0 13px!important}
+.pilot-home .pilot-home-stat{border:0!important;border-top:1px solid rgba(132,181,115,.19)!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;padding:12px 10px!important}
+.pilot-home .pilot-home-progress{background:#e9f2e6!important}
+.pilot-home .pilot-home-progress-bar{background:linear-gradient(90deg,#86ee30 0%,#b1fa55 75%,#ff932f 100%)!important}
+.pilot-home .pilot-home-next{border-radius:27px!important}
+.pilot-home .pilot-home-next .command-card{background:linear-gradient(130deg,#fafff8,#fff)!important}
+.pilot-home .pilot-home-guide{background:rgba(255,255,255,.5)!important;border:1px solid rgba(146,201,136,.16)!important;box-shadow:none!important}
+.pilot-home-steps{position:relative}
+.pilot-home-steps:before{content:"";position:absolute;top:18px;left:12%;right:12%;height:2px;background:linear-gradient(90deg,#bbff85,#ffb680,#b5ff83);z-index:0}
+.pilot-home-steps>div{position:relative;z-index:1;background:rgba(255,255,255,.85)!important;border:1px solid rgba(164,217,149,.28)!important;border-radius:19px!important}
+.pilot-home .pilot-home-stepnum{border:1px solid #c8f3b6;box-shadow:0 0 0 5px rgba(187,255,133,.11)}
+.pilot-home .pilot-home-step-orange{border-color:#ffdabd;box-shadow:0 0 0 5px rgba(255,157,83,.08)}
+.pilot-home-guidance{display:flex;align-items:center;gap:10px;font-size:12px;font-weight:800;color:#678b57;margin:1px 4px -4px;letter-spacing:.03em}
+.pilot-home-guidance:before{content:"";width:8px;height:8px;border-radius:50%;background:#89ee37;box-shadow:0 0 0 5px rgba(135,246,49,.13)}
+.pilot-home .pilot-home-next-head h2{font-size:23px!important}
+.pilot-home .command-card{border-radius:19px!important}
+.pilot-home .pilot-home-action-more summary{color:#5e8454}
+.pilot-screen .goal-success-item{display:grid;grid-template-columns:1fr minmax(170px,265px);gap:20px;border-radius:24px;margin:14px 0;padding:23px;background:radial-gradient(circle at 95% 5%,rgba(141,255,70,.095),transparent 42%),#fff!important}
+.pilot-mission-list{display:grid;gap:13px}
+.pilot-mission{border:1px solid rgba(143,202,133,.25);background:linear-gradient(120deg,rgba(255,255,255,.96),rgba(246,255,242,.92));border-radius:24px;padding:21px 24px;box-shadow:var(--pilot-depth);position:relative;overflow:hidden}
+.pilot-mission:before{content:"";position:absolute;left:0;top:21px;bottom:21px;width:3px;border-radius:8px;background:linear-gradient(#8cf337,#ff832e)}
+.pilot-mission-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.pilot-mission h3{font-size:clamp(17px,2.3vw,23px);line-height:1.26;margin:0 0 8px;letter-spacing:-.038em}
+.pilot-mission p{font-size:13px;color:#718273;margin:0 0 16px;line-height:1.55}
+.pilot-mission-signals{display:flex;align-items:center;gap:11px;flex-wrap:wrap}
+.pilot-mission-signal{font-size:11px;font-weight:900;color:#517347;background:#effce7;border:1px solid #d7efcc;border-radius:999px;padding:7px 11px}
+.pilot-mission-signal.orange{background:#fff3e9;border-color:#ffdfc7;color:#a75d2d}
+.pilot-mission-track{height:6px;border-radius:99px;background:#e9f1e4;overflow:hidden;margin-top:14px}
+.pilot-mission-fill{height:100%;background:linear-gradient(90deg,#8ef63b,#ff982f);border-radius:99px}
+.pilot-artifact-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:13px}
+.pilot-artifact{padding:21px;border:1px solid rgba(135,203,128,.23);border-radius:22px;background:linear-gradient(125deg,#fff,#fafff8);min-width:0;overflow-wrap:anywhere}
+.pilot-artifact h3{margin:11px 0 8px;font-size:18px;letter-spacing:-.04em}
+.pilot-artifact-body{max-height:225px;overflow:auto;padding-right:3px;white-space:pre-wrap;font-size:13px;line-height:1.6;color:#5f7466}
+.pilot-artifact .btns{margin-top:14px}
+.pilot-knowledge-zone{display:grid;grid-template-columns:1fr 1.2fr;gap:17px}
+.pilot-knowledge-zone .card{min-width:0}
+.pilot-document-list .item{display:flex;align-items:center;gap:12px}
+.pilot-document-symbol{width:38px;height:38px;display:grid;place-items:center;flex:0 0 38px;border-radius:13px;background:#e9ffdc;color:#438424;font-size:23px}
+.pilot-process-track{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:12px}
+.pilot-process-step{border:1px solid rgba(142,204,130,.20);border-radius:21px;padding:18px 16px;background:rgba(255,255,255,.84);position:relative}
+.pilot-process-step:before{content:"";display:block;width:8px;height:8px;border-radius:50%;background:#8bef30;box-shadow:0 0 0 5px #eeffe4;margin-bottom:15px}
+.pilot-process-step.completed:before{background:#51be20}
+.pilot-process-step.running:before{background:#ff893a;box-shadow:0 0 0 5px #fff1e5;animation:pilotSignal 1.9s ease-in-out infinite}
+.pilot-process-step small{display:block;letter-spacing:.12em;font-weight:900;color:#8a9b89;font-size:10px;margin-bottom:7px}
+.pilot-process-step strong{display:block;font-size:14px;color:#28432b}
+.pilot-process-step .btns{margin-top:11px}
+.pilot-screen-footnote{padding:5px 2px;color:#809281;font-size:12px;line-height:1.6}
+.pilot-connection-label{display:inline-flex;align-items:center;gap:7px;color:#426c39;font-size:11px;font-weight:900}
+.pilot-connection-label:before{content:"";width:9px;height:9px;border-radius:50%;background:#8df42f;box-shadow:0 0 0 4px rgba(159,255,74,.17)}
+/* Uniform holographic/system dialogs, never browser-native prompts */
+.nx-mask{background:rgba(22,39,28,.24)!important;backdrop-filter:blur(11px)!important;-webkit-backdrop-filter:blur(11px)!important}
+.nx-modal{border-radius:34px!important;border:1px solid rgba(146,228,91,.33)!important;background:radial-gradient(circle at 100% 0%,rgba(160,255,81,.18),transparent 41%),radial-gradient(circle at 0 100%,rgba(255,146,71,.07),transparent 43%),#fff!important;box-shadow:0 35px 100px rgba(26,56,25,.21),0 0 0 1px rgba(255,255,255,.75) inset!important}
+.nx-modal:before{height:5px!important;background:linear-gradient(90deg,#97ff3e,#60db22 60%,#ff782b)!important}
+.nx-modal .nx-symbol{border-radius:19px;background:radial-gradient(circle at 22% 20%,#fff,#dcffc6);border-color:#ccf2b4;box-shadow:0 0 0 5px rgba(151,255,65,.10)}
+.nx-modal .nx-kicker{color:#6d906b}
+.nx-modal h2{letter-spacing:-.05em;color:#1b2e1c}
+.nx-modal .nx-description{color:#687b69}
+.nx-modal input,.nx-modal textarea{background:#fcfffa;border:1px solid #dcebd5;border-radius:18px}
+.nx-modal input:focus,.nx-modal textarea:focus{border-color:#86ef39;box-shadow:0 0 0 4px rgba(143,247,56,.12)}
+.nx-action{border-radius:17px!important;min-height:49px!important;font-weight:900}
+.nx-action.accent{background:linear-gradient(105deg,#afff5d,#78e624)!important;box-shadow:0 9px 24px rgba(112,219,37,.17)!important;color:#1a3b17}
+.nx-action.orange{background:#fff2e8!important;border-color:#ffd4b2!important}
+/* Mobile: a calm nav dock and usable focus zone, no dark shell */
+@media(max-width:820px){
+ .side{border-top:1px solid rgba(149,191,139,.25)!important;background:rgba(252,255,251,.96)!important;box-shadow:0 -10px 36px rgba(38,74,30,.055)!important}
+ .side nav{justify-content:space-around}
+ .nav{min-width:62px!important;padding:8px 6px!important;border-radius:18px!important;min-height:63px}
+ .nav.active{box-shadow:inset 0 -3px #8cf52d,0 6px 17px rgba(106,199,63,.07)!important}
+ .nav .pilot-nav-icon{height:25px;font-size:23px;flex-basis:25px}
+ .nav span:last-child{font-size:10px!important}
+ .pilot-screen{gap:13px}
+ .pilot-screen-head{min-height:150px;padding:21px;border-radius:25px;gap:9px}
+ .pilot-screen-head h2{font-size:clamp(24px,7vw,35px)}
+ .pilot-screen-head p{font-size:12px}
+ .pilot-intel-core{flex-basis:91px;width:91px;height:91px}
+ .pilot-intel-core:before{inset:2px}
+ .pilot-intel-core:after{inset:13px}
+ .pilot-intel-core span{width:48px;height:48px;font-size:27px}
+ .pilot-home .pilot-home-compose{border-radius:27px!important}
+ .pilot-home-steps:before{top:15px}
+ .pilot-knowledge-zone{grid-template-columns:1fr}
+ .pilot-mission{padding:18px}
+ .pilot-screen .goal-success-item{grid-template-columns:1fr;padding:16px}
+ .pilot-artifact-grid{grid-template-columns:1fr}
+ .pilot-process-track{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:430px){
+ .pilot-screen-head{padding:17px;min-height:136px}
+ .pilot-screen-head h2{font-size:26px}
+ .pilot-screen-head p{font-size:12px}
+ .pilot-intel-core{width:77px;height:77px;flex-basis:77px}
+ .pilot-intel-core span{width:39px;height:39px;font-size:24px}
+ .head .ey{font-size:9px}
+ .head h1{font-size:30px}
+ .pilot-home .pilot-home-card-head h2{font-size:25px!important}
+ .pilot-home .pilot-home-guide{padding:17px!important}
+ .pilot-process-track{grid-template-columns:1fr}
+ .pilot-screen .card{padding:18px}
+}
+@media(prefers-reduced-motion:reduce){
+ html{scroll-behavior:auto}
+ .pilot-intel-core::before,.pilot-intel-core::after,.head .status .dot,.pilot-process-step.running:before{animation:none!important}
+}
+
 </style></head>
 <body>
 <section id="auth" class="auth"><div class="box">
@@ -1730,7 +1904,7 @@ input,textarea{border-radius:var(--radius-input)}.btn{border-radius:var(--radius
 </div>
 
 <section id="app" class="shell hidden"><aside class="side"><div class="brand"><div class="brand-meta"><img src="/nexaro-transparent-logo.webp" class="brand-logo" alt="neXaro Solutions"><div class="ey">Pilot-Kommandozentrale</div></div></div>
-<nav><button class="nav active" data-view="home">⌂ <span>Zentrale</span></button><button class="nav" data-view="goals">◎ <span>Ziele</span></button><button class="nav" data-view="documents">⌑ <span>Dokumente</span></button><button class="nav" data-view="results">▣ <span>Ergebnisse</span></button><button class="nav" data-view="execution">↗ <span>Ausführung</span></button><button class="nav auxiliary-nav" data-view="canva">✦ <span>Gestaltung</span></button><button class="nav admin-only hidden" data-view="roadmap">◫ <span>Entwicklungsplan</span></button><button class="nav admin-only hidden" data-view="alpha">✓ <span>Systemtest</span></button><button class="nav account-nav" data-view="me">⚙ <span>Einstellungen</span></button></nav>
+<nav><button class="nav active" data-view="home" aria-label="Zentrale"><span class="pilot-nav-icon" aria-hidden="true">⌂</span><span>Zentrale</span></button><button class="nav" data-view="goals" aria-label="Ziele"><span class="pilot-nav-icon" aria-hidden="true">◎</span><span>Ziele</span></button><button class="nav" data-view="documents" aria-label="Dokumente"><span class="pilot-nav-icon" aria-hidden="true">⌑</span><span>Dokumente</span></button><button class="nav" data-view="results" aria-label="Ergebnisse"><span class="pilot-nav-icon" aria-hidden="true">▣</span><span>Ergebnisse</span></button><button class="nav" data-view="execution" aria-label="Ausführung"><span class="pilot-nav-icon" aria-hidden="true">↗</span><span>Ausführung</span></button><button class="nav auxiliary-nav" data-view="canva" aria-label="Gestaltung"><span class="pilot-nav-icon" aria-hidden="true">✦</span><span>Gestaltung</span></button><button class="nav admin-only hidden" data-view="roadmap" aria-label="Entwicklungsplan"><span class="pilot-nav-icon" aria-hidden="true">◫</span><span>Entwicklungsplan</span></button><button class="nav admin-only hidden" data-view="alpha" aria-label="Systemtest"><span class="pilot-nav-icon" aria-hidden="true">✓</span><span>Systemtest</span></button><button class="nav account-nav" data-view="me" aria-label="Einstellungen"><span class="pilot-nav-icon" aria-hidden="true">⚙</span><span>Einstellungen</span></button></nav>
 <button id="logout" class="btn logout">Abmelden</button></aside>
 <main class="main"><div class="head"><div><div class="ey">PILOT · KOMMANDOZENTRALE</div><h1 id="title">Home</h1></div><div class="head-actions"><button id="adminSystem" class="head-tool admin-only hidden" data-view="admin">Admin</button><button id="customerPreviewToggle" class="head-tool admin-preview hidden" type="button">Kundenansicht</button><button id="accountButton" class="head-tool" data-view="me">Profil</button><div class="status"><span class="dot"></span><span id="pilotStatus">Pilot bereit</span></div></div></div><div id="view"></div></main></section><div id="pilotFlightLayer" aria-hidden="true"></div>
 
@@ -1947,7 +2121,7 @@ async function startGoalResearch(goalId){
     console.warn("Pilot background research temporarily unavailable");
   }finally{researchBusy=false}
 }
-function render(){if(!effectiveAdmin()&&["roadmap","alpha","admin"].includes(current))current="home";applyRoleUI();document.querySelectorAll("[data-view]").forEach(b=>b.classList.toggle("active",b.dataset.view===current));T.textContent={home:"Zentrale",goals:"Ziele",documents:"Dokumente",results:"Ergebnisse",execution:"Ausführung",canva:"Gestaltung",roadmap:"Entwicklungsplan",alpha:"Systemtest",admin:"Admin-Cockpit",me:"Einstellungen"}[current];V.innerHTML={home:home,goals:goalsView,documents:documentsView,results:resultsView,execution:executionView,canva:canvaView,roadmap:roadmap,alpha:alphaView,admin:adminView,me:me}[current]();bind()}
+function render(){if(!effectiveAdmin()&&["roadmap","alpha","admin"].includes(current))current="home";applyRoleUI();document.querySelectorAll("[data-view]").forEach(b=>b.classList.toggle("active",b.dataset.view===current));T.textContent={home:"Zentrale",goals:"Ziele",documents:"Dokumente",results:"Ergebnisse",execution:"Ausführung",canva:"Gestaltung",roadmap:"Entwicklungsplan",alpha:"Systemtest",admin:"Admin-Cockpit",me:"Einstellungen"}[current];V.dataset.screen=current;V.innerHTML={home:home,goals:goalsView,documents:documentsView,results:resultsView,execution:executionView,canva:canvaView,roadmap:roadmap,alpha:alphaView,admin:adminView,me:me}[current]();bind()}
 
 function formatBytes(n){const v=Number(n||0);if(v<1024)return v+" B";if(v<1024*1024)return (v/1024).toFixed(1)+" KB";return (v/1024/1024).toFixed(1)+" MB"}
 function renderAttachmentTray(){
@@ -2103,7 +2277,7 @@ function nxOpenNext(){
   const mask=document.createElement("div");mask.className="nx-mask";
   const safe=esc;
   mask.innerHTML='<section class="nx-modal" role="dialog" aria-modal="true" aria-labelledby="nxTitle" aria-describedby="nxDesc">'+
-    '<div class="nx-top"><div class="nx-symbol" aria-hidden="true">✦</div><span class="nx-kicker">neXaro · PILOT · Alpha 2026.10.08.15</span><button type="button" class="nx-close" aria-label="Schließen">×</button></div>'+
+    '<div class="nx-top"><div class="nx-symbol" aria-hidden="true">✦</div><span class="nx-kicker">neXaro · PILOT · LUMEN 2026.10.08.16</span><button type="button" class="nx-close" aria-label="Schließen">×</button></div>'+
     '<h2 id="nxTitle">'+safe(config.title||"Pilot fragt nach")+'</h2><p class="nx-description" id="nxDesc">'+safe(config.description||"Bitte ergänze die noch fehlenden Angaben.")+'</p>'+
     '<form novalidate><div class="nx-fields">'+fields.map((f,i)=>'<div class="nx-field"><label for="nxInput'+i+'">'+safe(f.label)+'</label>'+
       (f.short?'<input id="nxInput'+i+'" type="text" name="'+safe(f.key)+'" maxlength="500" placeholder="'+safe(f.placeholder||"")+'" data-required="'+(f.required?"1":"0")+'">':
