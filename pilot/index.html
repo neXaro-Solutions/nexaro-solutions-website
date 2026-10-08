@@ -1979,6 +1979,13 @@ body{background:radial-gradient(ellipse 72vw 60vw at 92% -10%,rgba(145,255,62,.1
 @media(max-width:600px){.pilot-review-card{padding:15px!important}.pilot-review-card .pilot-home-action-buttons>.btn{width:100%}.pilot-auto-status{align-items:start}.pilot-auto-status>button{width:100%;max-width:none}}
 @media(prefers-reduced-motion:reduce){.pilot-auto-orbit{animation:none!important}}
 
+
+/* Retry feedback: accurate status without exposing raw upstream exceptions. */
+.pilot-execution-retry-note{display:flex;align-items:flex-start;gap:12px;margin:13px 0;padding:14px 16px;border-radius:18px;border:1px solid rgba(255,139,49,.30);background:linear-gradient(105deg,#fff8ef,#fff)}
+.pilot-execution-retry-note>span{display:grid;place-items:center;flex:0 0 32px;width:32px;height:32px;border-radius:12px;background:#fff0de;color:#b66221;font-size:23px}
+.pilot-execution-retry-note strong{display:block;font-size:13px;color:#855027}
+.pilot-execution-retry-note small{display:block;margin-top:4px;font-size:12px;line-height:1.5;color:#866c55}
+
 </style></head>
 <body>
 <section id="auth" class="auth"><div class="box">
@@ -2168,11 +2175,13 @@ function home(){
       '</div>'+
       '<div class="pilot-home-progress"><div class="pilot-home-progress-bar" style="width:'+verified+'%"></div></div>'+
     '</section>':'<section class="pilot-home-empty">Noch kein aktiver Auftrag. Starte oben dein erstes Ziel – Pilot plant die nächsten Schritte mit dir.</section>';
+  const previousFailed=executions.find(x=>x.status==="failed"&&x.goal_id===g?.id);
+  const failureInfo=previousFailed?'<div class="pilot-execution-retry-note" role="status"><span aria-hidden="true">↻</span><div><strong>Letzter Arbeitsversuch unterbrochen</strong><small>Pilot hat diesen Schritt nicht abgeschlossen. Dein Ziel bleibt erhalten. Du kannst den Schritt unten erneut starten.</small></div></div>':'';
   const action=g?'<section class="pilot-home-card operation-panel pilot-home-next" id="pilotNextActionPanel" aria-labelledby="homeNextTitle">'+
       '<div class="pilot-home-next-head"><div><span class="pilot-home-eyebrow">DEIN NÄCHSTER SCHRITT</span><h2 id="homeNextTitle">Nächste Aktion</h2></div>'+
       (effectiveAdmin()&&n&&!approval&&!interruption?'<button class="btn pilot-flight-preview" id="pilotLandingPreview" type="button">✈ Flug &amp; Landung testen</button>':'')+
       '</div>'+
-      pilotAutoStatusCard()+
+      pilotAutoStatusCard()+failureInfo+
       (approval?pilotReviewCard(approval):
        interruption?'<div class="command-card pilot-review-card"><div class="pilot-review-label">PILOT WARTET</div><h3>'+esc(deStatus(interruption.status))+'</h3>'+
           '<p>Dieser Ausführungsschritt benötigt Aufmerksamkeit oder läuft noch. Pilot startet keine weitere Aktion, bis er geklärt ist.</p>'+
@@ -2625,7 +2634,7 @@ function nxOpenNext(){
   const mask=document.createElement("div");mask.className="nx-mask";
   const safe=esc;
   mask.innerHTML='<section class="nx-modal" role="dialog" aria-modal="true" aria-labelledby="nxTitle" aria-describedby="nxDesc">'+
-    '<div class="nx-top"><div class="nx-symbol" aria-hidden="true">✦</div><span class="nx-kicker">neXaro · PILOT · LUMEN 2026.10.08.20</span><button type="button" class="nx-close" aria-label="Schließen">×</button></div>'+
+    '<div class="nx-top"><div class="nx-symbol" aria-hidden="true">✦</div><span class="nx-kicker">neXaro · PILOT · LUMEN 2026.10.08.21</span><button type="button" class="nx-close" aria-label="Schließen">×</button></div>'+
     '<h2 id="nxTitle">'+safe(config.title||"Pilot fragt nach")+'</h2><p class="nx-description" id="nxDesc">'+safe(config.description||"Bitte ergänze die noch fehlenden Angaben.")+'</p>'+
     '<form novalidate><div class="nx-fields">'+fields.map((f,i)=>'<div class="nx-field"><label for="nxInput'+i+'">'+safe(f.label)+'</label>'+
       (f.short?'<input id="nxInput'+i+'" type="text" name="'+safe(f.key)+'" maxlength="500" placeholder="'+safe(f.placeholder||"")+'" data-required="'+(f.required?"1":"0")+'">':
@@ -2683,6 +2692,19 @@ async function pilotApiError(response,fallback){
   }
   if(extracted?.reason_code==="safety_provider_unavailable"||extracted?.error==="safety_check_unavailable"){
     return new Error("Die Sicherheitsprüfung ist derzeit technisch nicht verfügbar. Deshalb wird der Auftrag noch nicht ausgeführt. Dein Auftrag wurde nicht als unzulässig eingestuft. (Code: SAFETY_PROVIDER_UNAVAILABLE)");
+  }
+  // Never expose raw provider or invalid-JSON exceptions in a customer dialog.
+  if(extracted?.error==="execution_failed"||extracted?.error==="research_temporarily_unavailable"||
+      extracted?.error==="execution_engine_unavailable"||extracted?.error==="research_gateway_unavailable"||
+      /^UPSTREAM_/.test(String(extracted?.reason_code||""))){
+    const code=String(extracted?.reason_code||"").toUpperCase();
+    const research=code.includes("RESEARCH")||code.includes("GATEWAY");
+    return new Error(research
+      ?"Pilot konnte die erforderliche Recherche gerade nicht zuverlässig abschließen. Der Auftrag bleibt erhalten. Bitte starte diesen Arbeitsschritt erneut; ohne überprüfbare Quellen wird kein Ergebnis als fertig markiert."
+      :"Pilot hat einen technischen Fehler bei der Auftragsausführung erkannt. Dein Ziel und die bisherigen Angaben bleiben erhalten. Bitte versuche den Arbeitsschritt erneut.");
+  }
+  if(/unexpected token|not valid json|internal server error|response\.json|failed to fetch/i.test(String(response?.error?.message||""))){
+    return new Error("Pilot hat eine ungültige Serverantwort erhalten. Dein Auftrag bleibt gespeichert und kann erneut ausgeführt werden. Bitte versuche es noch einmal.");
   }
   if(extracted?.error==="invalid_session"||extracted?.error==="auth_required")
     return new Error("Deine Anmeldung ist nicht mehr gültig. Bitte melde dich erneut an.");
