@@ -253,7 +253,9 @@ for(const safetyGuard of [
   "'user_confirmed_review'",
   "expected_revision_id"
 ])assert(migrationSQL.includes(safetyGuard),"Migration safeguard missing: "+safetyGuard);
-assert(frontend.includes("Pilot übernimmt "+reusedDecisions+" bestätigte Projektentscheidung"),
+assert(frontend.includes('const reusedDecisions=Number(data.decision_journal?.reused||0);'),
+  "UI must read the returned verified-decision count");
+assert(frontend.includes('pilotNotice("Pilot übernimmt "+reusedDecisions'),
   "Users must see that an earlier confirmed choice is being reused");
 console.log("PASS Verified-only migration, revocation protection and human-readable UI notice");
 
