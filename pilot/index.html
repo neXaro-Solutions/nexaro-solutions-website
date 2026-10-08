@@ -1929,6 +1929,7 @@ async function createGoal(){
   setTimeout(()=>{if(PS.textContent==="Pilot hebt ab …")PS.textContent="Pilot versteht …"},650);
 
   try{
+    let resolutionPayload={force_new_goal:true};
     let r=await sb.functions.invoke("pilot-intelligence",{body:{input:text}});
     if(r.error)throw new Error(r.data?.error||r.error.message||"Pilot konnte den Auftrag nicht einordnen.");
     let data=r.data;
@@ -1939,9 +1940,11 @@ async function createGoal(){
        if(choice===null){PS.textContent="Pilot bereit";btn.disabled=false;btn.textContent="✈ Pilot jetzt starten";btn.classList.remove("launching");return;}
 
       if(choice==="existing"){
-        r=await sb.functions.invoke("pilot-intelligence",{body:{input:text,existing_goal_id:data.candidate_goal.id}});
+        resolutionPayload={existing_goal_id:data.candidate_goal.id};
+        r=await sb.functions.invoke("pilot-intelligence",{body:{input:text,...resolutionPayload}});
       }else{
-        r=await sb.functions.invoke("pilot-intelligence",{body:{input:text,force_new_goal:true}});
+        resolutionPayload={force_new_goal:true};
+        r=await sb.functions.invoke("pilot-intelligence",{body:{input:text,...resolutionPayload}});
       }
 
       if(r.error)throw new Error(r.data?.error||r.error.message||"Pilot konnte die Zielentscheidung nicht übernehmen.");
@@ -1952,7 +1955,7 @@ async function createGoal(){
       const answers=await pilotAskQuestions(data.questions);
       if(!answers){PS.textContent="Pilot bereit";btn.disabled=false;btn.textContent="✈ Pilot jetzt starten";btn.classList.remove("launching");return;}
       PS.textContent="Pilot plant …";
-      r=await sb.functions.invoke("pilot-intelligence",{body:{input:text,intent:data.intent,answers,force_new_goal:true}});
+      r=await sb.functions.invoke("pilot-intelligence",{body:{input:text,intent:data.intent,answers,...resolutionPayload}});
       if(r.error)throw new Error(r.data?.error||r.error.message||"Pilot konnte den Plan nicht erstellen.");
       data=r.data;
     }
