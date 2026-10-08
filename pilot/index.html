@@ -1591,7 +1591,7 @@ input,textarea{border-radius:var(--radius-input)}.btn{border-radius:var(--radius
 import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
 const sb=createClient("https://qfrylqxbqmuafyvnqkey.supabase.co","sb_publishable_-6dNvI99H1Tf-uhOLXGIQw_2b2yCzQF");
 const A=document.getElementById("auth"),APP=document.getElementById("app"),V=document.getElementById("view"),T=document.getElementById("title"),PS=document.getElementById("pilotStatus");
-let user=null,org=null,isAdmin=false,customerPreview=false,adminData=null,pendingAttachments=[],goalSuccessMap={},goals=[],features=[],plans=[],actions=[],contexts=[],milestones=[],documents=[],results=[],claims=[],evidence=[],completeness=[],progressEvents=[],outcomes=[],adaptations=[],pilotState=null,aiRequests=[],qualityContracts=[],consensusRuns=[],executions=[],executionSteps=[],designJobs=[],canvaStatus=null,notifications=[],readiness=[],evalRuns=[],current="home";
+let user=null,org=null,isAdmin=false,customerPreview=false,adminData=null,pendingAttachments=[],goalSuccessMap={},goals=[],features=[],plans=[],actions=[],contexts=[],milestones=[],documents=[],results=[],claims=[],evidence=[],completeness=[],progressEvents=[],outcomes=[],adaptations=[],pilotState=null,aiRequests=[],qualityContracts=[],consensusRuns=[],executions=[],executionSteps=[],designJobs=[],canvaStatus=null,notifications=[],readiness=[],evalRuns=[],researchSnapshot=null,knowledgeSnapshot=[],researchBusy=false,researchAttempted=new Set(),current="home";
 async function telemetry(type,payload){try{await sb.functions.invoke("telemetry",{body:{type,...payload}})}catch(e){}}
 window.addEventListener("error",e=>{if(user)telemetry("incident",{source:"client",severity:"error",error_code:"CLIENT_ERROR",message:e.message||"Client error",metadata:{filename:e.filename,lineno:e.lineno}})});
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -1619,6 +1619,16 @@ async function load(){
   }
 
   if(goals[0]){const gid=goals[0].id;const [p,a,c,mi,d,r,cl,ev,co,pe,ou,ad,ps,air,qc]=await Promise.all([sb.from("plans").select("*").eq("goal_id",gid).order("version",{ascending:false}),sb.from("actions").select("*").eq("goal_id",gid).order("created_at",{ascending:true}),sb.from("context_items").select("context_type,key,value").eq("goal_id",gid),sb.from("milestones").select("*").eq("goal_id",gid).order("created_at",{ascending:true}),sb.from("documents").select("*").eq("owner_id",user.id).order("created_at",{ascending:false}),sb.from("results").select("*").eq("goal_id",gid).order("created_at",{ascending:false}),sb.from("claims").select("*").order("created_at",{ascending:false}),sb.from("evidence").select("*").order("created_at",{ascending:false}),sb.from("completeness_checks").select("*").eq("goal_id",gid).order("created_at",{ascending:false}),sb.from("progress_events").select("*").eq("goal_id",gid).order("created_at",{ascending:false}),sb.from("outcomes").select("*").eq("goal_id",gid).order("updated_at",{ascending:false}),sb.from("adaptation_events").select("*").eq("goal_id",gid).order("created_at",{ascending:false}),sb.from("pilot_states").select("*").eq("goal_id",gid).eq("user_id",user.id).limit(1),sb.from("ai_requests").select("*").eq("goal_id",gid).order("created_at",{ascending:false}).limit(10),sb.from("quality_contracts").select("*").eq("goal_id",gid).order("created_at",{ascending:false}).limit(10)]);for(const x of [p,a,c,mi,d,r,cl,ev,co,pe,ou,ad,ps,air,qc])if(x.error)throw x.error;plans=p.data||[];actions=a.data||[];contexts=c.data||[];milestones=mi.data||[];documents=d.data||[];results=r.data||[];claims=cl.data||[];evidence=ev.data||[];completeness=co.data||[];progressEvents=pe.data||[];outcomes=ou.data||[];adaptations=ad.data||[];pilotState=ps.data?.[0]||null;aiRequests=air.data||[];qualityContracts=qc.data||[];const [no,rd,er,cr,ex,es,dj,cs]=await Promise.all([sb.from("notifications").select("*").eq("user_id",user.id).order("created_at",{ascending:false}).limit(20),isAdmin?sb.from("alpha_readiness_checks").select("*").order("category"):Promise.resolve({data:[],error:null}),isAdmin?sb.from("evaluation_runs").select("*").order("started_at",{ascending:false}).limit(5):Promise.resolve({data:[],error:null}),sb.from("ai_consensus_runs").select("*").eq("goal_id",gid).order("created_at",{ascending:false}).limit(10),sb.from("executions").select("*").eq("goal_id",gid).order("created_at",{ascending:false}).limit(10),sb.from("execution_steps").select("*").order("created_at",{ascending:false}).limit(100),sb.from("design_jobs").select("*").eq("user_id",user.id).order("created_at",{ascending:false}).limit(30),sb.functions.invoke("canva-status",{body:{}})]);if(no.error)throw no.error;if(rd.error)throw rd.error;if(er.error)throw er.error;if(cr.error)throw cr.error;if(ex.error)throw ex.error;if(es.error)throw es.error;if(dj.error)throw dj.error;notifications=no.data||[];readiness=rd.data||[];evalRuns=er.data||[];consensusRuns=cr.data||[];executions=ex.data||[];executionSteps=es.data||[];designJobs=dj.data||[];canvaStatus=cs.error?null:cs.data}else{plans=[];actions=[];contexts=[];milestones=[];const d=await sb.from("documents").select("*").eq("owner_id",user.id).order("created_at",{ascending:false});documents=d.data||[];results=[];claims=[];evidence=[];completeness=[];progressEvents=[];outcomes=[];adaptations=[];pilotState=null;aiRequests=[];qualityContracts=[];consensusRuns=[];executions=[];executionSteps=[];const dj=await sb.from("design_jobs").select("*").eq("user_id",user.id).order("created_at",{ascending:false}).limit(30);designJobs=dj.data||[];const cs=await sb.functions.invoke("canva-status",{body:{}});canvaStatus=cs.error?null:cs.data}
+  if(goals[0]){
+    const gid=goals[0].id;
+    const [rs,ki]=await Promise.all([
+      sb.from("goal_research_state").select("*").eq("goal_id",gid).maybeSingle(),
+      sb.from("goal_knowledge").select("statement,category,evidence,evidence_status,review_after,confidence")
+        .eq("goal_id",gid).eq("active",true).order("retrieved_at",{ascending:false}).limit(10)
+    ]);
+    if(rs.error||ki.error)throw (rs.error||ki.error);
+    researchSnapshot=rs.data||null;knowledgeSnapshot=ki.data||[];
+  }else{researchSnapshot=null;knowledgeSnapshot=[]}
 }
 
 function successFromData(ms=[],os=[]){
@@ -1748,7 +1758,49 @@ async function changeAdminRole(el){
 function me(){return '<div class="grid"><div class="card"><h2>Profil</h2><div class="stat"><span class="muted">E-Mail</span><strong>'+esc(user.email)+'</strong></div><div class="stat"><span class="muted">Arbeitsbereich</span><strong>Personal</strong></div></div><div class="card"><h3>Sicherheit</h3><p class="muted">Pilot Intelligence verarbeitet nur deine User-Session. Alle Schreib- und Lesezugriffe bleiben unter Row-Level-Sicherheit.</p></div></div>'}
 function effectiveAdmin(){return isAdmin&&!customerPreview}
 function applyRoleUI(){document.querySelectorAll(".admin-only").forEach(el=>el.classList.toggle("hidden",!effectiveAdmin()));document.querySelectorAll(".admin-preview").forEach(el=>el.classList.toggle("hidden",!isAdmin));const p=document.getElementById("customerPreviewToggle");if(p)p.textContent=customerPreview?"Adminansicht":"Kundenansicht"}
-function render(){if(!effectiveAdmin()&&["roadmap","alpha","admin"].includes(current))current="home";applyRoleUI();document.querySelectorAll("[data-view]").forEach(b=>b.classList.toggle("active",b.dataset.view===current));T.textContent={home:"Zentrale",goals:"Ziele",documents:"Dokumente",results:"Ergebnisse",execution:"Ausführung",canva:"Gestaltung",roadmap:"Entwicklungsplan",alpha:"Systemtest",admin:"Admin-Cockpit",me:"Einstellungen"}[current];V.innerHTML={home:home,goals:goalsView,documents:documentsView,results:resultsView,execution:executionView,canva:canvaView,roadmap:roadmap,alpha:alphaView,admin:adminView,me:me}[current]();bind()}
+
+function researchPanelHtml(){
+  if(!goals[0])return "";
+  const state=researchSnapshot, busy=researchBusy||state?.status==="running";
+  const status=busy?"Recherche läuft":state?.status==="completed"?"Quellen erfasst":state?.status==="limited"?"Grundlage noch unvollständig":state?.status==="failed"?"Recherche unterbrochen":"Recherche noch nicht gestartet";
+  const sources=(state?.sources||[]).slice(0,6);
+  const usable=knowledgeSnapshot.filter(k=>k.evidence_status==="sourced"&&Date.parse(k.review_after)>Date.now()).length;
+  const legal=knowledgeSnapshot.filter(k=>k.evidence_status==="review_required").length;
+  return '<section class="card nx-research-panel" style="margin-top:20px;background:linear-gradient(145deg,#f5fff0,#fff 54%,#fffaf6);border:1px solid #dfead8;border-radius:24px">'+
+    '<div class="section-head"><div><div class="ey">ÖFFENTLICHE QUELLEN · ZIELWISSEN</div><h3 style="font-size:23px;letter-spacing:-.03em;margin:6px 0">◈ Pilots Wissensbasis</h3></div><span class="badge '+(state?.status==="completed"?"green":"orange")+'">'+esc(status)+'</span></div>'+
+    '<p class="muted">Pilot sammelt öffentliche Grundlagen mit Quellen, Abrufdatum und Prüfstatus. Amtliche Informationen haben Vorrang vor Suchtreffern; rechtliche Aussagen benötigen eine aktuelle Prüfung.</p>'+
+    '<div class="kpi-grid"><div class="kpi"><span>Quellen</span><strong>'+Number(state?.source_count||0)+'</strong></div><div class="kpi"><span>Quellenbezogene Fakten</span><strong>'+Number(state?.knowledge_count||0)+'</strong></div><div class="kpi"><span>Nachprüfen</span><strong>'+legal+'</strong></div></div>'+
+    (sources.length?'<div class="nx-research-links">'+sources.map(item=>{
+      const url=String(item.url||"");if(!/^https:\/\//.test(url))return "";
+      return '<div class="item" style="padding:12px;margin-top:9px"><span class="badge">'+esc(item.trust_tier==="primary"?"Amtliche/Fachquelle":"Hintergrund")+'</span><a href="'+esc(url)+'" target="_blank" rel="noopener noreferrer" style="font-weight:760;color:#345c23;text-decoration:underline;display:block;margin-top:6px">'+esc(item.title||"Quelle")+' ↗</a></div>';
+    }).join("")+'</div>':'<p class="muted">Noch keine verlässlich abgerufenen Quellen vorhanden.</p>')+
+    (state?.limitations?.length?'<p class="muted" style="margin-top:10px">Hinweis: '+esc(state.limitations.slice(0,2).join(" · "))+'</p>':"")+
+    '<p class="muted" style="margin-top:12px">Belegte Angaben zur Ausführung verfügbar: '+usable+'.'+(state?.last_checked_at?' Letzte Prüfung: '+esc(new Date(state.last_checked_at).toLocaleDateString("de-DE"))+'.':'')+'</p>'+
+    '<div class="btns"><button id="refreshKnowledge" class="btn" '+(busy?'disabled':'')+'>'+(busy?"Pilot recherchiert …":"Quellen erneut prüfen")+'</button></div></section>';
+}
+async function startGoalResearch(goalId,refresh=false){
+  if(!goalId||researchBusy)return;
+  if(!refresh&&researchAttempted.has(goalId))return;
+  researchAttempted.add(goalId);
+  researchBusy=true;
+  if(goals[0]?.id===goalId&&["home","goals"].includes(current))render();
+  try{
+    const res=await sb.functions.invoke("research-bootstrap",{body:{goal_id:goalId,refresh}});
+    if(res.error)throw new Error(res.data?.detail||res.data?.error||res.error.message||"Quellenrecherche fehlgeschlagen");
+    if(user && goals[0]?.id===goalId){await load();render();}
+  }catch(err){
+    if(user){PS.textContent="Quellenrecherche benötigt erneuten Versuch";
+      await telemetry("incident",{goal_id:goalId,source:"research_bootstrap",severity:"warning",error_code:"RESEARCH_BOOTSTRAP_FAILED",message:err.message||String(err)});
+      if(!researchSnapshot)researchSnapshot={status:"failed",source_count:0,knowledge_count:0,sources:[],limitations:["Der Wissensaufbau konnte nicht abgeschlossen werden. Erneut versuchen."]};
+      render();
+    }
+  }finally{
+    researchBusy=false;
+    if(user&&goals[0]?.id===goalId){PS.textContent="Pilot bereit";render();}
+  }
+}
+
+function render(){if(!effectiveAdmin()&&["roadmap","alpha","admin"].includes(current))current="home";applyRoleUI();document.querySelectorAll("[data-view]").forEach(b=>b.classList.toggle("active",b.dataset.view===current));T.textContent={home:"Zentrale",goals:"Ziele",documents:"Dokumente",results:"Ergebnisse",execution:"Ausführung",canva:"Gestaltung",roadmap:"Entwicklungsplan",alpha:"Systemtest",admin:"Admin-Cockpit",me:"Einstellungen"}[current];V.innerHTML={home:home,goals:goalsView,documents:documentsView,results:resultsView,execution:executionView,canva:canvaView,roadmap:roadmap,alpha:alphaView,admin:adminView,me:me}[current]();if(goals[0]&&["home","goals"].includes(current))V.insertAdjacentHTML("beforeend",researchPanelHtml());bind()}
 
 function formatBytes(n){const v=Number(n||0);if(v<1024)return v+" B";if(v<1024*1024)return (v/1024).toFixed(1)+" KB";return (v/1024/1024).toFixed(1)+" MB"}
 function renderAttachmentTray(){
@@ -1838,6 +1890,7 @@ function bind(){
   document.querySelectorAll("[data-view]").forEach(b=>b.onclick=async()=>{current=b.dataset.view;if(current==="admin"&&isAdmin){try{await loadAdminConsole()}catch(e){pilotNotice(e.message||String(e))}}render()});
   document.querySelectorAll("[data-jump]").forEach(b=>b.onclick=()=>{current=b.dataset.jump;render()});
   document.getElementById("createGoal")?.addEventListener("click",createGoal);
+  document.getElementById("refreshKnowledge")?.addEventListener("click",()=>startGoalResearch(goals[0]?.id,true));
   document.getElementById("executeAction")?.addEventListener("click",executeAction);
   document.getElementById("uploadDoc")?.addEventListener("click",uploadDocument);
   document.getElementById("completeAction")?.addEventListener("click",()=>completeAction(false,false));
@@ -1986,6 +2039,7 @@ async function createGoal(){
       }
     });
     render();
+    if(!continued||!researchSnapshot||!["completed","limited"].includes(researchSnapshot.status))void startGoalResearch(targetGoal.id);
   }catch(e){
     PS.textContent="Pilot bereit";
     pilotNotice(e.message||String(e));
@@ -2026,8 +2080,8 @@ async function pollCanva(id){PS.textContent="Designauftrag wird geprüft …";tr
 function startPilotFlight(btn){const layer=document.getElementById("pilotFlightLayer");if(!layer||!btn)return;const reduced=window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;if(reduced)return;const rect=btn.getBoundingClientRect();const plane=document.createElement("div");plane.className="pilot-plane";plane.textContent="✈";plane.style.left=(rect.left+rect.width*.58-23)+"px";plane.style.top=(rect.top+rect.height*.16-10)+"px";layer.appendChild(plane);plane.addEventListener("animationend",()=>plane.remove(),{once:true});setTimeout(()=>{if(plane.isConnected)plane.remove()},2000)}
 async function executeAction(){const n=actions.find(a=>a.status==="ready")||actions.find(a=>a.status==="pending");if(!n)return;const btn=document.getElementById("executeAction");btn?.classList.add("launching");startPilotFlight(btn);PS.textContent="Pilot hebt ab …";setTimeout(()=>{if(PS.textContent==="Pilot hebt ab …")PS.textContent="Pilot arbeitet …"},650);try{const r=await sb.functions.invoke("execution-engine",{body:{operation:"start",action_id:n.id}});if(r.error)throw r.error;await load();render();PS.textContent=r.data?.status==="waiting_approval"?"Freigabe erforderlich":"Pilot bereit";if(r.data?.status==="waiting_approval")pilotNotice("Pilot hat die Arbeit vorbereitet. Die externe Aktion wartet auf deine Freigabe.");if(r.data?.status==="review_required")pilotNotice("Pilot hat das Resultat erstellt. Aufgrund des Risikoprofils ist eine menschliche Prüfung erforderlich.")}catch(e){PS.textContent="Pilot bereit";await telemetry("incident",{goal_id:goals[0]?.id||null,source:"execution",severity:"error",error_code:"EXECUTION_FAILED",message:e.message||String(e)});pilotNotice(e.message||String(e))}finally{setTimeout(()=>btn?.classList.remove("launching"),700)}}
 async function decideExecution(v,approved){const [execution_id,step_id]=v.split(":");const reason=approved?null:await pilotAskText("Warum möchtest du diese Aktion ablehnen?",{title:"Freigabe ablehnen",placeholder:"Optionaler Grund …"});if(!approved&&reason===null)return;PS.textContent=approved?"Freigabe wird verarbeitet …":"Aktion wird abgebrochen …";try{const r=await sb.functions.invoke("execution-engine",{body:{operation:"approve",execution_id,step_id,approved,reason}});if(r.error&&r.data?.status!=="blocked")throw r.error;await load();render();PS.textContent="Pilot bereit";if(r.data?.status==="blocked")pilotNotice("Freigabe wurde erfasst. Die externe Capability ist noch nicht verbunden; Pilot hat deshalb nicht ausgeführt.")}catch(e){PS.textContent="Pilot bereit";pilotNotice(e.message||String(e))}}
-async function enter(session){user=session.user;A.classList.add("hidden");APP.classList.remove("hidden");try{await load();render();telemetry("event",{event_name:"session_entered",event_category:"activation",properties:{has_goal:!!goals[0]}})}catch(e){telemetry("incident",{source:"app_load",severity:"error",error_code:"LOAD_FAILED",message:e.message||String(e)});pilotNotice(e.message)}}
-async function leave(){user=null;org=null;isAdmin=false;customerPreview=false;adminData=null;pendingAttachments=[];goalSuccessMap={};goals=[];features=[];plans=[];actions=[];contexts=[];milestones=[];documents=[];results=[];claims=[];evidence=[];completeness=[];progressEvents=[];outcomes=[];adaptations=[];pilotState=null;aiRequests=[];qualityContracts=[];consensusRuns=[];executions=[];executionSteps=[];designJobs=[];canvaStatus=null;notifications=[];readiness=[];evalRuns=[];APP.classList.add("hidden");A.classList.remove("hidden")}
+async function enter(session){user=session.user;A.classList.add("hidden");APP.classList.remove("hidden");try{await load();render();if(goals[0]&&(!researchSnapshot||researchSnapshot.next_refresh_at&&Date.parse(researchSnapshot.next_refresh_at)<Date.now()))void startGoalResearch(goals[0].id);telemetry("event",{event_name:"session_entered",event_category:"activation",properties:{has_goal:!!goals[0]}})}catch(e){telemetry("incident",{source:"app_load",severity:"error",error_code:"LOAD_FAILED",message:e.message||String(e)});pilotNotice(e.message)}}
+async function leave(){user=null;org=null;isAdmin=false;customerPreview=false;adminData=null;pendingAttachments=[];goalSuccessMap={};goals=[];features=[];plans=[];actions=[];contexts=[];milestones=[];documents=[];results=[];claims=[];evidence=[];completeness=[];progressEvents=[];outcomes=[];adaptations=[];pilotState=null;aiRequests=[];qualityContracts=[];consensusRuns=[];executions=[];executionSteps=[];designJobs=[];canvaStatus=null;researchSnapshot=null;knowledgeSnapshot=[];researchBusy=false;researchAttempted.clear();notifications=[];readiness=[];evalRuns=[];APP.classList.add("hidden");A.classList.remove("hidden")}
 let authMode="login";
 const AUTHM=document.getElementById("authModal"),ME=document.getElementById("modalEmail"),MP=document.getElementById("modalPassword"),MP2=document.getElementById("modalPassword2"),MW=document.getElementById("repeatPasswordWrap"),PW=document.getElementById("privacyWrap"),AP=document.getElementById("acceptPrivacy"),SM=document.getElementById("submitAuth"),SW=document.getElementById("switchAuthMode"),RC=document.getElementById("resendConfirmation"),MM=document.getElementById("modalMessage"),CS=document.getElementById("confirmationState"),CE=document.getElementById("confirmationEmail"),CR=document.getElementById("confirmationResend"),CL=document.getElementById("confirmationLogin");
 function modalMessage(s,ok=false){MM.innerHTML='<div class="msg '+(ok?'ok':'')+'">'+esc(s)+'</div>'}
