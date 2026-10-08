@@ -281,7 +281,9 @@ assert(frontend.includes("pilotPinnedGoalId=activeGoalId"),
   "Explicit project open must retain project context");
 assert(frontend.includes('id="pilotNewProject"'),
   "A visible one-tap new-project escape must always be available");
-assert(frontend.includes('body:{input:text,...(pinnedGoalId?{existing_goal_id:pinnedGoalId}:{})}'),
+assert(frontend.includes("const pinnedGoalId=forceNewGoal?null:pilotContinuationScope(text);"),
+  "The explicit new-project choice must take precedence over any pinned goal");
+assert(frontend.includes('pinnedGoalId?{existing_goal_id:pinnedGoalId}:{}'),
   "Pinned project must be passed to the backend before unnecessary goal resolution");
 assert(frontend.includes("user=session.user;pilotPinnedGoalId=null;"),
   "A new authenticated session must clear any previous explicit project pin");
