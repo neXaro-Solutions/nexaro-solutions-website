@@ -2919,6 +2919,59 @@ body{background:radial-gradient(ellipse 72vw 60vw at 92% -10%,rgba(145,255,62,.1
 .pilot-demo-scope .pilot-demo-scene{width:100%;min-height:140px}
 .pilot-demo-finished .pilot-admin-demo-status{font-weight:850;color:#42772e}
 @media(max-width:760px){.pilot-demo-scope{margin:9px 0!important;padding:9px!important}}
+
+/* Flight V6: 2× aircraft, proportionate industry avatar, and consistent admin preview. */
+#pilotFlightLayer .pilot-plane{
+ width:94px!important;height:94px!important;font-size:52px!important;
+ border-width:3px!important;
+ box-shadow:0 0 0 8px rgba(142,255,45,.12),0 11px 27px rgba(42,74,22,.21)!important;
+}
+#pilotFlightLayer .pilot-plane::after{
+ right:77px!important;width:144px!important;height:6px!important;
+}
+#pilotFlightLayer .pilot-worker-avatar,
+#pilotFlightLayer .pilot-worker-avatar[data-context="dialog"]{
+ width:226px!important;height:145px!important;min-height:145px!important;
+ max-width:calc(100vw - 16px)!important;gap:5px!important;
+ --pilot-worker-scale:1.15;
+}
+#pilotFlightLayer .pilot-worker-avatar .pilot-worker-figure,
+#pilotFlightLayer .pilot-worker-avatar[data-context="dialog"] .pilot-worker-figure{
+ flex:0 0 64px!important;width:64px!important;
+ transform:scale(var(--pilot-worker-scale));transform-origin:15% 8%;
+}
+#pilotFlightLayer .pilot-worker-avatar .pilot-worker-speech,
+#pilotFlightLayer .pilot-worker-avatar[data-context="dialog"] .pilot-worker-speech{
+ max-width:155px!important;font-size:11px!important;padding:8px 9px!important;
+ line-height:1.35;
+}
+#pilotFlightLayer .pilot-worker-avatar .pilot-worker-speech strong{
+ font-size:11px!important;
+}
+@media(max-width:420px){
+ #pilotFlightLayer .pilot-worker-avatar,
+ #pilotFlightLayer .pilot-worker-avatar[data-context="dialog"]{
+  width:208px!important;height:140px!important;min-height:140px!important;
+  --pilot-worker-scale:1.1;
+ }
+ #pilotFlightLayer .pilot-worker-avatar .pilot-worker-figure,
+ #pilotFlightLayer .pilot-worker-avatar[data-context="dialog"] .pilot-worker-figure{
+  flex:0 0 61px!important;width:61px!important;
+ }
+ #pilotFlightLayer .pilot-worker-avatar .pilot-worker-speech,
+ #pilotFlightLayer .pilot-worker-avatar[data-context="dialog"] .pilot-worker-speech{
+  max-width:140px!important;
+ }
+}
+.pilot-demo-scene{height:196px}
+.pilot-demo-plane{font-size:60px;top:94px}
+.pilot-demo-avatar{top:35px}
+.pilot-demo-scene[data-stage="attention"] .pilot-demo-avatar{
+ transform:translateX(0) scale(1.04);
+}
+.pilot-demo-scene[data-stage="boarding"] .pilot-demo-avatar{
+ transform:translateX(24px) scale(.5);
+}
 </style></head>
 <body>
 <section id="auth" class="auth"><div class="box">
@@ -4500,7 +4553,7 @@ function startPilotFlight(button){
    }else return true;
  }
  layer.replaceChildren();
- const size=window.innerWidth<680?58:66;
+ const size=94; // Keep the animation's geometry identical to the actual 94px aircraft.
  const plane=document.createElement("div"),label=document.createElement("div");
  plane.className="pilot-plane";plane.setAttribute("aria-hidden","true");plane.textContent="✈";
  label.className="pilot-flight-status";label.textContent="Pilot hebt vom Startbutton ab …";
@@ -4774,15 +4827,26 @@ function pilotWorkerProfile(goalId,taskHint=""){
 function pilotPositionWorker(worker,plane){
  const r=plane.getBoundingClientRect(),w=window.innerWidth;
  const vh=window.visualViewport?.height||window.innerHeight;
- const workerWidth=worker.getBoundingClientRect().width||194;
- const workerHeight=worker.getBoundingClientRect().height||120;
- const right=r.right+9,fit=right+workerWidth<w-8;
- const left=Math.round(Math.max(8,Math.min(w-workerWidth-8,fit?right:r.left-workerWidth-9)));
- const top=Math.round(Math.max(72,Math.min(vh-workerHeight-84,r.top-25)));
+ const workerWidth=worker.getBoundingClientRect().width||226;
+ const workerHeight=worker.getBoundingClientRect().height||145;
+ const right=r.right+10,leftCandidate=r.left-workerWidth-10;
+ const fitsRight=right+workerWidth<=w-8,fitsLeft=leftCandidate>=8;
+ // On small screens the larger avatar stands above the landed aircraft,
+ // keeping the underlying confirmation button visible.
+ let x,y;
+ if(fitsRight||fitsLeft){
+   x=fitsRight?right:leftCandidate;
+   y=r.top+r.height*.5-workerHeight*.6;
+ }else{
+   x=r.left+r.width/2-workerWidth/2;
+   y=r.top-workerHeight-12>=72?r.top-workerHeight-12:r.bottom+12;
+ }
+ const left=Math.round(Math.max(8,Math.min(w-workerWidth-8,x)));
+ const top=Math.round(Math.max(72,Math.min(vh-workerHeight-20,y)));
  worker.style.left=left+"px";worker.style.top=top+"px";
- worker.style.setProperty("--worker-to-plane-x",Math.round(r.left+13-left)+"px");
- worker.style.setProperty("--worker-to-plane-y",Math.round(r.top+9-top)+"px");
- worker.classList.toggle("pilot-worker--left",!fit);
+ worker.style.setProperty("--worker-to-plane-x",Math.round(r.left+r.width*.5-left-32)+"px");
+ worker.style.setProperty("--worker-to-plane-y",Math.round(r.top+r.height*.5-top-50)+"px");
+ worker.classList.toggle("pilot-worker--left",!fitsRight&&fitsLeft);
 }
 function pilotAvatarDisembark(f,message="Hier ist deine Handlung erforderlich."){
  if(!f||activePilotFlight!==f||f.phase!=="parked"||!f.plane?.isConnected)return;
