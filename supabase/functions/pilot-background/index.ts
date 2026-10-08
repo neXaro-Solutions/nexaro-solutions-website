@@ -109,11 +109,18 @@ async function performOne(sb:any,job:any){
    .eq("goal_id",goal.id).order("created_at",{ascending:true}).limit(100);
   if(actions.error)throw Error("ACTIONS_LOOKUP_UNAVAILABLE");
   const sequence=actions.data||[];
-  const index=sequence.findIndex((x:any)=>["ready","pending","blocked"].includes(x.status));
+  // Never execute alongside a different in-progress or awaiting-review action.
+  const activeGoalExecution=await sb.from("executions")
+    .select("id,status").eq("goal_id",goal.id)
+    .in("status",["running","waiting_approval","review_required"]).limit(1);
+  if(activeGoalExecution.error)throw Error("GOAL_EXECUTION_LOOKUP_FAILED");
+  if(activeGoalExecution.data?.length)
+    return await updateJob(sb,job,"waiting_user",{last_error:"EXISTING_GOAL_EXECUTION_NEEDS_REVIEW"});
+  const index=sequence.findIndex((x:any)=>["ready","pending","blocked","running"].includes(x.status));
   if(index<0)return await updateJob(sb,job,"completed",{last_error:null});
   let action=sequence[index];
-  if(action.status==="blocked")
-   return await updateJob(sb,job,"waiting_user",{last_error:"ACTION_BLOCKED"});
+  if(["blocked","running"].includes(action.status))
+   return await updateJob(sb,job,"waiting_user",{last_error:"ACTION_BLOCKED_OR_IN_PROGRESS"});
   if(action.status==="pending"){
    if(!sequence.slice(0,index).every((x:any)=>x.status==="completed"))
      return await updateJob(sb,job,"waiting_user",{last_error:"PREREQUISITE_NOT_COMPLETED"});
