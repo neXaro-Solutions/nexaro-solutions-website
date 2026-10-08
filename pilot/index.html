@@ -4219,9 +4219,16 @@ function pilotBackgroundLiveHTML(){
  const state=pilotBackgroundLiveState;
  if(pilotBackgroundLiveBusy&&state?.status!=="running")
   return '<strong>✈ Hintergrundprüfung wird verbunden …</strong><p>Pilot überprüft den isolierten Testauftrag.</p>';
- if(state?.status==="running")
-  return '<strong><span class="pilot-e2e-pulse" aria-hidden="true"></span> Pilot arbeitet auf dem Server</strong>'+
-   '<p>Phase: '+esc(state.stage||"Warteschlange")+'. Der Test läuft unabhängig von diesem Fenster. Du kannst Pilot schließen und später zurückkommen.</p>';
+ if(state?.status==="running"){
+  const stages={starting:"Auftrag wird vorbereitet",queued:"Wartet auf den nächsten Serverlauf",
+   preparing:"Pilot versteht den Auftrag",drafting:"Pilot erstellt das Ergebnis",
+   verifying:"Ergebnis wird geprüft",saving:"Ergebnis wird im Projekt gespeichert"};
+  const queued=["starting","queued"].includes(state.stage||"starting");
+  return '<strong><span class="pilot-e2e-pulse" aria-hidden="true"></span> '+
+   (queued?"Hintergrundauftrag angenommen":"Pilot arbeitet auf dem Server")+'</strong>'+
+   '<p>'+esc(stages[state.stage]||state.stage||"Wartet auf den Server")+
+   '. Der Test läuft unabhängig von diesem Fenster. Du kannst Pilot schließen und später zurückkommen.</p>';
+ }
  if(state?.status==="failed"||record?.status==="failed")
   return '<strong>✕ Hintergrundprüfung nicht bestanden</strong><p>'+
    esc(state?.error||record?.evidence?.last_error||"Eine Prüfung ist fehlgeschlagen. Details lassen sich beim nächsten Test erneut kontrollieren.")+'</p>';
@@ -4249,7 +4256,15 @@ async function pilotBackgroundLiveCall(operation){
  if(pilotBackgroundLiveTimer){clearTimeout(pilotBackgroundLiveTimer);pilotBackgroundLiveTimer=null}
  try{
   const response=await sb.functions.invoke("pilot-background-selftest",{body:{operation}});
-  const data=response.data||{};
+  let data=response.data||{};
+  // Supabase may put a non-2xx JSON response inside error.context,
+  // rather than response.data. Preserve the real check report.
+  if(response.error&&!data.status){
+   try{
+    const detail=await response.error.context?.json?.();
+    if(detail&&typeof detail==="object")data=detail;
+   }catch{}
+  }
   if(response.error&&!["failed","running"].includes(data.status))
    throw new Error(data.error||response.error.message||"Live-Hintergrundprüfung nicht erreichbar.");
   pilotBackgroundLiveState=data.status==="not_running"?null:data;
