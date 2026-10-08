@@ -147,15 +147,35 @@ function installToggle(){
  const b=document.createElement("button");b.type="button";b.dataset.nxLang="1";b.className="nx-language-toggle";
  renderLanguageToggle(b);
  b.addEventListener("click",()=>setLanguage(language==="de"?"en":"de"));
+ // The corporate DE/EN switch belongs in the *visible* header, not inside the collapsed mobile navigation.
+ const header=document.querySelector(".top .top-inner");
+ const burger=header?.querySelector("#menuButton");
  const nav=document.querySelector(".top .nav,.nx-payment-nav");
- if(nav)nav.appendChild(b);else document.body.appendChild(b);
+ if(header&&burger)header.insertBefore(b,burger);
+ else if(header)header.appendChild(b);
+ else if(nav)nav.appendChild(b);
+ else document.body.appendChild(b);
  const st=document.createElement("style");st.textContent=`
  .nx-language-toggle{display:inline-flex;align-items:center;gap:3px;min-width:108px;height:42px;padding:4px;border:2px solid #ff6b00;border-radius:999px;background:#172015;color:#fff;font:inherit;font-size:11px;font-weight:900;letter-spacing:.08em;cursor:pointer;box-shadow:0 9px 24px rgba(23,32,21,.2),0 0 0 3px rgba(186,255,55,.18);transition:transform .18s ease,box-shadow .18s ease}
  .nx-language-toggle:hover{transform:translateY(-1px);box-shadow:0 12px 30px rgba(23,32,21,.26),0 0 0 4px rgba(186,255,55,.24)}
  .nx-language-toggle .nx-lang-option{display:grid;place-items:center;min-width:44px;height:30px;padding:0 8px;border-radius:999px;color:#d9e1d4;transition:background .18s ease,color .18s ease,box-shadow .18s ease}
  .nx-language-toggle .nx-lang-option.is-active{background:#baff37;color:#172015;box-shadow:0 3px 10px rgba(186,255,55,.28)}
  .nx-language-toggle .nx-lang-sep{color:#ff8b52;font-weight:900}
- @media(max-width:900px){.nx-language-toggle{position:sticky;top:8px;z-index:20;width:100%;min-height:48px;border-radius:14px}.nx-language-toggle .nx-lang-option{flex:1;height:36px}}
+ .top .top-inner>.nx-language-toggle{margin-left:auto;min-width:105px;flex:none;position:relative;z-index:2}
+ @media(max-width:900px){
+  .nx-language-toggle{position:sticky;top:8px;z-index:20;width:100%;min-height:48px;border-radius:14px}
+  .nx-language-toggle .nx-lang-option{flex:1;height:36px}
+  .top .top-inner>.nx-language-toggle{width:auto;min-width:97px;min-height:42px;height:43px;margin-left:auto;padding:3px;border-radius:15px}
+  .top .top-inner>.nx-language-toggle .nx-lang-option{min-width:36px;flex:none;height:33px;padding:0 5px}
+ }
+ @media(max-width:390px){
+  .top .top-inner>.nx-language-toggle{min-width:85px;height:39px;gap:1px}
+  .top .top-inner>.nx-language-toggle .nx-lang-option{min-width:31px;height:29px;padding:0 3px}
+  .top .top-inner>.nx-language-toggle .nx-lang-sep{font-size:9px}
+  .top .top-inner{gap:8px!important}
+  .top .top-inner>.brand{width:139px!important;min-width:0}
+  .top .top-inner>.menu{flex:none;padding:7px 10px}
+ }
  `;document.head.appendChild(st);
 }
 const observer=new MutationObserver(muts=>{if(applying)return;for(const m of muts){for(const node of m.addedNodes){if(node.nodeType===Node.TEXT_NODE)applyText(node);else if(node.nodeType===Node.ELEMENT_NODE){applyElement(node);walk(node);}}}});
