@@ -4,13 +4,17 @@ on:
   push:
     paths:
       - "supabase/functions/execution-engine/**"
+      - "supabase/functions/pilot-intelligence/**"
       - "pilot/tests/engine-contract.mjs"
+      - "pilot/tests/continuity-contract.mjs"
       - "pilot/index.html"
       - ".github/workflows/pilot-engine-guards.yml"
   pull_request:
     paths:
       - "supabase/functions/execution-engine/**"
+      - "supabase/functions/pilot-intelligence/**"
       - "pilot/tests/engine-contract.mjs"
+      - "pilot/tests/continuity-contract.mjs"
       - "pilot/index.html"
       - ".github/workflows/pilot-engine-guards.yml"
   workflow_dispatch:
@@ -32,3 +36,5 @@ jobs:
         run: npm install --no-save --no-audit --no-fund typescript@5.9.3
       - name: Run isolated backend regression tests
         run: node pilot/tests/engine-contract.mjs
+      - name: Run isolated goal-continuity regression tests
+        run: node pilot/tests/continuity-contract.mjs
