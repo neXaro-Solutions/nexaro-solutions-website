@@ -2876,6 +2876,7 @@ body{background:radial-gradient(ellipse 72vw 60vw at 92% -10%,rgba(145,255,62,.1
 .pilot-demo-only .pilot-admin-runway-label{font-size:11px;font-weight:800;color:#5e8746}
 .pilot-demo-only .pilot-admin-land-target{padding:9px 12px;border:1px dashed #7baa5c;border-radius:10px;background:#fff;color:#4b7140;font-weight:750;font-size:12px}
 .pilot-demo-only .pilot-admin-demo-status{font-size:11px;line-height:1.5;margin:0;color:#607d53}
+.pilot-admin-demo-feedback{margin:10px 0 0;font-size:12px;font-weight:750;color:#527a3c;line-height:1.5}
 </style></head>
 <body>
 <section id="auth" class="auth"><div class="box">
@@ -4593,6 +4594,10 @@ async function previewPilotFlight(){
    return;
  }
  pilotFlightPreviewRunning=true;button.disabled=true;
+ let feedback=host.querySelector(".pilot-admin-demo-feedback");
+ if(!feedback){feedback=document.createElement("p");feedback.className="pilot-admin-demo-feedback";feedback.setAttribute("role","status");host.appendChild(feedback)}
+ feedback.textContent="Flugtest läuft · Pilot startet …";
+ let testPassed=false;
  // The old parked aircraft must never block the independent Admin test.
  if(activePilotFlight)pilotDestroyFlight(activePilotFlight);
  document.getElementById("pilotFlightLayer")?.replaceChildren();
@@ -4623,15 +4628,19 @@ async function previewPilotFlight(){
    pilotSetFlightState(demoGoalId,"flying","Pilot startet nach der Bestätigung erneut");
    status.textContent="Pilot ist wieder gestartet ✓";
    await pilotWait(1500);
+   testPassed=true;
  }catch(e){
    console.warn("Pilot-Flugtest",String(e?.message||e));
-   status.textContent="Test unterbrochen: "+String(e?.message||e);
+   const detail=String(e?.message||e);
+   feedback.textContent="Flugtest nicht abgeschlossen: "+detail;
+   status.textContent="Test unterbrochen: "+detail;
    await pilotWait(850);
  }finally{
    if(activePilotFlight)pilotDestroyFlight(activePilotFlight);
    document.getElementById("pilotFlightLayer")?.replaceChildren();
    pilotSetFlightState(null,"idle","");
    runway.remove();
+   if(testPassed)feedback.textContent="✓ Flug, Landung, Avatar und erneuter Start erfolgreich getestet.";
    pilotFlightPreviewRunning=false;
    if(button.isConnected)button.disabled=false;
  }
