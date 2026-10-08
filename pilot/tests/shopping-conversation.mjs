@@ -14,6 +14,7 @@ assert(!html.includes("Kontakt@nexaro-solutions.de"),"personal registration data
 assert.equal(productShoppingIntent("Was ist das beste Smartphone?")?.key,"smartphone");
 assert.equal(productShoppingIntent("Was ist die beste Waschmaschine?")?.topic,"Waschmaschine");
 assert.equal(productShoppingIntent("Was ist die beste Versicherung?"),null,"Do not steer services to shop offers");
+assert.equal(productShoppingIntent("Was ist die beste Marketingstrategie?"),null,"Do not treat abstract work as retail goods");
 assert.equal(productShoppingIntent("Welches Notebook soll ich kaufen?")?.key,"laptop");
 assert.equal(productShoppingIntent("Erstelle ein Logo für meine Smartphone-Firma"),null);
 assert.equal(productShoppingIntent("Erstelle mir einen Businessplan für Smartphonehandel"),null);
