@@ -2702,6 +2702,7 @@ body{background:radial-gradient(ellipse 72vw 60vw at 92% -10%,rgba(145,255,62,.1
  .side nav.pilot-minimal-nav .nav[data-view="home"] .pilot-nav-icon svg,
  .side nav.pilot-minimal-nav .nav[data-view="goals"] .pilot-nav-icon svg{width:18px!important;height:18px!important}
 }
+.pilot-evidence-required{padding:12px;border:1px solid #f1d8b9;background:#fffaf3;border-radius:12px;font-size:12px}.pilot-evidence-required strong{color:#855624;font-size:13px}.pilot-evidence-required p{margin:8px 0 0;color:#66725f;line-height:1.55}
 </style></head>
 <body>
 <section id="auth" class="auth"><div class="box">
@@ -2794,6 +2795,12 @@ async function load(){
 
   if(goals[0]){const gid=goals[0].id;const [p,a,c,mi,d,r,cl,ev,co,pe,ou,ad,ps,air,qc]=await Promise.all([sb.from("plans").select("*").eq("goal_id",gid).order("version",{ascending:false}),sb.from("actions").select("*").eq("goal_id",gid).order("created_at",{ascending:true}),sb.from("context_items").select("context_type,key,value").eq("goal_id",gid),sb.from("milestones").select("*").eq("goal_id",gid).order("created_at",{ascending:true}),sb.from("documents").select("*").eq("owner_id",user.id).order("created_at",{ascending:false}),sb.from("results").select("*").eq("goal_id",gid).order("created_at",{ascending:false}),sb.from("claims").select("*").order("created_at",{ascending:false}),sb.from("evidence").select("*").order("created_at",{ascending:false}),sb.from("completeness_checks").select("*").eq("goal_id",gid).order("created_at",{ascending:false}),sb.from("progress_events").select("*").eq("goal_id",gid).order("created_at",{ascending:false}),sb.from("outcomes").select("*").eq("goal_id",gid).order("updated_at",{ascending:false}),sb.from("adaptation_events").select("*").eq("goal_id",gid).order("created_at",{ascending:false}),sb.from("pilot_states").select("*").eq("goal_id",gid).eq("user_id",user.id).limit(1),sb.from("ai_requests").select("*").eq("goal_id",gid).order("created_at",{ascending:false}).limit(10),sb.from("quality_contracts").select("*").eq("goal_id",gid).order("created_at",{ascending:false}).limit(10)]);for(const x of [p,a,c,mi,d,r,cl,ev,co,pe,ou,ad,ps,air,qc])if(x.error)throw x.error;plans=p.data||[];actions=a.data||[];contexts=c.data||[];milestones=mi.data||[];documents=d.data||[];results=r.data||[];claims=cl.data||[];evidence=ev.data||[];completeness=co.data||[];progressEvents=pe.data||[];outcomes=ou.data||[];adaptations=ad.data||[];pilotState=ps.data?.[0]||null;aiRequests=air.data||[];qualityContracts=qc.data||[];const [no,rd,er,cr,ex,es,dj,cs]=await Promise.all([sb.from("notifications").select("*").eq("user_id",user.id).order("created_at",{ascending:false}).limit(20),isAdmin?sb.from("alpha_readiness_checks").select("*").order("category"):Promise.resolve({data:[],error:null}),isAdmin?sb.from("evaluation_runs").select("*").order("started_at",{ascending:false}).limit(5):Promise.resolve({data:[],error:null}),sb.from("ai_consensus_runs").select("*").eq("goal_id",gid).order("created_at",{ascending:false}).limit(10),sb.from("executions").select("*").eq("goal_id",gid).order("created_at",{ascending:false}).limit(10),sb.from("execution_steps").select("*").order("created_at",{ascending:false}).limit(100),sb.from("design_jobs").select("*").eq("user_id",user.id).order("created_at",{ascending:false}).limit(30),sb.functions.invoke("canva-status",{body:{}})]);if(no.error)throw no.error;if(rd.error)throw rd.error;if(er.error)throw er.error;if(cr.error)throw cr.error;if(ex.error)throw ex.error;if(es.error)throw es.error;if(dj.error)throw dj.error;notifications=no.data||[];readiness=rd.data||[];evalRuns=er.data||[];consensusRuns=cr.data||[];executions=ex.data||[];executionSteps=es.data||[];designJobs=dj.data||[];canvaStatus=cs.error?null:cs.data;
   const activeReview=pilotReviewContext();
+  pilotReviewSourceStatus=null;
+  if(activeReview?.ex?.output_reference?.verification_id){
+    const vr=await sb.from("verification_records").select("id,status,checks")
+      .eq("id",activeReview.ex.output_reference.verification_id).eq("execution_id",activeReview.ex.id).maybeSingle();
+    pilotReviewSourceStatus=vr.error?{status:"unavailable"}:vr.data||{status:"unavailable"};
+  }
   if(pilotIsLegalFormDecision(activeReview)){
     try{
       const recovered=await sb.functions.invoke("execution-engine",{body:{
@@ -2853,6 +2860,7 @@ function pilotReviewContext(){
 /* A compact editable decision rather than an opaque full AI report. */
 let pilotDecisionDraft=null;
 let pilotPriorLegalChoice=null;
+let pilotReviewSourceStatus=null;
 function pilotDecisionPlainText(raw){
  const text=String(raw||"").replace(/\\n/g,"\n").trim();
  const matchAudience=text.match(/\*\*Zielgruppe:\*\*\s*([\s\S]*?)(?=\s*\*\*Kundennutzen(?:-Satz)?\b|---|\*\*Offene Annahmen|$)/i);
@@ -3015,6 +3023,18 @@ function bindPilotLegalFormDecision(){
 function pilotReviewCard(ctx){
  if(!ctx)return "";
  if(pilotIsLegalFormDecision(ctx))return pilotLegalFormReviewCard(ctx);
+ if(pilotReviewSourceStatus?.status!=="passed"){
+  const title=actions.find(a=>a.id===ctx.ex.action_id)?.title||"";
+  const finalCheck=/Gründungsstatus und Nachweise überprüfen/i.test(title);
+  return '<section class="pilot-simple-action pilot-evidence-required" role="status">'+
+    '<strong>'+ (finalCheck?"Amtliche Gründungsnachweise fehlen noch":"Die Quellenprüfung ist noch offen")+'</strong>'+
+    '<p>'+ (finalCheck?
+      "Pilot kann die Gründung erst als abgeschlossen melden, wenn die tatsächlichen Anmeldungen und erforderlichen Nachweise geprüft sind.":
+      "Für diesen Schritt fehlen noch überprüfbare Quellen. Der Entwurf bleibt gespeichert und wird nicht als abgeschlossen markiert.")+
+    '</p><p class="pilot-simple-count">Lade vorhandene Belege über „Datei hinzufügen“ im Auftrag hoch. Pilot prüft danach die offenen Angaben.</p>'+
+    '</section>';
+ }
+
  const draft=pilotDecisionFor(ctx);
  const count=draft.text.length;
  return '<section class="pilot-review-card pilot-review-editable pilot-decision-hub" aria-labelledby="pilotDecisionTitle">'+
@@ -3784,6 +3804,12 @@ async function pilotApiError(response,fallback){
       else if(typeof ctx.json==="function")extracted=await ctx.json();
     }catch{}
   }
+  if(extracted?.error==="unverified_result_or_action"||
+     extracted?.reason_code==="SOURCE_EVIDENCE_PENDING"||
+     extracted?.error==="evidence_still_unverified")
+    return new Error("Für diese Prüfung fehlen noch verlässliche Quellen oder tatsächliche amtliche Nachweise. Pilot bewahrt den Entwurf auf und setzt die Gründung nicht fälschlich auf erledigt.");
+  if(extracted?.reason_code==="LAUNCH_PREREQUISITES_PENDING")
+    return new Error("Die Gründungsnachweise werden erst zum Schluss geprüft. Pilot muss zunächst die vorbereitenden Aufgaben abschließen.");
   if(extracted?.reason_code==="safety_review_required")
     return new Error("Pilot kann diese Anfrage noch nicht zuverlässig beurteilen. Aus Sicherheitsgründen wurde sie nicht ausgeführt. Bitte formuliere den Auftrag sachlich und eindeutig oder kontaktiere den Support. (Code: SAFETY_REVIEW_REQUIRED)");
   if(extracted?.reason_code==="secondary_moderation_blocked")
@@ -4410,6 +4436,10 @@ async function confirmPilotResult(){
  if(!ctx||pilotAutoSession?.active)return;
  const draft=pilotDecisionFor(ctx);
  const legalForm=pilotIsLegalFormDecision(ctx);
+ if(!legalForm&&pilotReviewSourceStatus?.status!=="passed"){
+  pilotNotice("Die offiziellen Quellen oder Nachweise fehlen noch. Der Entwurf bleibt erhalten. Eine Bestätigung würde ihn nicht verifizieren.");
+  return;
+ }
  const selected=legalForm?String(draft.legalFormChoice||""):"";
  if(legalForm&&!PILOT_LEGAL_FORMS.slice(0,3).some(x=>x.id===selected)){
    pilotNotice("Bitte wähle zuerst eine konkrete Rechtsform. Ohne Auswahl legt Pilot nichts fest.","error");
