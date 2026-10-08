@@ -5134,6 +5134,12 @@ async function pilotResumeApprovedWork(attempt=0){
        pilotResumeWorkTimer=null;
        if(!pilotAutoSession?.active&&goals[0]?.id===goalId)void pilotResumeApprovedWork(attempt+1);
      },5000);
+   }else{
+     // An abandoned server run must not display endless aircraft motion.
+     pilotAutoRunPreference(goalId,false);
+     pilotEndContinuousFlight(goalId,"Ausführungsstatus prüfen");
+     pilotAutoSummary={kind:"error",text:"Der laufende Schritt konnte nicht abgeschlossen bestätigt werden. Bitte den Auftragsstatus prüfen."};
+     render();
    }
    return;
   }
@@ -5401,14 +5407,16 @@ async function pilotContinueSafely(goalId,maxSteps=32){
      setTimeout(()=>{if(!pilotAutoSession?.active&&goals[0]?.id===goalId)void pilotContinueSafely(goalId,32)},250);
    }else if(waitingForHuman){
      void pilotLandAtAttention(goalId,"Hier ist deine Handlung erforderlich");
+   }else if(stopKind==="working"&&!session.cancelRequested&&goals[0]?.id===goalId){
+     // A job running in another tab is still work; don't show a false landing.
+     pilotEnsureContinuousFlight(goalId);
+     setPilotFlightPhase("✈ Pilot führt den laufenden Auftrag ohne Duplikate weiter");
+     pilotResumeWorkTimer=setTimeout(()=>{
+       pilotResumeWorkTimer=null;
+       if(!pilotAutoSession?.active&&goals[0]?.id===goalId)void pilotResumeApprovedWork();
+     },5000);
    }else{
      pilotEndContinuousFlight(goalId,stopped);
-     if(stopKind==="working"&&!session.cancelRequested&&goals[0]?.id===goalId){
-       pilotResumeWorkTimer=setTimeout(()=>{
-         pilotResumeWorkTimer=null;
-         if(!pilotAutoSession?.active&&goals[0]?.id===goalId)void pilotResumeApprovedWork();
-       },5000);
-     }
    }
  }
 }
