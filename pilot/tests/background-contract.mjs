@@ -154,7 +154,10 @@ for(const code of [
 ])assert(ui.includes(code),"One-click route missing: "+code);
 console.log("PASS One-click launch selects only verified background-capable work");
 
-
+// Restore the explicitly authorized owner's scenario after the negative tests.
+s=scene();
+r=await s.request({operation:"start",goal_id:GOAL});
+assert.equal(r.status,200);
 r=await s.request({operation:"status",goal_id:GOAL});
 assert.equal(r.status,200);assert.equal(r.data.job.goal_id,GOAL);
 r=await s.request({operation:"pause",goal_id:GOAL});
