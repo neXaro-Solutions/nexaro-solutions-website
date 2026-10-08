@@ -207,7 +207,13 @@ const doc=await fn.createDraft("mock_key",
 assert.equal(calls.filter(x=>x.url.endsWith("/moderations")).length,2);
 assert.equal(calls.filter(x=>x.url.endsWith("/responses")).length,1);
 const sent=calls.find(x=>x.url.endsWith("/responses")).body;
-const creativeInput=JSON.parse(sent.input[0].content[0].text);
+assert.equal(sent.text.format.type,"json_schema");
+assert.equal(sent.text.format.strict,true);
+assert.deepEqual([...sent.text.format.schema.required].sort(),
+ ["deliverable","next_recommendation","verification"]);
+const userContent=sent.input[0].content[0].text;
+assert(userContent.includes("JSON"),"Responses API requires an explicit JSON input instruction");
+const creativeInput=JSON.parse(userContent.slice(userContent.indexOf("{")));
 assert.equal(creativeInput.prior_project_deliverables[0].result_id,prior[0].result_id);
 assert.equal(creativeInput.confirmed_decisions[0].value,"hell, Neon-Grün und Orange");
 assert(doc.cost>0&&doc.cost<0.02);
