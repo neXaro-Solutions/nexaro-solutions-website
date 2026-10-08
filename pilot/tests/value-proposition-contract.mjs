@@ -6,14 +6,12 @@ const root=resolve(dirname(fileURLToPath(import.meta.url)),"../..");
 const site=readFileSync(resolve(root,"index.html"),"utf8");
 const css=readFileSync(resolve(root,"site-shell.css"),"utf8");
 const pilot=readFileSync(resolve(root,"pilot/index.html"),"utf8");
-assert.match(site,/<title>neXaro Pilot \| KI, die Aufgaben zu Ergebnissen macht/,"Pilot is the flagship in public search results");
-assert(site.includes('id="pilot"'),"There must be an explicit Pilot product story");
-assert(site.includes('class="pilot-compare"'),"Positioning explains product versus conventional chat workflow");
-assert(site.includes("Ein nutzbares Ergebnis"),"Prominent value is result rather than software tooling");
-assert(site.includes("Pilot befindet sich im Ausbau"),"No unsupported autonomous-delivery guarantee");
-assert(site.includes('href="./pilot/"'),"User can launch real Pilot");
-assert(site.includes('href="#welten"'),"Other neXaro offerings remain accessible");
-assert(css.includes(".pilot-compare-pilot")&&css.includes("@media(max-width:760px)"),"Responsive product comparison styled");
+assert.match(site,/<title>neXaro Solutions \| Payment, Vertriebssoftware & B2B<\/title>/,"Corporate homepage stays SumUp, Vape & CRM");
+assert(site.includes('id="sumup"')&&site.includes('id="check"'),"Corporate homepage includes SumUp consultations");
+assert(site.includes('id="vape"')&&site.includes('href="#vape"'),"Corporate homepage includes Vape & Trend B2B");
+assert(site.includes('id="software"')&&site.includes('href="./crm/"'),"Corporate CRM product and direct application stay accessible");
+assert(!/neXaro\s+Pilot|href=["'][^"']*\/pilot(?:\/|["'])/i.test(site),"No neXaro Pilot promotion or link anywhere on corporate homepage");
+assert(!site.includes('pilot-compare'),"Corporate homepage must not host Pilot comparison marketing");
 assert(pilot.includes('id="guestTask"')&&pilot.includes('id="goalText"'),"Guest and signed-in entry have one central task composer");
 assert(pilot.includes("pilot-value-lead")&&pilot.includes("pilot-value-home"),"Entry explains benefits without workflow menus");
 assert(!pilot.includes('data-view="market"'),"Shopping remains a behind-the-scenes capability");
@@ -30,4 +28,4 @@ assert(pilot.includes('--nx-neon-orange:#ff7214'),"Orange accent token must rema
 assert(pilot.includes('.pilot-admin-screen .admin-hero-actions{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important'),"Mobile admin actions remain two-column with readable labels");
 assert(pilot.includes('.pilot-readiness-row{grid-template-columns:minmax(0,1fr)!important'),"Mobile system check status must not be squashed into narrow columns");
 
-console.log("PASS Pilot identity: outcome-first marketing, honest limitations, customer simplicity, responsive styling and hidden affiliate machinery");
+console.log("PASS Brand separation: corporate SumUp/Vape/CRM homepage and isolated Pilot application, with truthful task-first UI");
