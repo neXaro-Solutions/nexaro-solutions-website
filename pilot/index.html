@@ -2143,7 +2143,7 @@ function home(){
   const progress=g?Math.round(done/total*100):0;
   const success=g?(goalSuccessMap[g.id]||successFromData(milestones,outcomes)):null;
   const verified=g&&Number.isFinite(Number(success?.percent))?Math.max(0,Math.min(100,Math.round(Number(success.percent)))):progress;
-  const status=executions[0]?.status||g?.status||"ready";
+  const status=executions.find(x=>["running","waiting_approval","review_required","blocked"].includes(x.status))?.status||g?.status||"ready";
   const activeCount=goals.filter(g=>["active","in_progress","ready"].includes(String(g.status))).length||goals.length;
   const mainTitle=g?(g.title||g.description||g.desired_outcome||"Aktives Ziel"):"";
   const outcomeInfo=g?(g.desired_outcome||g.description||"Pilot kennt dein Ziel und setzt die nächsten Schritte um."):"";
@@ -2175,7 +2175,7 @@ function home(){
       '</div>'+
       '<div class="pilot-home-progress"><div class="pilot-home-progress-bar" style="width:'+verified+'%"></div></div>'+
     '</section>':'<section class="pilot-home-empty">Noch kein aktiver Auftrag. Starte oben dein erstes Ziel – Pilot plant die nächsten Schritte mit dir.</section>';
-  const previousFailed=executions.find(x=>x.status==="failed"&&x.goal_id===g?.id);
+  const previousFailed=n?executions.find(x=>x.status==="failed"&&x.action_id===n.id):null;
   const failureInfo=previousFailed?'<div class="pilot-execution-retry-note" role="status"><span aria-hidden="true">↻</span><div><strong>Letzter Arbeitsversuch unterbrochen</strong><small>Pilot hat diesen Schritt nicht abgeschlossen. Dein Ziel bleibt erhalten. Du kannst den Schritt unten erneut starten.</small></div></div>':'';
   const action=g?'<section class="pilot-home-card operation-panel pilot-home-next" id="pilotNextActionPanel" aria-labelledby="homeNextTitle">'+
       '<div class="pilot-home-next-head"><div><span class="pilot-home-eyebrow">DEIN NÄCHSTER SCHRITT</span><h2 id="homeNextTitle">Nächste Aktion</h2></div>'+
@@ -2634,7 +2634,7 @@ function nxOpenNext(){
   const mask=document.createElement("div");mask.className="nx-mask";
   const safe=esc;
   mask.innerHTML='<section class="nx-modal" role="dialog" aria-modal="true" aria-labelledby="nxTitle" aria-describedby="nxDesc">'+
-    '<div class="nx-top"><div class="nx-symbol" aria-hidden="true">✦</div><span class="nx-kicker">neXaro · PILOT · LUMEN 2026.10.08.21</span><button type="button" class="nx-close" aria-label="Schließen">×</button></div>'+
+    '<div class="nx-top"><div class="nx-symbol" aria-hidden="true">✦</div><span class="nx-kicker">neXaro · PILOT · LUMEN 2026.10.08.22</span><button type="button" class="nx-close" aria-label="Schließen">×</button></div>'+
     '<h2 id="nxTitle">'+safe(config.title||"Pilot fragt nach")+'</h2><p class="nx-description" id="nxDesc">'+safe(config.description||"Bitte ergänze die noch fehlenden Angaben.")+'</p>'+
     '<form novalidate><div class="nx-fields">'+fields.map((f,i)=>'<div class="nx-field"><label for="nxInput'+i+'">'+safe(f.label)+'</label>'+
       (f.short?'<input id="nxInput'+i+'" type="text" name="'+safe(f.key)+'" maxlength="500" placeholder="'+safe(f.placeholder||"")+'" data-required="'+(f.required?"1":"0")+'">':
