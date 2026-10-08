@@ -2513,6 +2513,63 @@ body{background:radial-gradient(ellipse 72vw 60vw at 92% -10%,rgba(145,255,62,.1
 .pilot-steps-details .pilot-home-guide{margin-top:13px}
 @media(max-width:600px){.pilot-report-topics{grid-template-columns:1fr}.pilot-report-section{padding:14px}.pilot-goal-report .btns>.btn{width:100%}.pilot-report-state{border-radius:13px}}
 .pilot-brief-facts{display:grid;gap:7px;margin:12px 0}.pilot-brief-facts>div{font-size:12px;color:#4b6840;line-height:1.5;padding:9px 11px;background:#f4ffed;border:1px solid #e0efda;border-radius:11px}.pilot-brief-facts span{font-weight:900;color:#5ea332;margin-right:9px}
+
+/* Pilot Simple Mode – content first. Business logic and all advanced routes remain intact. */
+.pilot-minimal-nav{gap:6px}
+.pilot-nav-more{position:relative}
+.pilot-nav-more>summary{cursor:pointer;list-style:none;border-radius:12px;padding:11px 12px;color:#657265;font-size:12px;font-weight:800;display:flex;align-items:center;gap:10px}
+.pilot-nav-more>summary::-webkit-details-marker{display:none}
+.pilot-nav-more-symbol{font-weight:900;font-size:17px;letter-spacing:1px}
+.pilot-nav-more-content{display:grid;gap:5px;padding:8px;border:1px solid #e5eadf;border-radius:14px;background:#fff;box-shadow:0 18px 42px #24321f15;z-index:41}
+.pilot-simple{max-width:735px;margin:0 auto;display:grid;gap:13px;padding:4px 0 28px}
+.pilot-simple-card{padding:19px 21px;border:1px solid #e2eadc;border-radius:21px;background:#fff;box-shadow:0 9px 33px rgba(32,51,25,.035)}
+.pilot-simple-entry{background:radial-gradient(circle at 95% 4%,#e5ffd8,transparent 31%),#fff}
+.pilot-simple-heading{display:flex;align-items:center;gap:12px;margin:0 0 16px}
+.pilot-simple-heading h2{font-size:clamp(21px,3vw,25px)!important;font-weight:850;letter-spacing:-.035em;margin:4px 0}
+.pilot-simple-heading p{font-size:13px;color:#73816e;margin:0;line-height:1.5}
+.pilot-simple-orb{display:grid;place-items:center;flex:none;width:44px;height:44px;color:#548c34;font-size:23px;border-radius:14px;background:#f1ffe8;border:1px solid #d7edcc}
+.pilot-simple-kicker{font-size:10px;font-weight:850;letter-spacing:.1em;color:#679456}
+.pilot-simple textarea{min-height:92px;max-height:260px;width:100%;border-radius:13px;background:#fcfefa;resize:vertical;padding:13px 14px;font-size:15px;line-height:1.6}
+.pilot-simple-entry-footer{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:12px;flex-wrap:wrap}
+.pilot-simple-entry-footer>.btn{border:0;background:linear-gradient(115deg,#9fff47,#7ee91c);color:#193713;box-shadow:0 5px 17px #65b62924;min-height:46px}
+.pilot-simple-entry-footer .command-attachments{width:auto;margin:0}
+.pilot-simple-entry-footer .attach-btn{min-height:38px;padding:6px 10px;font-size:12px}
+.pilot-simple-counter{display:none}
+.pilot-simple-footnote{font-size:12px;color:#7d8977;text-align:center;padding:0 5px;line-height:1.5}
+.pilot-simple-work h2,.pilot-simple-outcome h2{font-size:clamp(17px,2.8vw,21px)!important;margin:7px 0 10px;line-height:1.35;overflow-wrap:anywhere}
+.pilot-simple-state{display:flex;align-items:center;gap:9px;font-weight:750;font-size:13px;color:#3b5633;margin:11px 0}
+.pilot-simple-indicator{width:9px;height:9px;flex:none;border-radius:50%;background:#7cea26;box-shadow:0 0 0 4px #eaffdf}
+.pilot-simple-indicator.needs{background:#ff9b3f;box-shadow:0 0 0 4px #fff0db}
+.pilot-simple-count{font-size:12px;color:#7d877b;line-height:1.6;margin:7px 0}
+.pilot-simple-activity{font-size:13px;color:#456e3b;padding:11px 13px;border-radius:13px;background:#f2ffeb;margin:10px 0}
+.pilot-simple-action{background:#fbfef8;border:1px solid #edf3e9;padding:13px 14px;margin:14px 0 7px;border-radius:14px}
+.pilot-simple-action p{margin:0 0 10px;font-size:13px;line-height:1.55}
+.pilot-simple-action .btn{min-height:42px;background:#91f535;color:#20391a}
+.pilot-simple-textbutton{background:none;border:0;color:#4f8841;font-size:12px;padding:8px 0;display:block;text-decoration:underline}
+.pilot-simple-details{margin:11px 0 0;padding:10px 0 0;border:0;border-top:1px solid #edf1ea;background:transparent}
+.pilot-simple-details summary{font-size:12px;color:#849180;cursor:pointer}
+.pilot-simple-details p{font-size:12px;color:#788676;margin-top:8px}
+.pilot-simple-details .btn{font-size:12px;min-height:34px;margin:6px 7px 0 0}
+.pilot-simple-outcome-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.pilot-simple-tag{font-size:11px;font-weight:750;border-radius:99px;padding:4px 9px;color:#417525;background:#ebffdd}
+.pilot-simple-tag.pending{color:#a05b1a;background:#fff3e4}
+.pilot-simple-preview{font-size:13px;line-height:1.6;color:#69796b;margin:6px 0 14px;white-space:pre-wrap}
+.pilot-simple-link{padding:0;border:0;background:transparent;text-align:left;color:#4b8334;font-size:13px;font-weight:800;cursor:pointer}
+.pilot-simple-link span{margin-left:7px}
+.pilot-simple-work .pilot-decision-card{border-radius:14px;max-width:100%}
+@media(max-width:760px){
+ .pilot-minimal-nav{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:3px;align-items:center;overflow:visible!important}
+ .pilot-minimal-nav>.nav,.pilot-minimal-nav>.pilot-nav-more{min-width:0;width:100%;font-size:13px}
+ .pilot-minimal-nav>.pilot-nav-more>summary{min-height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:6px 3px}
+ .pilot-nav-more-content{position:absolute;right:0;bottom:calc(100% + 7px);width:210px;max-height:48vh;overflow:auto}
+ .pilot-nav-more-content .nav{width:100%;display:flex;flex-direction:row;text-align:left;justify-content:flex-start}
+ .pilot-simple{padding-top:0;gap:12px}.pilot-simple-card{border-radius:17px;padding:17px 16px}
+ .pilot-simple-entry-footer>.btn{width:100%}.pilot-simple-entry-footer .command-attachments{width:100%}
+ .pilot-simple-heading{align-items:flex-start}.pilot-simple textarea{font-size:16px;min-height:93px}
+ .pilot-simple-work h2{font-size:17px!important}
+ .head h1{font-size:22px!important}
+ .main{padding-top:15px!important}
+}
 </style></head>
 <body>
 <section id="auth" class="auth"><div class="box">
@@ -2566,7 +2623,7 @@ body{background:radial-gradient(ellipse 72vw 60vw at 92% -10%,rgba(145,255,62,.1
 </div>
 
 <section id="app" class="shell hidden"><aside class="side"><div class="brand"><div class="brand-meta"><img src="/nexaro-transparent-logo.webp" class="brand-logo" alt="neXaro Solutions"><div class="ey">Pilot-Kommandozentrale</div></div></div>
-<nav><button class="nav active" data-view="home" aria-label="Zentrale"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="m3 10 9-7 9 7"/><path d="M5 9v11h14V9"/><path d="M9.5 20v-7h5v7"/></svg></span><span>Zentrale</span></button><button class="nav" data-view="goals" aria-label="Ziele"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/></svg></span><span>Ziele</span></button><button class="nav" data-view="documents" aria-label="Dokumente"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M7 3.5h7l4 4V21H7a2 2 0 0 1-2-2V5.5a2 2 0 0 1 2-2Z"/><path d="M14 3.5V8h4"/><path d="M9 12h6M9 16h6"/></svg></span><span>Dokumente</span></button><button class="nav" data-view="results" aria-label="Ergebnisse"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><rect x="3.5" y="3.5" width="17" height="17" rx="4"/><path d="m8.2 12.2 2.6 2.7 5.3-5.8"/></svg></span><span>Ergebnisse</span></button><button class="nav" data-view="execution" aria-label="Ausführung"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M5 19c1-3.5 4-6.2 7-8.6l4.4-6.4c1 2.6 3 4.4 4 7l-6.3 4.5c-2.3 3-4.9 5.1-8.1 5.5"/><path d="m8.4 15.5-1.5 1.9M16.9 8l-1.4-1.4"/><path d="m4 12.6-1.6 1.6m7.8 6.7-1.5 1.5"/></svg></span><span>Ausführung</span></button><button class="nav auxiliary-nav" data-view="canva" aria-label="Gestaltung"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="m12 2 2.8 7.2L22 12l-7.2 2.8L12 22l-2.8-7.2L2 12l7.2-2.8L12 2Z"/></svg></span><span>Gestaltung</span></button><button class="nav admin-only hidden" data-view="roadmap" aria-label="Entwicklungsplan"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M9 9v12"/></svg></span><span>Entwicklungsplan</span></button><button class="nav admin-only hidden" data-view="alpha" aria-label="Systemtest"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="m4 12 5 5L20 6"/><circle cx="12" cy="12" r="9"/></svg></span><span>Systemtest</span></button><button class="nav account-nav" data-view="me" aria-label="Einstellungen"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M10 2h4l.7 2.3 2.2 1.2 2.3-.8 2 3.4-1.7 1.7v2.5l1.7 1.7-2 3.4-2.3-.8-2.2 1.2L14 22h-4l-.7-2.3-2.2-1.2-2.3.8-2-3.4 1.7-1.7v-2.5L2.8 10l2-3.4 2.3.8 2.2-1.2L10 2Z"/><circle cx="12" cy="12" r="3"/></svg></span><span>Einstellungen</span></button></nav>
+<nav class="pilot-minimal-nav"><button class="nav active" data-view="home" aria-label="Pilot"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="m3 10 9-7 9 7"/><path d="M5 9v11h14V9"/><path d="M9.5 20v-7h5v7"/></svg></span><span>Pilot</span></button><button class="nav" data-view="results" aria-label="Ergebnisse"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><rect x="3.5" y="3.5" width="17" height="17" rx="4"/><path d="m8.2 12.2 2.6 2.7 5.3-5.8"/></svg></span><span>Ergebnisse</span></button><button class="nav" data-view="goals" aria-label="Ziele"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/></svg></span><span>Ziele</span></button><details class="pilot-nav-more"><summary aria-label="Weitere Bereiche"><span class="pilot-nav-more-symbol">•••</span><span>Mehr</span></summary><div class="pilot-nav-more-content"><button class="nav" data-view="documents" aria-label="Dokumente"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M7 3.5h7l4 4V21H7a2 2 0 0 1-2-2V5.5a2 2 0 0 1 2-2Z"/><path d="M14 3.5V8h4"/><path d="M9 12h6M9 16h6"/></svg></span><span>Dokumente</span></button><button class="nav" data-view="execution" aria-label="Ausführung"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M5 19c1-3.5 4-6.2 7-8.6l4.4-6.4c1 2.6 3 4.4 4 7l-6.3 4.5c-2.3 3-4.9 5.1-8.1 5.5"/><path d="m8.4 15.5-1.5 1.9M16.9 8l-1.4-1.4"/><path d="m4 12.6-1.6 1.6m7.8 6.7-1.5 1.5"/></svg></span><span>Ausführung</span></button><button class="nav auxiliary-nav" data-view="canva" aria-label="Gestaltung"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="m12 2 2.8 7.2L22 12l-7.2 2.8L12 22l-2.8-7.2L2 12l7.2-2.8L12 2Z"/></svg></span><span>Gestaltung</span></button><button class="nav admin-only hidden" data-view="roadmap" aria-label="Entwicklungsplan"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M9 9v12"/></svg></span><span>Entwicklungsplan</span></button><button class="nav admin-only hidden" data-view="alpha" aria-label="Systemtest"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="m4 12 5 5L20 6"/><circle cx="12" cy="12" r="9"/></svg></span><span>Systemtest</span></button><button class="nav account-nav" data-view="me" aria-label="Einstellungen"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M10 2h4l.7 2.3 2.2 1.2 2.3-.8 2 3.4-1.7 1.7v2.5l1.7 1.7-2 3.4-2.3-.8-2.2 1.2L14 22h-4l-.7-2.3-2.2-1.2-2.3.8-2-3.4 1.7-1.7v-2.5L2.8 10l2-3.4 2.3.8 2.2-1.2L10 2Z"/><circle cx="12" cy="12" r="3"/></svg></span><span>Einstellungen</span></button></div></details></nav>
 <button id="logout" class="btn logout">Abmelden</button></aside>
 <main class="main"><div class="head"><div><div class="ey">PILOT · KOMMANDOZENTRALE</div><h1 id="title">Home</h1></div><div class="head-actions"><button id="adminSystem" class="head-tool admin-only hidden" data-view="admin">Admin</button><button id="customerPreviewToggle" class="head-tool admin-preview hidden" type="button">Kundenansicht</button><button id="accountButton" class="head-tool" data-view="me">Profil</button><div class="status"><span class="dot"></span><span id="pilotStatus">Pilot bereit</span></div></div></div><div id="view"></div></main></section><div id="pilotFlightLayer" aria-hidden="true"></div>
 
@@ -2990,83 +3047,69 @@ async function pilotEnsureJourney(){
  }catch(err){console.warn("Pilot-Umsetzungsphase noch nicht bereit",String(err?.message||err))}
  return false;
 }
-function home(){
-  const g=goals[0]||null;
-  const n=actions.find(a=>a.status==="ready")||actions.find(a=>a.status==="pending");
-  const approval=pilotReviewContext();
-  const interruption=executions.find(x=>["running","waiting_approval","review_required","blocked"].includes(x.status));
-  const total=milestones.reduce((sum,m)=>sum+Number(m.weight||1),0)||1;
-  const done=milestones.filter(m=>m.status==="completed").reduce((sum,m)=>sum+Number(m.weight||1),0);
-  const progress=g?Math.round(done/total*100):0;
-  const success=g?(goalSuccessMap[g.id]||successFromData(milestones,outcomes)):null;
-  const verified=g?.status==="achieved"&&Number.isFinite(Number(success?.percent))?Math.max(0,Math.min(100,Math.round(Number(success.percent)))):progress;
-  const status=executions.find(x=>["running","waiting_approval","review_required","blocked"].includes(x.status))?.status||g?.status||"ready";
-  const activeCount=goals.filter(g=>["active","in_progress","ready"].includes(String(g.status))).length||goals.length;
-  const mainTitle=g?(g.title||g.description||g.desired_outcome||"Aktives Ziel"):"";
-  const outcomeInfo=g?(g.desired_outcome||g.description||"Pilot kennt dein Ziel und setzt die nächsten Schritte um."):"";
-  const attachmentInputs='<input id="attachmentPhotoInput" class="hidden-file" type="file" accept="image/*" capture="environment" multiple>'+
-    '<input id="attachmentDocumentInput" class="hidden-file" type="file" accept=".pdf,.docx,.txt,.md,.csv,.json,.xml,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,text/csv,application/json,application/xml" multiple>'+
-    '<input id="attachmentFileInput" class="hidden-file" type="file" accept="image/*,.pdf,.docx,.txt,.md,.csv,.json,.xml" multiple>';
-  const composer='<section class="pilot-home-card pilot-home-compose" aria-labelledby="homeComposeTitle">'+
-      '<div class="pilot-home-card-head"><div class="pilot-home-mark" aria-hidden="true">✦</div><div>'+
-      '<h2 id="homeComposeTitle">Was kann Pilot für dich erledigen?</h2><p>Beschreibe deinen Wunsch. Pilot übernimmt die Umsetzung.</p></div></div>'+
-      '<label class="pilot-home-input-label" for="goalText">Dein Auftrag</label>'+
-      '<textarea id="goalText" rows="4" maxlength="3000" placeholder="z. B. Ich möchte ein Garten- und Landschaftsbauunternehmen gründen."></textarea>'+
-      '<div class="pilot-home-input-meta"><span>Pilot erkennt, wenn dein Auftrag zu einem bestehenden Ziel gehört.</span><span id="goalTextCount">0 / 3000</span></div>'+
-      '<div class="pilot-home-controls"><div class="command-attachments"><div class="attachment-actions">'+
-      '<button class="attach-btn pilot-home-upload" type="button" data-attach-kind="file">＋ Foto / Dokument</button>'+
-      '<span class="attachment-note">Optional</span></div>'+attachmentInputs+'<div id="attachmentTray" class="attachment-tray" aria-live="polite"></div></div>'+
-      '<button id="createGoal" type="button" class="btn ai launch-primary pilot-home-primary">✈ Pilot jetzt starten →</button></div>'+
 
-    '</section>';
-  const active=g?'<section class="pilot-home-card pilot-home-active" aria-labelledby="homeActiveTitle">'+
-      '<div class="pilot-home-active-header"><div class="pilot-home-active-title"><span class="pilot-home-icon-orange" aria-hidden="true">◎</span><div>'+
-      '<h2 id="homeActiveTitle">Aktiver Auftrag</h2><p>Hier arbeitet Pilot an deinem bisherigen Ziel.</p></div></div>'+
-      '<button id="openActiveAction" type="button" class="pilot-home-textbutton">Auftrag öffnen →</button></div>'+
-      '<div class="pilot-home-goal-name">'+esc(mainTitle)+'</div>'+
-      '<div class="pilot-home-goal-meta">'+esc(outcomeInfo)+'</div>'+
-      '<div class="pilot-home-summary">'+
-       '<div class="pilot-home-stat"><span class="pilot-home-dot"></span><strong>'+esc(deStatus(status))+'</strong><small>Status</small></div>'+
-       '<div class="pilot-home-stat"><strong>'+verified+' %</strong><small>Planfortschritt</small></div>'+
-       '<div class="pilot-home-stat"><strong>'+activeCount+'</strong><small>Ziele vorhanden</small></div>'+
-      '</div>'+
-      '<div class="pilot-home-progress"><div class="pilot-home-progress-bar" style="width:'+verified+'%"></div></div>'+
-    '</section>':'<section class="pilot-home-empty">Noch kein aktiver Auftrag. Starte oben dein erstes Ziel – Pilot plant die nächsten Schritte mit dir.</section>';
-  // A historical failed attempt must not override a newer successful execution.
-  // executions are loaded with created_at descending; only the most recent run
-  // can trigger an immediate retry warning for the currently offered action.
-  const latestRun=executions[0]||null;
-  const previousFailed=n&&latestRun?.action_id===n.id&&latestRun.status==="failed"?latestRun:null;
-  const failureInfo=previousFailed?'<div class="pilot-execution-retry-note" role="status"><span aria-hidden="true">↻</span><div><strong>Dieser Schritt benötigt einen neuen Versuch</strong><small>Der letzte Versuch dieses Schritts war nicht erfolgreich. Dein Ziel bleibt erhalten.</small></div></div>':'';
-  const action=g?'<section class="pilot-home-card operation-panel pilot-home-next" id="pilotNextActionPanel" aria-labelledby="homeNextTitle">'+
-      '<div class="pilot-home-next-head"><div><span class="pilot-home-eyebrow">ALS NÄCHSTES</span><h2 id="homeNextTitle">Pilot arbeitet weiter</h2></div>'+
-      '</div>'+
-      pilotAutoStatusCard()+failureInfo+
-      (approval?pilotReviewCard(approval):
-       interruption?'<div class="command-card pilot-review-card"><div class="pilot-review-label">PILOT WARTET</div><h3>'+esc(deStatus(interruption.status))+'</h3>'+
-          '<p>Dieser Ausführungsschritt benötigt Aufmerksamkeit oder läuft noch. Pilot startet keine weitere Aktion, bis er geklärt ist.</p>'+
-          '<div class="btns"><button type="button" class="btn ai" data-jump="execution">Ausführung prüfen ↗</button></div></div>':
-       n?'<div class="command-card">'+
-        '<div class="command-title">'+esc(pilotFriendlyActionTitle(n))+'</div>'+
-        '<p class="muted">'+esc(pilotFriendlyActionSummary(n))+'</p>'+
-        (n.owner_type==="joint"||n.owner_type==="user"||n.recommended_mode==="together"?'<div class="pilot-home-collab-caption">✦ Gemeinsam mit dir · Pilot bereitet eine Entscheidung zur Prüfung vor.</div>':'')+
-        '<div class="pilot-home-action-buttons"><button type="button" class="btn ai pilot-home-action-start" id="executeAction" data-action="'+esc(n.id)+'" '+(pilotAutoSession?.active?'disabled':'')+'>'+(n.owner_type==="joint"||n.owner_type==="user"||n.recommended_mode==="together"?'✈ Entscheidung vorbereiten':'✈ Pilot weiterarbeiten lassen')+'</button>'+
-        '<details class="pilot-home-action-more"><summary>Weitere Optionen</summary><div class="pilot-home-option-buttons">'+
-        '<button type="button" class="btn" id="completeAction" data-action="'+esc(n.id)+'">Als erledigt markieren</button>'+
-        '<button type="button" class="btn" id="completeWithOutcome" data-action="'+esc(n.id)+'">Ergebnis messen</button>'+
-        '<button type="button" class="btn" id="markBlocked" data-action="'+esc(n.id)+'">Blockierung melden</button></div></details></div></div>':
-        '<div class="pilot-home-empty-inline">Alle aktuell geplanten Schritte sind bearbeitet. Du kannst oben einen Folgeauftrag eingeben.</div>')+
-    '</section>':'';
-  const guide='<section class="pilot-home-card pilot-home-guide" aria-labelledby="pilotHowTitle">'+
-    '<h2 id="pilotHowTitle">So arbeitet Pilot</h2>'+
-    '<div class="pilot-home-steps">'+
-    '<div><span class="pilot-home-stepnum">1</span><strong>Verstehen</strong><small>Pilot klärt deinen Auftrag.</small></div>'+
-    '<div><span class="pilot-home-stepnum pilot-home-step-orange">2</span><strong>Planen</strong><small>Er erstellt die nächsten Schritte.</small></div>'+
-    '<div><span class="pilot-home-stepnum">3</span><strong>Ausführen</strong><small>Er arbeitet bis zum Ergebnis.</small></div>'+
-    '</div></section>';
-  return '<div class="pilot-home"><div class="pilot-home-guidance">✦ PILOT · DEIN AUFTRAG IM ÜBERBLICK</div>'+composer+active+pilotGoalReport()+action+pilotLaunchOverview()+'<details class="pilot-steps-details"><summary>So arbeitet Pilot</summary>'+guide+'</details></div>';
+function pilotShortResult(){
+ const items=pilotCustomerResults();
+ // Prefer a concrete prepared deliverable over pure research/old failures.
+ return items.find(r=>r.quality_status==="ready")||items[0]||null;
 }
-
+function home(){
+ const g=goals[0]||null;
+ const n=actions.find(a=>a.status==="ready")||actions.find(a=>a.status==="pending");
+ const approval=pilotReviewContext();
+ const interrupt=executions.find(x=>["running","waiting_approval","review_required","blocked"].includes(x.status));
+ const latest=pilotShortResult();
+ const inProgress=!!pilotAutoSession?.active;
+ const done=actions.filter(x=>x.status==="completed").length;
+ const count=actions.length;
+ const currentTask=n?pilotFriendlyActionTitle(n):"";
+ const attach='<input id="attachmentPhotoInput" class="hidden-file" type="file" accept="image/*" capture="environment" multiple>'+
+ '<input id="attachmentDocumentInput" class="hidden-file" type="file" accept=".pdf,.docx,.txt,.md,.csv,.json,.xml,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,text/csv,application/json,application/xml" multiple>'+
+ '<input id="attachmentFileInput" class="hidden-file" type="file" accept="image/*,.pdf,.docx,.txt,.md,.csv,.json,.xml" multiple>';
+ const entry='<section class="pilot-simple-card pilot-simple-entry" aria-labelledby="homeComposeTitle">'+
+ '<div class="pilot-simple-heading"><span class="pilot-simple-orb">✈</span><div><span class="pilot-simple-kicker">DEIN INTELLIGENTER MITARBEITER</span><h2 id="homeComposeTitle">Was soll Pilot erledigen?</h2>'+
+ '<p>Ein Satz genügt. Pilot erkennt die nötigen Schritte selbst.</p></div></div>'+
+ '<textarea id="goalText" maxlength="3000" rows="3" placeholder="'+(g?"Zum Beispiel: Erstelle einen Businessplan für mein Unternehmen.":"Zum Beispiel: Ich möchte mein eigenes Unternehmen gründen.")+'" aria-label="Dein Auftrag"></textarea>'+
+ '<div class="pilot-simple-entry-footer"><div class="command-attachments"><div class="attachment-actions"><button class="attach-btn" type="button" data-attach-kind="file">＋ Datei hinzufügen</button></div>'+
+ attach+'<div id="attachmentTray" class="attachment-tray" aria-live="polite"></div></div>'+
+ '<button id="createGoal" type="button" class="btn ai launch-primary">✈ Pilot starten</button></div>'+
+ '<span id="goalTextCount" class="pilot-simple-counter" aria-hidden="true">0 / 3000</span>'+
+ '</section>';
+ if(!g)return '<div class="pilot-simple">'+entry+'<p class="pilot-simple-footnote">Pilot fragt nur nach, wenn eine entscheidende Information fehlt. Externe Aktionen benötigen deine Freigabe.</p></div>';
+ let label=inProgress?"Pilot arbeitet für dich":approval?"Deine Entscheidung wird benötigt":interrupt?"Pilot benötigt Aufmerksamkeit":n?"Pilot bereitet den nächsten Schritt vor":"Aktueller Arbeitsabschnitt bearbeitet";
+ const status='<section class="pilot-simple-card pilot-simple-work" id="pilotNextActionPanel" aria-labelledby="homeNextTitle">'+
+ '<span class="pilot-simple-kicker">DEIN AKTUELLER AUFTRAG</span>'+
+ '<h2 id="homeNextTitle">'+esc(g.title||"Dein Ziel")+'</h2>'+
+ '<div class="pilot-simple-state"><span class="pilot-simple-indicator '+(inProgress?"running":approval||interrupt?"needs":"")+'"></span>'+
+ '<span>'+esc(label)+'</span></div>'+
+ (count?'<p class="pilot-simple-count">'+done+' von '+count+' vorbereiteten Arbeitsschritten bearbeitet. Das tatsächliche Endziel wird gesondert geprüft.</p>':'')+
+ (inProgress?'<div class="pilot-simple-activity">'+esc(pilotAutoSession.label||"Pilot bearbeitet die nächsten Aufgaben …")+
+ '<button id="pausePilotAutopilot" class="pilot-simple-textbutton" type="button">Nach diesem Schritt stoppen</button></div>':
+ approval?pilotReviewCard(approval):
+ interrupt?'<div class="command-card pilot-simple-action"><p>Pilot wartet auf die nötige Prüfung oder Freigabe.</p>'+
+ '<button type="button" data-jump="execution" class="btn">Prüfung öffnen</button></div>':
+ n?'<div class="command-card pilot-simple-action"><p><strong>Als Nächstes:</strong> '+esc(currentTask)+'</p>'+
+ '<div class="pilot-home-action-buttons"><button type="button" id="executeAction" class="btn ai" data-action="'+esc(n.id)+'">'+(n.owner_type==="joint"||n.recommended_mode==="together"?"Entscheidung prüfen":"✈ Pilot weiterarbeiten lassen")+'</button></div></div>':
+ '<p class="pilot-simple-count">Pilot zeigt dir das Ergebnis unten. Offene Folgeaufgaben bleiben dem Ziel zugeordnet.</p>')+
+ '<details class="pilot-simple-details"><summary>Arbeitsdetails anzeigen</summary>'+
+ '<p>Die technische Planung läuft im Hintergrund. Du musst diese Schritte nicht einzeln verwalten.</p>'+
+ '<button type="button" data-jump="goals" class="btn">Alle Ziele</button> '+
+ '<button type="button" data-jump="execution" class="btn">Ausführungsverlauf</button>'+
+ '</details></section>';
+ const ready=!!latest,provisional=latest?.quality_status==="provisional"||latest?.quality_status==="review_required";
+ const title=ready?pilotFriendlyActionTitle(latest.title||"Dein Ergebnis"):"Dein erstes Ergebnis";
+ const raw=ready?String(latest.content||"").replace(/\\n/g,"\n"):"";
+ const body=raw.replace(/^VORLÄUFIG[^\n]*\n*/i,"").trim();
+ const clip=body.length>240?body.slice(0,237).trim()+" …":body;
+ const outcome='<section class="pilot-simple-card pilot-simple-outcome" aria-labelledby="pilotSimpleResult">'+
+ '<div class="pilot-simple-outcome-head"><span class="pilot-simple-kicker">ERGEBNIS</span>'+
+ (ready?'<span class="pilot-simple-tag '+(provisional?"pending":"")+'">'+(provisional?"Vorläufig":"Erarbeitet")+'</span>':'')+'</div>'+
+ '<h2 id="pilotSimpleResult">'+esc(title)+'</h2>'+
+ '<p class="pilot-simple-preview">'+(ready?esc(clip):"Hier erscheint dein konkretes Ergebnis, sobald Pilot den ersten Schritt abgeschlossen hat.")+'</p>'+
+ (ready?'<button type="button" class="pilot-simple-link" data-jump="results">Vollständiges Ergebnis ansehen <span aria-hidden="true">→</span></button>':'')+
+ '</section>';
+ return '<div class="pilot-simple">'+entry+status+outcome+'</div>';
+}
 
 /** LUMEN: shared scene header for every customer-facing Pilot screen. */
 function pilotScene(kicker,title,description,symbol="✦"){
