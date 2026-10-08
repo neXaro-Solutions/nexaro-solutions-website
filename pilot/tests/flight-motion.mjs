@@ -36,7 +36,7 @@ const base="http://127.0.0.1:"+server.address().port+"/pilot/";
 let browser;
 try{
  browser=await engine.launch({headless:true});
- for(const width of [390,1366]){
+ for(const width of [320,390,768,1366]){
   const page=await browser.newPage({viewport:{width,height:850}});
   try{
    await page.route("https://esm.sh/**",route=>route.fulfill({status:200,contentType:"text/javascript",headers:{"access-control-allow-origin":"*"},body:stub}));
@@ -103,8 +103,16 @@ try{
    assert.equal(ground.hidden,false,"Avatar needs a visible safe ground location");
    assert.equal(ground.collision,false,"Ground patrol must not cover the protected action: "+JSON.stringify(ground));
    assert(Math.abs(ground.feetBottom-ground.floor)<13,"Boots must touch the ground: "+JSON.stringify(ground));
+   // The cue is temporary: the worker leaves on the ground even without an
+   // approval. The same plane returns to its original resting station.
+   await page.waitForFunction(()=>{
+     const layer=document.querySelector("#pilotFlightLayer");
+     const avatar=layer?.querySelector(".pilot-worker-avatar");
+     return window.__lumenV6.phase()==="parked"&&!avatar;
+   },null,{timeout:9500});
+   assert.equal(await page.locator(selector).count(),1,"One aircraft stays at rest after the cue");
    await page.evaluate(()=>window.__lumenV6.reboard());
-   assert.equal(await page.locator("#pilotFlightLayer .pilot-worker-avatar").count(),0,"Boarding removes the worker");
+   assert.equal(await page.locator("#pilotFlightLayer .pilot-worker-avatar").count(),0,"Boarding keeps the worker hidden");
    assert.equal(await page.locator(selector).count(),1,"Reboard reuses same aircraft");
    await page.waitForFunction(()=>window.__lumenV6.phase()==="cruise",null,{timeout:5500});
    await page.evaluate(()=>window.__lumenV6.stop());
