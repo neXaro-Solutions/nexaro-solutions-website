@@ -8,7 +8,7 @@ const HEAD={"content-type":"application/json","cache-control":"no-store",
 const MAX_STEPS=6,MAX_USD=0.25,RESERVE_USD=0.02;
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const permittedCreative=/(?:logo|markenauftritt|branding|brand.?guide|design|flyer|marketingtext|webseite.?inhalt|website.?inhalt|werbetext|newsletter|social.media|textentwurf|konzept|landingpage.?text|präsentation|praesentation)/i;
-const unsafe=/\b(?:rechtsform|rechtlich|gesetz|gesetzlich|juristisch|notar|steuer|gewerbe|amtlich|behörde|behoerde|anmeld|register|haftung|genehmig|versicher|medizin|therapie|diagnos|pflege|arznei|sicherheit|sicherheits|finanz|budget|preis|kosten|invest|kapital|zahlung|bezahlen|kauf|kaufen|buchung|buchen|veröffentlich|veroeffentlich|publish|posten|senden|mail|email|kontaktier|anruf|absend|einreich|löschen|loeschen|registrier|vertragsabschluss|angebotserstellung)\b/i;
+const unsafe=/\b(?:rechtsform|rechtlich|gesetz|gesetzlich|juristisch|notar|steuer|gewerbe|amtlich|behörde|behoerde|anmeld|register|haftung|genehmig|versicher|medizin|therapie|diagnos|pflege|arznei|sicherheit|sicherheits|finanz|budget|preis|kosten|invest|kapital|zahlung|bezahlen|kauf|kaufen|buchung|buchen|veröffentlich|veroeffentlich|publish|posten|senden|mail|email|kontaktier|anruf|absend|einreich|löschen|loeschen|registrier|vertragsabschluss|angebotserstellung|send|email|publish|post|book|buy|pay|delete|call|contact|submit|upload|deploy|versend|schick|hochlad|beauftrag|bestell|reservier|bezahl)\b/i;
 const respond=(body:any,status=200)=>Response.json(body,{status,headers:HEAD});
 const iso=()=>new Date().toISOString();
 function client(){
