@@ -3442,7 +3442,11 @@ async function pilotContinueSafely(goalId,maxSteps=3){
      if(session.cancelRequested){stopped="Auf deinen Wunsch nach dem laufenden Schritt angehalten.";break}
      session.label="Prüfung und Ausführung "+(i+1)+" / "+maxSteps+" …";
      render();
-     const response=await sb.functions.invoke("execution-engine",{body:{operation:"next",goal_id:goalId}});
+     const autoWatch=pilotWatchExecution({goalId});
+    let response;
+    try{
+      response=await sb.functions.invoke("execution-engine",{body:{operation:"next",goal_id:goalId}});
+    }finally{autoWatch?.stop()}
      if(response.error)throw await pilotApiError(response,"Autopilot konnte nicht fortfahren.");
      const data=response.data||{};
      if(data.status!=="completed"){
@@ -3494,10 +3498,13 @@ async function confirmPilotResult(){
    if(response.data?.status!=="completed")throw new Error("Die Bestätigung ist noch nicht abgeschlossen.");
    await load();
    render();
-   await pilotContinueSafely(ctx.ex.goal_id,3);
    const target=document.getElementById("pilotNextActionPanel");
-   if(target?.querySelector(".command-card")&&activePilotFlight)await landPilotAtNextAction({scroll:true,minCruise:1700});
-   PS.textContent="Pilot bereit";
+   if(target?.querySelector(".command-card")&&activePilotFlight)
+     await landPilotAtNextAction({scroll:true,minCruise:1700});
+   // Land the aircraft for the completed user decision; continue follow-up jobs independently.
+   finishPilotFlight();
+   PS.textContent="Pilot startet die nächsten sicheren Schritte …";
+   void pilotContinueSafely(ctx.ex.goal_id,3);
  }catch(e){
    PS.textContent="Pilot benötigt eine Prüfung";
    await load().catch(()=>{});
@@ -3588,7 +3595,8 @@ async function executeAction(){
    const r=await sb.functions.invoke("execution-engine",{body:{operation:"start",action_id:n.id}});
    if(r.error)throw await pilotApiError(r,"Die Aktion konnte nicht ausgeführt werden.");
    await load();render();
-   if(r.data?.status==="completed")await pilotContinueSafely(n.goal_id||goals[0]?.id,3);
+   const shouldAutoContinue=r.data?.status==="completed";
+   watcher?.stop();
    const target=document.getElementById("pilotNextActionPanel");
    if(target?.querySelector(".command-card")&&activePilotFlight)await landPilotAtNextAction({scroll:true,minCruise:1700});
    const status=r.data?.status;
@@ -3598,6 +3606,11 @@ async function executeAction(){
      else pilotNotice("Pilot hat ein Ergebnis erstellt, das vor der weiteren Bearbeitung geprüft werden muss.");
    }
    if(status==="waiting_approval")pilotNotice("Pilot hat die externe Aktion vorbereitet. Sie wartet auf deine ausdrückliche Freigabe.");
+   if(shouldAutoContinue){
+     finishPilotFlight();
+     PS.textContent="Pilot führt die nächsten sicheren Schritte selbstständig aus …";
+     void pilotContinueSafely(n.goal_id||goals[0]?.id,3);
+   }
  }catch(e){
    PS.textContent="Pilot benötigt eine Prüfung";
    await telemetry("incident",{goal_id:n.goal_id||goals[0]?.id||null,source:"execution",severity:"error",error_code:"EXECUTION_FAILED",message:String(e.message||e)});
