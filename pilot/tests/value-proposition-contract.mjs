@@ -13,7 +13,7 @@ assert(site.includes('id="welten"')&&site.includes('href="./sumup-beratung.html"
 assert(site.includes('Vape & B2B')&&site.includes('href="./b2b-handel.html"'),"Vape and B2B contact is visible from homepage");
 assert(b2b.includes("Vape-")&&b2b.includes("Fachhandel"),"Age-restricted Vape inquiries remain limited to specialist B2B trade");
 assert(site.includes('href="./crm/"')&&site.includes('id="software-anfrage"'),"Corporate CRM product and direct application remain accessible");
-assert(site.includes('src="./nx-language.js?v=20261007-toggle2"'),"Latest restored root loads DE/EN switcher");
+assert(site.includes('src="./nx-language.js?v=20261008-visible-header"')&&lang.includes('header.insertBefore(b,burger)'),"Visible DE/EN language control must be available outside collapsed mobile navigation");
 assert(lang.includes("function installToggle()")&&lang.includes('nx-language-toggle')&&lang.includes('dataset.nxLang')&&lang.includes('"Vape & B2B"'),"Site switcher and B2B terminology have German/English support");
 assert(!/neXaro\s+Pilot|href=["'][^"']*\/pilot(?:\/|["'])/i.test(site),"No neXaro Pilot promotion or link anywhere on corporate homepage");
 assert(!site.includes('pilot-compare'),"Corporate homepage must not host Pilot comparison marketing");
@@ -31,7 +31,7 @@ assert(pilot.includes('class="pilot-readiness-passed pilot-tests-group"'),"Passe
 assert(pilot.includes('pilot-tests-shell')&&pilot.includes('pilot-tests-overview'),"System test has a focused summary, not stacked full-size dashboard cards");
 assert(pilot.includes('class="pilot-tests-group pilot-tests-open"')&&pilot.includes('Verbindungen & Einzeltests'),"Long test lists and technical tools are disclosed only on demand");
 assert(pilot.includes('pilot-more-menu-label admin-only hidden')&&pilot.includes('SYSTEM · INTERN'),"Extra menu clearly separates user functions from admin tools");
-assert(pilot.includes('left:calc(-50% - 5px)!important')&&pilot.includes('transform:translateX(-50%)!important'),"More menu is centered above the three-item dock");
+assert(pilot.includes('nav.pilot-minimal-nav>.pilot-nav-more{position:static!important}')&&pilot.includes('left:50%!important;right:auto!important;top:auto!important')&&pilot.includes('transform:translateX(-50%)!important'),"More dropdown must center relative to the entire three-item dock on all viewport widths");
 assert(pilot.includes('class="pilot-neon-keyword"'),"Central task keywords use orange emphasis");
 assert(pilot.includes('--nx-neon-orange:#ff7214'),"Orange accent token must remain part of the neXaro daylight visual system");
 assert(pilot.includes('.pilot-admin-screen .admin-hero-actions{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important'),"Mobile admin actions remain two-column with readable labels");
