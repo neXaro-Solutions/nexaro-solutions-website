@@ -122,6 +122,20 @@ try{
    }
    if(device.width<=760&&Math.abs(shell.navCenter-shell.w/2)>12)
     throw Error("Mobile dock not centered: "+JSON.stringify(shell));
+   await page.locator(".pilot-nav-more>summary").click();
+   const popup=await page.evaluate(()=>{
+    const nav=document.querySelector(".side nav.pilot-minimal-nav").getBoundingClientRect();
+    const rect=document.querySelector(".side .pilot-nav-more-content").getBoundingClientRect();
+    const details=document.querySelector(".pilot-nav-more");
+    return {open:details.open,left:rect.left,right:rect.right,top:rect.top,bottom:rect.bottom,
+      width:innerWidth,height:innerHeight,menuCenter:(rect.left+rect.right)/2,dockCenter:(nav.left+nav.right)/2,
+      labels:document.querySelectorAll(".pilot-more-menu-label").length};
+   });
+   if(!popup.open||popup.labels!==2||popup.left< -2||popup.right>popup.width+2||
+      Math.abs(popup.menuCenter-popup.dockCenter)>14||popup.top<0||
+      popup.bottom>popup.height+2)
+    throw Error("More menu not centered, readable, or within viewport: "+JSON.stringify(popup));
+   await page.locator(".pilot-nav-more>summary").click();
 
    // Mock only the visual admin elements: ensure long statuses never collapse into 4-letter columns.
    await page.evaluate(()=>{
