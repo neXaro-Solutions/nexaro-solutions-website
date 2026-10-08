@@ -2639,7 +2639,7 @@ function successFromData(ms=[],os=[]){
   }
   percent=Math.max(0,Math.min(100,Math.round(percent)));
   const level=percent>=100?"complete":percent>=75?"green":percent>=50?"amber":"red";
-  const label=source==="Ergebnis"?(percent>=100?"Ziel erreicht":percent>=75?"Ziel fast erreicht":percent>=50?"Auf dem Weg":"Unter Ziel"):(percent>=100?"Geplanter Abschnitt abgeschlossen":percent>=75?"Arbeitsplan fast bearbeitet":percent>=50?"Arbeitsplan in Umsetzung":"Arbeitsplan begonnen");
+  const label=source==="Ergebnis"?(percent>=100?"Messwert erreicht":percent>=75?"Messwert fast erreicht":percent>=50?"Messwert entwickelt sich":"Messwert unter Ziel"):(percent>=100?"Geplanter Abschnitt abgeschlossen":percent>=75?"Arbeitsplan fast bearbeitet":percent>=50?"Arbeitsplan in Umsetzung":"Arbeitsplan begonnen");
   return {percent,level,label,source,metric,unit};
 }
 function successGaugeHtml(s,compact=false){
@@ -2895,7 +2895,7 @@ function pilotAutoStatusCard(){
 
 function pilotFriendlyActionTitle(action){
  const raw=String(typeof action==="string"?action:action?.title||"Nächste Aufgabe");
- const clean=raw.replace(/^Pilot\s*[·:–-]\s*/i,"").replace(/^Nächsten Schritt für\s*[„"]?/i,"").replace(/^[0-9]+\.\s*/,"").replace(/[“"]?\s+ausführen$/i,"").trim();
+ const clean=raw.replace(/^Pilot\s*[·:–-]\s*/i,"").replace(/^\[Launch\]\s*/i,"").replace(/^Nächsten Schritt für\s*[„"]?/i,"").replace(/^[0-9]+\.\s*/,"").replace(/[“"]?\s+ausführen$/i,"").trim();
  if(/budget|kapitalbedarf|betriebskosten/i.test(clean))return "Startbudget und laufende Kosten kalkulieren";
  if(/rechtsform|gewerbeanmeldung/i.test(clean))return "Rechtsform und Anmeldung klären";
  if(/qualifikation|versicherungsschutz|fachkunde/i.test(clean))return "Fachkenntnisse und Versicherung prüfen";
@@ -2994,7 +2994,7 @@ function home(){
   const done=milestones.filter(m=>m.status==="completed").reduce((sum,m)=>sum+Number(m.weight||1),0);
   const progress=g?Math.round(done/total*100):0;
   const success=g?(goalSuccessMap[g.id]||successFromData(milestones,outcomes)):null;
-  const verified=g&&Number.isFinite(Number(success?.percent))?Math.max(0,Math.min(100,Math.round(Number(success.percent)))):progress;
+  const verified=g?.status==="achieved"&&Number.isFinite(Number(success?.percent))?Math.max(0,Math.min(100,Math.round(Number(success.percent)))):progress;
   const status=executions.find(x=>["running","waiting_approval","review_required","blocked"].includes(x.status))?.status||g?.status||"ready";
   const activeCount=goals.filter(g=>["active","in_progress","ready"].includes(String(g.status))).length||goals.length;
   const mainTitle=g?(g.title||g.description||g.desired_outcome||"Aktives Ziel"):"";
