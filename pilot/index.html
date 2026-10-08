@@ -1911,7 +1911,7 @@ function nxOpenNext(){
   const mask=document.createElement("div");mask.className="nx-mask";
   const safe=esc;
   mask.innerHTML='<section class="nx-modal" role="dialog" aria-modal="true" aria-labelledby="nxTitle" aria-describedby="nxDesc">'+
-    '<div class="nx-top"><div class="nx-symbol" aria-hidden="true">✦</div><span class="nx-kicker">neXaro · PILOT · Alpha 2026.10.08.9</span><button type="button" class="nx-close" aria-label="Schließen">×</button></div>'+
+    '<div class="nx-top"><div class="nx-symbol" aria-hidden="true">✦</div><span class="nx-kicker">neXaro · PILOT · Alpha 2026.10.08.10</span><button type="button" class="nx-close" aria-label="Schließen">×</button></div>'+
     '<h2 id="nxTitle">'+safe(config.title||"Pilot fragt nach")+'</h2><p class="nx-description" id="nxDesc">'+safe(config.description||"Bitte ergänze die noch fehlenden Angaben.")+'</p>'+
     '<form novalidate><div class="nx-fields">'+fields.map((f,i)=>'<div class="nx-field"><label for="nxInput'+i+'">'+safe(f.label)+'</label>'+
       (f.short?'<input id="nxInput'+i+'" type="text" name="'+safe(f.key)+'" maxlength="500" placeholder="'+safe(f.placeholder||"")+'" data-required="'+(f.required?"1":"0")+'">':
@@ -1961,6 +1961,7 @@ async function pilotApiError(response,fallback){
       secondary_spend_limit:"Claude hat das Ausgabenlimit der Organisation oder des Workspaces erreicht. Bitte Limits im Anthropic-Konto prüfen.",
       secondary_billing_issue:"Der Claude-API-Dienst benötigt gültige Abrechnungsdaten oder zusätzliches Guthaben.",
       secondary_invalid_parameters:"Claude hat einen technischen Anfrageparameter abgelehnt. Der Sicherheitsdienst benötigt eine kompatible Konfiguration.",
+      secondary_workspace_required:"Claude benötigt eine Workspace-ID. Hinterlege in Supabase → Edge Functions → Secrets den Eintrag ANTHROPIC_WORKSPACE_ID mit deiner wrkspc_-ID.",
       secondary_http_error:"Der alternative Claude-Dienst beantwortet die Prüfung mit einem Fehler.",
       secondary_connectivity_error:"Der alternative Claude-Dienst ist aus dem Pilot-Backend nicht erreichbar."
     };
@@ -2035,6 +2036,7 @@ async function pilotSafetyDiagnostic({show=true}={}){
       http_404:"✕ Modell beziehungsweise API-Endpunkt nicht verfügbar (404)",
       http_429:"! Kontingent oder Ratenlimit erreicht (429)",
       http_400:"! Ungültige Anfrage oder Ausgabenlimit erreicht (400)",
+      workspace_required:"✕ Workspace-ID fehlt. Hinterlege ANTHROPIC_WORKSPACE_ID in Supabase → Edge Functions → Secrets oder nutze einen Workspace-gebundenen Claude-Schlüssel.",
       quota_exhausted:"✕ API-Guthaben oder festes Ausgabenlimit ausgeschöpft. OpenAI-Abrechnung prüfen.",
       rate_limited:"! Kurzfristiges API-Ratenlimit erreicht. Später erneut prüfen.",
       spend_limit:"✕ Claude-Ausgabenlimit für Organisation oder Workspace erreicht. Limit im Anthropic-Konto prüfen.",
