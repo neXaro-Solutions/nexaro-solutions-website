@@ -72,3 +72,14 @@ Verbindliche UX-/Backend-Regel: Bei **gemeinsamen Entscheidungen** muss Pilot di
 - Alle Änderungen werden in einem gemeinsamen Draft gehalten; Rückkehr in die Übersicht, modale Bearbeitung oder regulärer Neu-Render verlieren den Text nicht. Ein generischer einteiliger Editor bleibt für andere Branchen / Aufgabentypen bestehen.
 - **Backend unverändert gesichert:** `execution-engine` empfängt den endgültigen zusammengesetzten Text als `edited_content`; Besitzerprüfung, explizite Freigabe, Validierung/Safety-Gate und Speicherung in Zielgedächtnis und Ergebnis bleiben aktiv.
 - Technisch kontrolliert: Quelltext- und Syntaxprüfung, Überschriftenaufteilung, Roundtrip, Bearbeitungs-Persistenz, Modal außerhalb der animierten Oberfläche, viewport-sensible Tastaturbehandlung und Freigabepayload. Die reale Scroll-/Keyboard-Abnahme auf einem iPhone muss separat bestanden werden, bevor der Teilblock grün wird.
+
+
+## LUMEN 2026.10.08.25 – direkte Entscheidungsfläche ohne Vollbild-Editor
+
+Die zuvor implementierte modale Editor-Ansicht (.24) wurde **auf ausdrücklichen Nutzerwunsch entfernt**. Die Entscheidung bleibt in einer **kompakten, selbst scrollbar bleibenden LUMEN-Signalfläche** in der Zentrale. Kein zweites Fenster und kein Zusatz-Editor mehr.
+
+Zwei fachliche Titel („Für wen arbeiten wir?“ und „Das versprechen wir unseren Kunden“) sind als sichtbare Label hervorzuheben; darunter werden die beiden Inhalte direkt bearbeitet. Der Inhalt wird im Draft zustandsstabil zusammengeführt und vor der Übergabe serverseitig geprüft. Für sonstige Aufträge wird weiterhin eine einzelne Abschnittsfläche verwendet. Am iPhone bildet der gemeinsame Rahmen den einzigen vertikalen Scrollbereich; die Textflächen wachsen mit ihrem Inhalt.
+
+**Futuristisches Produktgebot:** Transparente Lichtschichten, subtile Raster und Neon-Energie statt Formular- und Bürosoftware-Optik. Hauptaktion bleibt „⚡ Entscheidung steht. Pilot übernimmt.“. Backend-Autorisierung und Sicherheitsprüfung bleiben unverändert.
+
+**Prüfung:** JS kompiliert; neun Struktur-/Text-/UI-Checks bestanden. Reale iPhone-Bedienung und echte Bestätigung stehen noch zur Abnahme aus.
