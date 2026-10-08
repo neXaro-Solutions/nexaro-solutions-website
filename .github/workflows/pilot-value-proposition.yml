@@ -4,6 +4,8 @@ on:
     paths:
       - 'index.html'
       - 'site-shell.css'
+      - 'nx-language.js'
+      - 'b2b-handel.html'
       - 'pilot/index.html'
       - 'pilot/tests/value-proposition-contract.mjs'
       - '.github/workflows/pilot-value-proposition.yml'
@@ -11,6 +13,8 @@ on:
     paths:
       - 'index.html'
       - 'site-shell.css'
+      - 'nx-language.js'
+      - 'b2b-handel.html'
       - 'pilot/index.html'
       - 'pilot/tests/value-proposition-contract.mjs'
 jobs:
