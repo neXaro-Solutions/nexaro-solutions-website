@@ -71,7 +71,8 @@ try{
      payment:!!document.querySelector('a[href="./sumup-beratung.html"]'),
      crm:!!document.querySelector('a[href="./crm/"]'),
      vape:!!document.querySelector('a[href="./b2b-handel.html"]'),
-     promo:!!document.querySelector('a[href^="./pilot/"]')};
+     promo:!!document.querySelector('a[href^="./pilot/"]'),
+     overflow:[...document.querySelectorAll("body *")].map(el=>{const rect=el.getBoundingClientRect();return {tag:el.tagName.toLowerCase(),className:String(el.className||"").slice(0,50),right:Math.round(rect.right),width:Math.round(rect.width)}}).filter(el=>el.right>innerWidth+3 && el.width>0).slice(0,9)};
    });
    if(rootBounds.left<0||rootBounds.right>rootBounds.viewport+2||rootBounds.scroll>rootBounds.viewport+2||
     !rootBounds.payment||!rootBounds.crm||!rootBounds.vape||rootBounds.promo)
