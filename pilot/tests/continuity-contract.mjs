@@ -263,14 +263,18 @@ console.log("PASS Verified-only migration, revocation protection and human-reada
 // Merely having a recent active goal is insufficient; user intent must be explicit.
 const pinnedScopeSource=String(frontend.match(/function pilotContinuationScope\(input\)\{[\s\S]*?\n\}/)?.[0]||"");
 assert(pinnedScopeSource.startsWith("function pilotContinuationScope"));
-const scoped=new Function("goals","pilotPinnedGoalId",pinnedScopeSource+"\nreturn pilotContinuationScope;")(
-  [{id:GOAL,status:"active"}],GOAL);
+const scoped=new Function("goals","pilotPinnedGoalId","pilotForceNewGoal",pinnedScopeSource+"\nreturn pilotContinuationScope;")(
+  [{id:GOAL,status:"active"}],GOAL,false);
 assert.equal(scoped("Erstelle mir ein Logo"),GOAL);
 assert.equal(scoped("Arbeite an der Website weiter"),GOAL);
 assert.equal(scoped("Ich möchte eine neue Firma gründen"),null);
 assert.equal(scoped("Bitte ein anderes Projekt starten"),null);
-const unscoped=new Function("goals","pilotPinnedGoalId",pinnedScopeSource+"\nreturn pilotContinuationScope;")(
-  [{id:GOAL,status:"active"}],null);
+const unscoped=new Function("goals","pilotPinnedGoalId","pilotForceNewGoal",pinnedScopeSource+"\nreturn pilotContinuationScope;")(
+  [{id:GOAL,status:"active"}],null,false);
+const forcedNewScope=new Function("goals","pilotPinnedGoalId","pilotForceNewGoal",pinnedScopeSource+"\nreturn pilotContinuationScope;")(
+  [{id:GOAL,status:"active"}],GOAL,true);
+assert.equal(forcedNewScope("Erstelle mir ein Logo"),null,
+  "An explicit New Project click must suppress implicit continuation");
 assert.equal(unscoped("Erstelle mir ein Logo"),null,
   "The most recently active project must never be silently pinned");
 assert(frontend.includes("pilotPinnedGoalId=activeGoalId"),
