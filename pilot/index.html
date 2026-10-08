@@ -3219,10 +3219,12 @@ async function load(){
   goalSuccessMap={};goalPlanProgressMap={};
   if(goals.length){
     const goalIds=goals.map(x=>x.id);
-    const [gm,go]=await Promise.all([
+    const [gm,go,bg]=await Promise.all([
       sb.from("milestones").select("goal_id,status,weight").in("goal_id",goalIds),
-      sb.from("outcomes").select("goal_id,baseline,target,current_value,metric,unit,updated_at").in("goal_id",goalIds).order("updated_at",{ascending:false})
+      sb.from("outcomes").select("goal_id,baseline,target,current_value,metric,unit,updated_at").in("goal_id",goalIds).order("updated_at",{ascending:false}),
+      sb.from("pilot_background_jobs").select("goal_id,status,stage,steps_completed,max_steps,handoff_reason").in("goal_id",goalIds)
     ]);
+    if(!bg.error)pilotBackgroundByGoal=Object.fromEntries((bg.data||[]).map(j=>[j.goal_id,j]));
     if(!gm.error&&!go.error){
       for(const goal of goals){
         const ms=(gm.data||[]).filter(x=>x.goal_id===goal.id);
@@ -3543,6 +3545,7 @@ function bindPilotDecisionEditor(){
 
 /* The authenticated client only observes durable server-side jobs. */
 let pilotBackgroundJob=null,pilotBackgroundTimer=null,pilotBackgroundBusy=false;
+let pilotBackgroundByGoal={};
 function pilotBackgroundStageLabel(job){
  const label={queued:"Nächsten Arbeitsschritt prüfen",preparing:"Auftrag vorbereiten",
  drafting:"Nutzbares Ergebnis erstellen",verifying:"Ergebnisqualität prüfen",
@@ -3557,6 +3560,8 @@ async function pilotBackgroundRead(id){
   .eq("goal_id",id).maybeSingle();
  if(r.error)throw new Error("Hintergrundstatus nicht abrufbar.");
  if(goals[0]?.id===id)pilotBackgroundJob=r.data||null;
+ if(r.data)pilotBackgroundByGoal[id]=r.data;
+ else delete pilotBackgroundByGoal[id];
  return r.data||null;
 }
 async function pilotBackgroundCall(operation,id){
@@ -3988,10 +3993,17 @@ function pilotProjectResultsHTML(data,refActions=[]){
 }
 function pilotProjectCard(goal){
  const active=goal.id===goals[0]?.id;
+ const bg=pilotBackgroundByGoal[goal.id]||null;
+ const bgState=["queued","running"].includes(bg?.status)?
+   "✈ In Arbeit · "+Number(bg.steps_completed||0)+" / "+Number(bg.max_steps||6):
+   bg?.status==="waiting_user"?"Prüfung erforderlich":
+   bg?.status==="paused"?"Pausiert":
+   bg?.status==="completed"?"Arbeitsabschnitt beendet":"";
  return '<details class="pilot-project-card" data-project="'+esc(goal.id)+'" '+(active?"open":"")+'>'+
  '<summary><span class="pilot-project-caret">▸</span><span class="pilot-project-heading"><strong>'+esc(goal.title||"Auftrag")+'</strong>'+
  '<small>Erstellt am '+esc(pilotProjectDate(goal.created_at))+'</small></span>'+
- (active?'<span class="pilot-project-state">Aktiv</span>':'')+'</summary>'+
+ (bgState?'<span class="pilot-project-state">'+esc(bgState)+'</span>':
+   active?'<span class="pilot-project-state">Aktiv</span>':'')+'</summary>'+
  '<div class="pilot-project-body"><button class="pilot-project-continue" data-open-goal="'+esc(goal.id)+'" type="button">✈ '+(active?"Weiterarbeiten":"Auftrag fortsetzen")+'</button>'+
  '<div data-project-results="'+esc(goal.id)+'">'+(active?pilotProjectResultsHTML(results,actions):'<p class="pilot-project-empty">Ergebnisse werden beim Öffnen geladen.</p>')+'</div>'+
  '<details class="pilot-journal" data-journal-project="'+esc(goal.id)+'"><summary>🧠 Bestätigte Entscheidungen</summary>'+
