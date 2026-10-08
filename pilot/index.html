@@ -3732,6 +3732,92 @@ function executionView(){
 }
 
 
+
+const pilotJournalKeys={legal_form:"Rechtsform",company_name:"Unternehmensname",industry:"Branche",budget:"Budget",brand_style:"Gestaltungsstil"};
+async function pilotJournalAPI(body){
+ const r=await sb.functions.invoke("pilot-decision-journal",{body});
+ if(r.error){
+  let info=r.data||{};
+  try{info=await r.error?.context?.clone?.().json()||info}catch{}
+  const e=new Error(info.error==="decision_conflict"?"Die bisherige Entscheidung wurde geändert. Bitte erneut prüfen.":"Das Entscheidungsjournal ist derzeit nicht erreichbar.");
+  e.info=info;throw e;
+ }
+ return r.data||{};
+}
+async function pilotJournalLoad(id,node){
+ if(!node||node.dataset.loading==="1"||!goals.some(g=>g.id===id))return;
+ node.dataset.loading="1";node.textContent="Entscheidungen werden geladen …";
+ try{
+  const res=await pilotJournalAPI({operation:"list",goal_id:id,include_history:true});
+  if(!node.isConnected)return;
+  const active=res.active||[],history=res.history||[];
+  node.innerHTML=(active.length?active.map(d=>
+   '<div class="pilot-journal-entry"><div><strong>'+esc(pilotJournalKeys[d.decision_key]||d.decision_key)+'</strong><p>'+
+   esc(d.display_value||d.decision_value)+'</p><small>Bestätigt am '+esc(pilotProjectDate(d.created_at))+'</small></div>'+
+   '<div class="pilot-journal-actions"><button type="button" data-jedit="'+esc(id)+':'+esc(d.decision_key)+'">Ändern</button>'+
+   '<button type="button" data-jrevoke="'+esc(id)+':'+esc(d.decision_key)+'">Widerrufen</button></div></div>').join(""):
+   '<p class="pilot-project-empty">Noch keine bestätigten Entscheidungen.</p>')+
+   '<button type="button" class="pilot-journal-add" data-jadd="'+esc(id)+'">+ Entscheidung festhalten</button>'+
+   (history.length>active.length?'<details class="pilot-simple-details"><summary>Änderungsverlauf ('+history.length+')</summary>'+
+    history.slice(0,40).map(d=>'<p>'+esc(pilotProjectDate(d.created_at))+' · '+
+      esc(pilotJournalKeys[d.decision_key]||d.decision_key)+': '+
+      esc(d.event_type==="revoke"?"Widerrufen":d.decision_value)+'</p>').join("")+'</details>':'');
+ }catch(e){if(node.isConnected)node.innerHTML='<p class="pilot-project-empty">'+esc(e.message||"Nicht erreichbar")+'</p>'}
+ finally{if(node.isConnected)node.dataset.loading="0"}
+}
+async function pilotJournalEdit(id,key=null){
+ const goal=goals.find(g=>g.id===id);if(!goal)return;
+ if(!key)key=await nxDialog({title:"Welche Entscheidung?",description:"Nur für das Projekt „"+goal.title+"“.",
+    buttons:Object.entries(pilotJournalKeys).map(([value,label])=>({value,label}))});
+ if(!key||!Object.hasOwn(pilotJournalKeys,key))return;
+ let value=null;
+ if(key==="legal_form"){
+  value=await nxDialog({title:"Geplante Rechtsform",description:"Für die Planung, keine behördliche Anmeldung.",
+    buttons:[{value:"einzelunternehmen",label:"Einzelunternehmen"},{value:"ug",label:"UG (haftungsbeschränkt)"},{value:"gmbh",label:"GmbH"}]});
+ }else{
+  const a=await nxDialog({title:pilotJournalKeys[key]+" festhalten",description:"Diese Angabe nutzt Pilot in zukünftigen Aufträgen für dieses Projekt.",
+   fields:[{key:"value",label:pilotJournalKeys[key],required:true,short:true,
+     placeholder:key==="budget"?"z. B. 5.000 EUR":key==="brand_style"?"z. B. hell, Neongrün und Orange":"Deine bestätigte Angabe"}],
+   buttons:[{value:"submit",label:"Speichern",primary:true}]});
+  value=a?.value?.trim()||null;
+ }
+ if(!value)return;
+ const node=document.querySelector('[data-journal-list="'+id+'"]');
+ const payload={operation:"set",goal_id:id,decision_key:key,decision_value:value};
+ try{
+  await pilotJournalAPI(payload);
+  if(node)await pilotJournalLoad(id,node);
+  pilotNotice("Entscheidung im Projekt gespeichert.");
+ }catch(e){
+  if(e.info?.error!=="decision_conflict"){pilotNotice(e.message||String(e),"error");return}
+  const old=e.info.current;
+  const yes=await nxDialog({title:"Entscheidung ändern?",
+   description:"Bisher: "+old.decision_value+"\nNeu: "+value+"\nDie bisherige Version bleibt im Verlauf.",
+   buttons:[{value:"yes",label:"Änderung bestätigen",primary:true},{value:"no",label:"Beibehalten"}]});
+  if(yes!=="yes")return;
+  try{
+   await pilotJournalAPI({...payload,expected_revision_id:old.id});
+   if(node)await pilotJournalLoad(id,node);
+   pilotNotice("Änderung mit Versionsverlauf gespeichert.");
+  }catch(err){pilotNotice(err.message||String(err),"error");if(node)await pilotJournalLoad(id,node)}
+ }
+}
+async function pilotJournalRevoke(id,key){
+ if(!Object.hasOwn(pilotJournalKeys,key)||!goals.some(g=>g.id===id))return;
+ const node=document.querySelector('[data-journal-list="'+id+'"]');
+ try{
+  const res=await pilotJournalAPI({operation:"list",goal_id:id});
+  const old=(res.active||[]).find(d=>d.decision_key===key);
+  if(!old)return;
+  const yes=await nxDialog({title:"Entscheidung widerrufen?",
+   description:pilotJournalKeys[key]+": "+old.display_value+"\nPilot verwendet diese Angabe danach nicht mehr für neue Ergebnisse.",
+   buttons:[{value:"yes",label:"Widerrufen",orange:true},{value:"no",label:"Beibehalten",primary:true}]});
+  if(yes!=="yes")return;
+  await pilotJournalAPI({operation:"revoke",goal_id:id,decision_key:key,expected_revision_id:old.id});
+  if(node)await pilotJournalLoad(id,node);
+  pilotNotice("Widerruf gespeichert. Frühere Fassungen bleiben im Verlauf.");
+ }catch(e){pilotNotice(e.message||String(e),"error");if(node)await pilotJournalLoad(id,node)}
+}
 function pilotProjectDate(value){
  const d=new Date(value||"");if(!Number.isFinite(d.getTime()))return "Datum nicht verfügbar";
  return new Intl.DateTimeFormat("de-DE",{day:"2-digit",month:"2-digit",year:"numeric"}).format(d);
