@@ -2826,7 +2826,7 @@ function canvaView(){
 }
 
 function roadmapLegacy(){if(!effectiveAdmin())return home();const c=features.reduce((a,f)=>(a[f.status]=(a[f.status]||0)+1,a),{}),done=c.ready||0,total=features.length,pct=total?Math.round(done/total*100):0;return '<div class="card roadmap-card"><div class="section-head"><div><div class="ey">NUR ADMIN</div><h2>Entwicklungsplan</h2></div><button class="btn" data-jump="alpha">Systemtest öffnen</button></div><p class="muted">Umgesetzte Funktionen sind abgehakt. Der Status wird automatisch aus technischen Verifikationsnachweisen aktualisiert; offene oder spätere Funktionen bleiben sichtbar und werden nicht vergessen.</p><div class="roadmap-auto"><span class="dot"></span><strong>Automatische Statuspflege aktiv</strong><small>Verifiziert → automatisch grün</small></div><div class="roadmap-progress"><div><strong>'+done+' / '+total+' erledigt</strong><span>'+pct+'%</span></div><div class="progress-track"><div class="progress-bar" style="width:'+pct+'%"></div></div></div><div class="btns roadmap-summary"><span class="badge green">✓ Erledigt '+done+'</span><span class="badge">MVP '+(c.mvp||0)+'</span><span class="badge">Alpha '+(c.alpha||0)+'</span><span class="badge">Geplant '+(c.planned||0)+'</span><span class="badge orange">Zurückgestellt '+(c.deferred||0)+'</span></div><div class="roadmap-list">'+features.map(f=>{const ready=f.status==="ready";return '<div class="roadmap-item '+(ready?"done":"")+'"><span class="roadmap-check">'+(ready?"✓":"")+'</span><div><strong>'+f.workspace_number+'. '+esc(f.name)+'</strong><small>'+esc(f.priority)+'</small></div><span class="badge '+(ready?"green":"")+'">'+(ready?"Erledigt":esc(deStatus(f.status)))+'</span></div>'}).join("")+'</div></div>'}
-function alphaViewLegacy(){if(!effectiveAdmin())return home();const passed=readiness.filter(x=>x.status==="passed").length,total=readiness.length,last=evalRuns[0],aiCost=aiRequests.reduce((s,x)=>s+Number(x.actual_cost||0),0);return '<div class="grid"><div class="card"><h2>Bereitschaft der privaten Testphase</h2><div style="font-size:42px;font-weight:900">'+passed+' / '+total+'</div><p class="muted">Pflichtchecks bestanden</p>'+readiness.map(x=>'<div class="stat"><span class="muted">'+esc(x.description)+'</span><strong>'+esc(deStatus(x.status))+'</strong></div>').join("")+'<div class="btns"><button id="runEvals" class="btn primary">Prüfsuite ausführen</button><button id="runAlphaE2E" class="btn ai">✦ Alpha-Systemtest starten</button></div><div id="e2eStatus" class="muted" style="margin-top:12px">Der Systemtest nutzt isolierte Testdaten und räumt sie automatisch wieder auf.</div></div><div><div class="card"><h3>Prüfung</h3>'+(last?'<div class="stat"><span class="muted">Status</span><strong>'+esc(last.status)+'</strong></div><div class="stat"><span class="muted">Bewertung</span><strong>'+Math.round(Number(last.score||0)*100)+'%</strong></div><div class="stat"><span class="muted">Fälle</span><strong>'+last.passed_cases+' / '+last.total_cases+'</strong></div>':'<p class="muted">Noch kein Eval-Run.</p>')+'</div><div class="card" style="margin-top:20px"><h3>KI-Kostenmonitor</h3><div class="stat"><span class="muted">Anfragen</span><strong>'+aiRequests.length+'</strong></div><div class="stat"><span class="muted">Aktuelle Kosten</span><strong>'+aiCost.toFixed(4)+'</strong></div><div class="stat"><span class="muted">Ausweichrouten</span><strong>'+aiRequests.filter(x=>x.fallback_used).length+'</strong></div></div><div class="card" style="margin-top:20px"><h3>Hinweise</h3>'+(notifications.map(n=>'<div class="item"><span class="badge">'+esc(n.priority)+'</span><strong>'+esc(n.title)+'</strong><div class="muted">'+esc(n.body)+'</div></div>').join("")||'<p class="muted">Keine offenen Hinweise.</p>')+'</div></div></div>'}
+function alphaViewLegacy(){if(!effectiveAdmin())return home();const passed=readiness.filter(x=>x.status==="passed").length,total=readiness.length,last=evalRuns[0],aiCost=aiRequests.reduce((s,x)=>s+Number(x.actual_cost||0),0);return '<div class="grid"><div class="card"><h2>Bereitschaft der privaten Testphase</h2><div style="font-size:42px;font-weight:900">'+passed+' / '+total+'</div><p class="muted">Pflichtchecks bestanden</p>'+readiness.map(x=>'<div class="stat"><span class="muted">'+esc(x.description)+'</span><strong>'+esc(deStatus(x.status))+'</strong></div>').join("")+'<div class="btns"><button id="runEvals" class="btn primary">Prüfsuite ausführen</button><button id="runAlphaE2E" class="btn ai">✦ Alpha-Systemtest starten</button><button id="pilotBraveTest" class="btn" type="button">⌕ Brave prüfen</button></div><div id="e2eStatus" class="muted" style="margin-top:12px">Der Systemtest nutzt isolierte Testdaten und räumt sie automatisch wieder auf.</div></div><div><div class="card"><h3>Prüfung</h3>'+(last?'<div class="stat"><span class="muted">Status</span><strong>'+esc(last.status)+'</strong></div><div class="stat"><span class="muted">Bewertung</span><strong>'+Math.round(Number(last.score||0)*100)+'%</strong></div><div class="stat"><span class="muted">Fälle</span><strong>'+last.passed_cases+' / '+last.total_cases+'</strong></div>':'<p class="muted">Noch kein Eval-Run.</p>')+'</div><div class="card" style="margin-top:20px"><h3>KI-Kostenmonitor</h3><div class="stat"><span class="muted">Anfragen</span><strong>'+aiRequests.length+'</strong></div><div class="stat"><span class="muted">Aktuelle Kosten</span><strong>'+aiCost.toFixed(4)+'</strong></div><div class="stat"><span class="muted">Ausweichrouten</span><strong>'+aiRequests.filter(x=>x.fallback_used).length+'</strong></div></div><div class="card" style="margin-top:20px"><h3>Hinweise</h3>'+(notifications.map(n=>'<div class="item"><span class="badge">'+esc(n.priority)+'</span><strong>'+esc(n.title)+'</strong><div class="muted">'+esc(n.body)+'</div></div>').join("")||'<p class="muted">Keine offenen Hinweise.</p>')+'</div></div></div>'}
 
 async function loadAdminConsole(force=false){
   if(!isAdmin)return;
@@ -3097,6 +3097,7 @@ function bind(){
   document.getElementById("pilotLandingPreview")?.addEventListener("click",previewPilotFlight);
   document.getElementById("diagnoseSafety")?.addEventListener("click",()=>pilotSafetyDiagnostic({show:true}));
   document.getElementById("diagnosePilotAI")?.addEventListener("click",pilotExecutionProviderDiagnostic);
+  document.getElementById("pilotBraveTest")?.addEventListener("click",pilotBraveDiagnostic);
   document.getElementById("executeAction")?.addEventListener("click",executeAction);
   document.getElementById("confirmPilotResult")?.addEventListener("click",confirmPilotResult);
   bindPilotDecisionEditor();
@@ -3134,7 +3135,7 @@ function nxOpenNext(){
   const mask=document.createElement("div");mask.className="nx-mask";
   const safe=esc;
   mask.innerHTML='<section class="nx-modal" role="dialog" aria-modal="true" aria-labelledby="nxTitle" aria-describedby="nxDesc">'+
-    '<div class="nx-top"><div class="nx-symbol" aria-hidden="true">✦</div><span class="nx-kicker">neXaro · PILOT · LUMEN 2026.10.08.32</span><button type="button" class="nx-close" aria-label="Schließen">×</button></div>'+
+    '<div class="nx-top"><div class="nx-symbol" aria-hidden="true">✦</div><span class="nx-kicker">neXaro · PILOT · LUMEN 2026.10.08.33</span><button type="button" class="nx-close" aria-label="Schließen">×</button></div>'+
     '<h2 id="nxTitle">'+safe(config.title||"Pilot fragt nach")+'</h2><p class="nx-description" id="nxDesc">'+safe(config.description||"Bitte ergänze die noch fehlenden Angaben.")+'</p>'+
     '<form novalidate><div class="nx-fields">'+fields.map((f,i)=>'<div class="nx-field"><label for="nxInput'+i+'">'+safe(f.label)+'</label>'+
       (f.short?'<input id="nxInput'+i+'" type="text" name="'+safe(f.key)+'" maxlength="500" placeholder="'+safe(f.placeholder||"")+'" data-required="'+(f.required?"1":"0")+'">':
@@ -3817,6 +3818,38 @@ function pilotWatchExecution({actionId=null,goalId=null}={}){
  watcher.timer=setInterval(()=>{void tick()},4200);
  void tick();
  return watcher;
+}
+
+/* Admin test is isolated from research jobs, goals and execution results. */
+let pilotBraveDiagnosticActive=false;
+async function pilotBraveDiagnostic(){
+ if(!effectiveAdmin()||pilotBraveDiagnosticActive)return;
+ pilotBraveDiagnosticActive=true;
+ const button=document.getElementById("pilotBraveTest");
+ if(button){button.disabled=true;button.textContent="⌕ Brave wird geprüft …"}
+ try{
+   const result=await sb.functions.invoke("research-gateway",{
+     body:{operation:"brave_diagnostic",live_test:true}
+   });
+   if(result.error)throw await pilotApiError(result,"Die Brave-Verbindung konnte nicht geprüft werden.");
+   const status=String(result.data?.status||"unknown");
+   if(status==="not_configured"){
+     pilotNotice("Brave ist vorbereitet, aber noch nicht freigeschaltet. Hinterlege BRAVE_SEARCH_API_KEY unter Supabase → Edge Functions → Secrets.");
+   }else if(status==="completed"){
+     pilotNotice("Brave Search antwortet: "+Number(result.data?.results_checked||0)+
+       " Suchtreffer, davon "+Number(result.data?.verified_official||0)+
+       " überprüfte amtliche Seiten. Andere Treffer gelten nur als Suchhinweise.");
+   }else{
+     pilotNotice("Brave-Anbindung: "+({"invalid_api_key":"API-Schlüssel prüfen",
+       "rate_limited":"Anfragelimit erreicht","provider_unavailable":"Dienst vorübergehend nicht erreichbar"}[status]||
+       "noch keine bestätigte Antwort")+".","error");
+   }
+ }catch(e){
+   pilotNotice("Brave-Test nicht erfolgreich: "+String(e?.message||e).slice(0,180),"error");
+ }finally{
+   pilotBraveDiagnosticActive=false;
+   if(button?.isConnected){button.disabled=false;button.textContent="⌕ Brave prüfen"}
+ }
 }
 
 /* Admin-only smoke check: isolated, authenticated AI generation; no action progress changes. */
