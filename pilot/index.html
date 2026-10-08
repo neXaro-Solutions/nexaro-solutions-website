@@ -2512,6 +2512,7 @@ body{background:radial-gradient(ellipse 72vw 60vw at 92% -10%,rgba(145,255,62,.1
 .pilot-steps-details>summary{font-size:12px;font-weight:800;cursor:pointer;color:#678065}
 .pilot-steps-details .pilot-home-guide{margin-top:13px}
 @media(max-width:600px){.pilot-report-topics{grid-template-columns:1fr}.pilot-report-section{padding:14px}.pilot-goal-report .btns>.btn{width:100%}.pilot-report-state{border-radius:13px}}
+.pilot-brief-facts{display:grid;gap:7px;margin:12px 0}.pilot-brief-facts>div{font-size:12px;color:#4b6840;line-height:1.5;padding:9px 11px;background:#f4ffed;border:1px solid #e0efda;border-radius:11px}.pilot-brief-facts span{font-weight:900;color:#5ea332;margin-right:9px}
 </style></head>
 <body>
 <section id="auth" class="auth"><div class="box">
@@ -2573,7 +2574,7 @@ body{background:radial-gradient(ellipse 72vw 60vw at 92% -10%,rgba(145,255,62,.1
 import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
 const sb=createClient("https://qfrylqxbqmuafyvnqkey.supabase.co","sb_publishable_-6dNvI99H1Tf-uhOLXGIQw_2b2yCzQF");
 const A=document.getElementById("auth"),APP=document.getElementById("app"),V=document.getElementById("view"),T=document.getElementById("title"),PS=document.getElementById("pilotStatus");
-let user=null,org=null,isAdmin=false,customerPreview=false,adminData=null,pendingAttachments=[],goalSuccessMap={},goals=[],features=[],plans=[],actions=[],contexts=[],milestones=[],documents=[],results=[],claims=[],evidence=[],completeness=[],progressEvents=[],outcomes=[],adaptations=[],pilotState=null,aiRequests=[],qualityContracts=[],consensusRuns=[],executions=[],executionSteps=[],designJobs=[],canvaStatus=null,notifications=[],readiness=[],evalRuns=[],researchBusy=false,researchAttempted=new Set(),current="home";
+let user=null,org=null,isAdmin=false,customerPreview=false,adminData=null,pendingAttachments=[],goalSuccessMap={},goalPlanProgressMap={},goals=[],features=[],plans=[],actions=[],contexts=[],milestones=[],documents=[],results=[],claims=[],evidence=[],completeness=[],progressEvents=[],outcomes=[],adaptations=[],pilotState=null,aiRequests=[],qualityContracts=[],consensusRuns=[],executions=[],executionSteps=[],designJobs=[],canvaStatus=null,notifications=[],readiness=[],evalRuns=[],researchBusy=false,researchAttempted=new Set(),current="home";
 async function telemetry(type,payload){try{await sb.functions.invoke("telemetry",{body:{type,...payload}})}catch(e){}}
 window.addEventListener("error",e=>{if(user)telemetry("incident",{source:"client",severity:"error",error_code:"CLIENT_ERROR",message:e.message||"Client error",metadata:{filename:e.filename,lineno:e.lineno}})});
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -2584,7 +2585,7 @@ async function load(){
   isAdmin=roleRes.data?.role==="admin";
   const m=await sb.from("organization_members").select("organization_id,role").eq("user_id",user.id).limit(1);if(m.error)throw m.error;org=m.data?.[0]||null;if(!org)return;
   const [g,f]=await Promise.all([sb.from("goals").select("*").order("created_at",{ascending:false}),isAdmin?sb.from("features").select("workspace_number,name,status,priority").order("workspace_number"):Promise.resolve({data:[],error:null})]);if(g.error)throw g.error;if(f.error)throw f.error;goals=g.data||[];features=f.data||[];
-  goalSuccessMap={};
+  goalSuccessMap={};goalPlanProgressMap={};
   if(goals.length){
     const goalIds=goals.map(x=>x.id);
     const [gm,go]=await Promise.all([
@@ -2596,6 +2597,8 @@ async function load(){
         const ms=(gm.data||[]).filter(x=>x.goal_id===goal.id);
         const os=(go.data||[]).filter(x=>x.goal_id===goal.id);
         goalSuccessMap[goal.id]=successFromData(ms,os);
+        const planned=ms.reduce((s,m)=>s+Number(m.weight||1),0),completed=ms.filter(m=>m.status==="completed").reduce((s,m)=>s+Number(m.weight||1),0);
+        goalPlanProgressMap[goal.id]=planned?Math.round(completed/planned*100):0;
       }
     }
   }
@@ -2951,6 +2954,8 @@ function pilotGoalReport(){
  const grouped=pilotGroupedResults();
  const form=results.find(r=>r.structured_content?.user_decision?.legal_form && r.approval_status==="approved")?.structured_content?.user_decision?.legal_form_label;
  const business=g.domain?.primary==="business",launch=actions.some(a=>String(a.title||"").startsWith("[Launch] "));
+ const facts=String(g.desired_outcome||"").split(/\\n|\n/).map(x=>x.trim()).filter(x=>/^(geplantes leistungsangebot|einsatzgebiet|branche|standort):/i.test(x)).slice(0,3);
+ const factHtml=facts.length?'<div class="pilot-brief-facts">'+facts.map(x=>'<div><span>✓</span>'+esc(x)+'</div>').join("")+'</div>':'';
  const approved=g.status==="achieved",status=approved?"Ziel nachweislich erreicht":launch?"Umsetzung läuft – Gründung noch offen":"Vorbereitung erarbeitet – Umsetzung noch offen";
  const cards=grouped.map(([category,list])=>{
    const provisional=list.some(x=>x.quality_status==="provisional"||x.quality_status==="review_required");
@@ -2961,7 +2966,7 @@ function pilotGoalReport(){
  '<div class="pilot-report-state '+(approved?"ready":"open")+'">'+esc(status)+'</div>'+
  (business?'<p class="pilot-report-explanation">Pilot hat die Grundlagen zusammengestellt. '+(form?"Gewählte Rechtsform: <strong>"+esc(form)+"</strong> – die offizielle Gründung steht noch aus.":"Für eine tatsächliche Gründung sind weitere Umsetzungsschritte und Nachweise erforderlich.")+'</p>':
  '<p class="pilot-report-explanation">Hier stehen deine nutzbaren Ergebnisse. Offene Schritte bleiben sichtbar.</p>')+
- (cards?'<div class="pilot-report-topics">'+cards+'</div>':'<p class="muted">Noch keine nutzbaren Ergebnisse vorhanden.</p>')+
+ factHtml+(cards?'<div class="pilot-report-topics">'+cards+'</div>':'<p class="muted">Noch keine nutzbaren Ergebnisse vorhanden.</p>')+
  '<div class="btns"><button class="btn ai" type="button" data-jump="results">Alle Ergebnisse geordnet ansehen →</button></div></section>';
 }
 function pilotLaunchOverview(){
@@ -3034,7 +3039,7 @@ function home(){
   const previousFailed=n&&latestRun?.action_id===n.id&&latestRun.status==="failed"?latestRun:null;
   const failureInfo=previousFailed?'<div class="pilot-execution-retry-note" role="status"><span aria-hidden="true">↻</span><div><strong>Dieser Schritt benötigt einen neuen Versuch</strong><small>Der letzte Versuch dieses Schritts war nicht erfolgreich. Dein Ziel bleibt erhalten.</small></div></div>':'';
   const action=g?'<section class="pilot-home-card operation-panel pilot-home-next" id="pilotNextActionPanel" aria-labelledby="homeNextTitle">'+
-      '<div class="pilot-home-next-head"><div><span class="pilot-home-eyebrow">DEIN NÄCHSTER SCHRITT</span><h2 id="homeNextTitle">Nächste Aktion</h2></div>'+
+      '<div class="pilot-home-next-head"><div><span class="pilot-home-eyebrow">ALS NÄCHSTES</span><h2 id="homeNextTitle">Pilot arbeitet weiter</h2></div>'+
       '</div>'+
       pilotAutoStatusCard()+failureInfo+
       (approval?pilotReviewCard(approval):
@@ -3110,7 +3115,7 @@ function goalsView(){
     '<section class="pilot-mission-list" aria-label="Gespeicherte Ziele">'+
     (goals.map((g,i)=>{
        const sv=goalSuccessMap[g.id]||{percent:0,level:"red",label:"Noch nicht gemessen",source:"Fortschritt"};
-       const pct=Math.max(0,Math.min(100,Math.round(Number(sv.percent)||0)));
+       const pct=Math.max(0,Math.min(100,Math.round(Number(goalPlanProgressMap[g.id]??sv.percent)||0)));
        const active=g.status==="active";
        const label=sv.label||"Noch kein messbares Ergebnis";
        return '<article class="pilot-mission">'+
