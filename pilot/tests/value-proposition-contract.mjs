@@ -8,6 +8,7 @@ const css=readFileSync(resolve(root,"site-shell.css"),"utf8");
 const lang=readFileSync(resolve(root,"nx-language.js"),"utf8");
 const b2b=readFileSync(resolve(root,"b2b-handel.html"),"utf8");
 const pilot=readFileSync(resolve(root,"pilot/index.html"),"utf8");
+const pilotLanguage=readFileSync(resolve(root,"pilot/pilot-language.js"),"utf8");
 assert(site.includes('<title>neXaro Solutions | Payment-Beratung, CRM & B2B für Unternehmen</title>'),"Restore latest bilingual neXaro business homepage");
 assert(site.includes('id="welten"')&&site.includes('href="./sumup-beratung.html"'),"Company homepage directly links SumUp and payment advice");
 assert(site.includes('Vape & B2B')&&site.includes('href="./b2b-handel.html"'),"Vape and B2B contact is visible from homepage");
@@ -33,6 +34,13 @@ assert(pilot.includes('class="pilot-tests-group pilot-tests-open"')&&pilot.inclu
 assert(pilot.includes('pilot-more-menu-label admin-only hidden')&&pilot.includes('SYSTEM · INTERN'),"Extra menu clearly separates user functions from admin tools");
 assert(pilot.includes('nav.pilot-minimal-nav>.pilot-nav-more{position:static!important}')&&pilot.includes('left:50%!important;right:auto!important;top:auto!important')&&pilot.includes('transform:translateX(-50%)!important'),"More dropdown must center relative to the entire three-item dock on all viewport widths");
 assert(pilot.includes('class="pilot-neon-keyword"'),"Central task keywords use orange emphasis");
+
+assert(pilot.includes('id="pilotLanguageSwitcher"')&&pilot.includes('data-pilot-locale="en"'),"Pilot provides visible DE/EN language control");
+assert(pilot.includes('src="./pilot-language.js?')&&pilotLanguage.includes('localStorage.setItem(STORE,language)'),"Pilot language selection works and persists across visits");
+assert(pilotLanguage.includes('private project content')&&pilotLanguage.includes('pilot-project-document-body'),"Interface translation does not automatically rewrite private project documents");
+assert(pilot.includes('class="nav admin-only hidden" data-view="admin" aria-label="Administration"')&&pilot.includes('<span>Administration</span>'),"Admin menu row has a proper icon-and-label structure");
+assert(pilot.includes('#pilotLanguageSwitcher{')&&pilot.includes('position:fixed!important')&&pilot.includes('bottom:calc(91px + env(safe-area-inset-bottom))'),"Pilot language selector stays fixed bottom-left above mobile navigation");
+
 assert(pilot.includes('--nx-neon-orange:#ff7214'),"Orange accent token must remain part of the neXaro daylight visual system");
 assert(pilot.includes('.pilot-admin-screen .admin-hero-actions{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important'),"Mobile admin actions remain two-column with readable labels");
 assert(pilot.includes('.pilot-readiness-row{grid-template-columns:minmax(0,1fr)!important'),"Mobile system check status must not be squashed into narrow columns");
