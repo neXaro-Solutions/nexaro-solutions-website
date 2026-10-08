@@ -6385,7 +6385,7 @@ function startPilotFlight(button){
  if(!layer||!button||!button.isConnected)return false;
  if(activePilotFlight?.plane?.isConnected){
    if(["parked","boarding","returning"].includes(activePilotFlight.phase)&&pilotFlightState.mode==="attention"){
-     void pilotAvatarReboard(pilotFlightState.goalId);
+     // No implicit approval from a flight trigger.
      return true;
    }
    if(activePilotFlight.phase==="landing")return true;
@@ -6399,7 +6399,7 @@ function startPilotFlight(button){
  label.className="pilot-flight-status";label.setAttribute("role","status");label.setAttribute("aria-live","polite");label.textContent="Pilot hebt vom Startbutton ab …";
  const from=pilotMotion.center(button.getBoundingClientRect(),size);
  layer.append(plane,label);
- const f={plane,label,size,from,startedAt:performance.now(),phase:"takeoff",animation:null,frameVersion:0,fallbackFrame:null,resolveLanding:null,worker:null,boardingPromise:null,attentionTimer:null};
+ const f={plane,label,size,from,startedAt:performance.now(),phase:"takeoff",animation:null,frameVersion:0,fallbackFrame:null,resolveLanding:null,worker:null,boardingPromise:null,attentionTimer:null,attentionDelivered:false};
  activePilotFlight=f;
  plane.style.transform=pilotMotion.transform({x:from.x,y:from.y,angle:-12,scale:.77});
  if(window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches){
@@ -6674,6 +6674,7 @@ function pilotFlyingFromCurrentWork(){
 }
 function pilotEnsureContinuousFlight(goalId){
  if(!goalId||goals[0]?.id!==goalId||pilotFlightPreviewRunning)return;
+ if(pilotFlightState.mode==="attention"&&pilotFlightState.goalId===goalId)return;
  if(["parked","boarding","returning"].includes(activePilotFlight?.phase))void pilotAvatarReboard(goalId);
  if(!activePilotFlight?.plane?.isConnected){
    const origin=pilotFlyingFromCurrentWork();
@@ -6800,6 +6801,7 @@ async function pilotAttentionRecall(f){
  if(activePilotFlight!==f||f.phase!=="parked"||!f.plane?.isConnected)return;
  if(f.attentionTimer!==null){clearTimeout(f.attentionTimer);f.attentionTimer=null}
  f.phase="returning";
+ f.attentionDelivered=true;
  const reduced=!!window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
  if(f.worker?.isConnected){
    f.worker.classList.remove("pilot-worker--patrol","pilot-worker--exit");
@@ -6832,7 +6834,7 @@ async function pilotAttentionRecall(f){
  pilotTrack(f,frames,1050,1,settle);
 }
 function pilotAvatarDisembark(f,message="Hier ist deine Handlung erforderlich."){
- if(!f||activePilotFlight!==f||f.phase!=="parked"||!f.plane?.isConnected)return;
+ if(!f||activePilotFlight!==f||f.phase!=="parked"||!f.plane?.isConnected||f.attentionDelivered)return;
  if(f.worker?.isConnected){
    const messageNode=f.worker.querySelector(".pilot-worker-speech span");
    if(messageNode)messageNode.textContent=message;
@@ -6901,6 +6903,8 @@ async function pilotAvatarReboard(goalId){
    (goalId&&pilotFlightState.goalId&&pilotFlightState.goalId!==goalId))return;
  if(f.boardingPromise)return f.boardingPromise;
  if(f.attentionTimer!==null){clearTimeout(f.attentionTimer);f.attentionTimer=null}
+ f.attentionDelivered=false;
+ pilotSetFlightState(goalId||pilotFlightState.goalId,"flying","Bestätigte Handlung übernommen");
  f.phase="boarding"; // Only one boarding sequence for this flight.
  f.boardingPromise=(async()=>{
    const reduced=!!window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
