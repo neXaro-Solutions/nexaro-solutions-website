@@ -3519,7 +3519,7 @@ body:has(.shell[data-screen="home"]:not(.hidden)){background:radial-gradient(ell
 </style><link rel="manifest" href="/pilot/manifest.webmanifest"><link rel="apple-touch-icon" href="/pilot/icon-192.png"><meta name="theme-color" content="#f2f6f3"><meta name="apple-mobile-web-app-capable" content="yes"></head>
 <body>
 <section id="auth" class="auth"><div class="box">
-<div class="pilot-focus"><section class="pilot-focus-entry" aria-labelledby="guestComposeTitle"><div class="pilot-machine-core" aria-hidden="true"><i></i><i></i><i></i><span>✦</span></div><div class="pilot-focus-brand">PILOT</div><h2 id="guestComposeTitle">Was soll ich für dich erledigen?</h2><p class="pilot-value-lead"><strong>Ein Ziel. Ein digitaler Mitarbeiter. Ein greifbares Ergebnis.</strong><span>Pilot verbindet deinen Auftrag mit den Arbeitsschritten und hält die Ergebnisse an einem Ort.</span></p><div class="pilot-focus-composer"><textarea id="guestTask" maxlength="3000" rows="3" aria-label="Dein Auftrag" placeholder="Beschreibe dein gewünschtes Ergebnis …"></textarea><div class="pilot-focus-tools"><span></span><button id="guestStart" type="button" class="btn ai launch-primary">Starten <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 19V5m-6 6 6-6 6 6"/></svg></button></div></div><div class="pilot-value-advantages" aria-label="Was Pilot für dich einfacher macht"><div class="pilot-value-item"><span aria-hidden="true">01</span><strong>Einfach sagen, was du brauchst</strong><small>Ein Auftrag statt komplizierter Prompt-Ketten.</small></div><div class="pilot-value-item"><span aria-hidden="true">02</span><strong>Pilot klärt und arbeitet</strong><small>Rückfragen nur, wenn wichtige Angaben fehlen.</small></div><div class="pilot-value-item"><span aria-hidden="true">03</span><strong>Ergebnisse bleiben bei dir</strong><small>Fertige Inhalte und Folgeschritte direkt im Auftrag.</small></div></div></section></div><nav class="pilot-guest-dock" aria-label="Zugang"><button id="openLogin" type="button">Anmelden</button><button id="openRegister" type="button">Konto erstellen</button></nav>
+<div class="pilot-focus"><section class="pilot-focus-entry" aria-labelledby="guestComposeTitle"><div class="pilot-machine-core" aria-hidden="true"><i></i><i></i><i></i><span>✦</span></div><div class="pilot-focus-brand">PILOT</div><h2 id="guestComposeTitle">Was soll ich für dich <span class="pilot-neon-keyword">erledigen?</span></h2><p class="pilot-value-lead"><strong>Ein Ziel. Ein digitaler Mitarbeiter. Ein greifbares Ergebnis.</strong><span>Pilot verbindet deinen Auftrag mit den Arbeitsschritten und hält die Ergebnisse an einem Ort.</span></p><div class="pilot-focus-composer"><textarea id="guestTask" maxlength="3000" rows="3" aria-label="Dein Auftrag" placeholder="Beschreibe dein gewünschtes Ergebnis …"></textarea><div class="pilot-focus-tools"><span></span><button id="guestStart" type="button" class="btn ai launch-primary">Starten <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 19V5m-6 6 6-6 6 6"/></svg></button></div></div><div class="pilot-value-advantages" aria-label="Was Pilot für dich einfacher macht"><div class="pilot-value-item"><span aria-hidden="true">01</span><strong>Einfach sagen, was du brauchst</strong><small>Ein Auftrag statt komplizierter Prompt-Ketten.</small></div><div class="pilot-value-item"><span aria-hidden="true">02</span><strong>Pilot klärt und arbeitet</strong><small>Rückfragen nur, wenn wichtige Angaben fehlen.</small></div><div class="pilot-value-item"><span aria-hidden="true">03</span><strong>Ergebnisse bleiben bei dir</strong><small>Fertige Inhalte und Folgeschritte direkt im Auftrag.</small></div></div></section></div><nav class="pilot-guest-dock" aria-label="Zugang"><button id="openLogin" type="button">Anmelden</button><button id="openRegister" type="button">Konto erstellen</button></nav>
 </div></section>
 <div id="authModal" class="auth-modal hidden" role="dialog" aria-modal="true" aria-labelledby="authModalTitle">
   <button class="auth-modal-backdrop" id="closeAuthBackdrop" aria-label="Fenster schließen"></button>
@@ -4262,7 +4262,7 @@ function home(){
 
  return '<div class="pilot-focus'+(pilotShoppingAssistant?.getState()?' pilot-focus--conversation':'')+'"><section class="pilot-focus-entry" aria-labelledby="homeComposeTitle">'+
  '<div class="pilot-machine-core" aria-hidden="true"><i></i><i></i><i></i><span>'+pilotAircraftSVG()+'</span></div>'+
- '<div class="pilot-focus-brand">PILOT</div><h2 id="homeComposeTitle">Was soll ich für dich erledigen?</h2>'+ '<p class="pilot-value-home">Beschreibe dein Ziel. Pilot kümmert sich um die Schritte und hält deine Ergebnisse im Auftrag zusammen.</p>'+
+ '<div class="pilot-focus-brand">PILOT</div><h2 id="homeComposeTitle">Was soll ich für dich <span class="pilot-neon-keyword">erledigen?</span></h2>'+ '<p class="pilot-value-home">Beschreibe dein Ziel. Pilot kümmert sich um die Schritte und hält deine Ergebnisse im Auftrag zusammen.</p>'+
  '<div class="pilot-focus-composer">'+
  (pilotForceNewGoal?'<div class="pilot-context-hint"><span>Neuer Auftrag</span><button id="pilotCancelNewProject" type="button">Zurück</button></div>':pilotPinnedGoalId&&g?.id===pilotPinnedGoalId?'<div class="pilot-context-hint"><span>Ergänzung zu <strong>'+esc(g.title)+'</strong></span><button id="pilotNewProject" type="button">Neuer Auftrag</button></div>':'')+
  '<textarea id="goalText" maxlength="3000" rows="3" placeholder="Beschreibe dein gewünschtes Ergebnis …" aria-label="Dein Auftrag">'+esc(pilotComposerDraft)+'</textarea>'+
@@ -4475,7 +4475,7 @@ function pilotProjectCard(goal){
  const processing=active&&move?.kind==="working"||["queued","running"].includes(bg?.status);
  const state=alert?"Deine Antwort fehlt":processing?"Pilot arbeitet":ready?"Ergebnis bereit":
   bg?.status==="paused"?"Pausiert":bg?.status==="completed"?"Bearbeitet":"Gespeichert";
- const expanded=pilotProjectExpanded.has(goal.id)?pilotProjectExpanded.get(goal.id):active;
+ const expanded=pilotProjectExpanded.get(goal.id)===true;
  return '<details class="pilot-project-card'+(active?' pilot-project-card--active':'')+'" data-project="'+esc(goal.id)+'"'+(expanded?' open':'')+'>'+
  '<summary><span class="pilot-project-caret" aria-hidden="true">▸</span><span class="pilot-project-heading"><strong>'+esc(goal.title||"Auftrag")+'</strong>'+
  '<small>'+esc(pilotProjectDate(goal.created_at))+'</small></span>'+
@@ -4513,7 +4513,7 @@ function pilotUpdateDock(){
 }
 function goalsView(){
  return '<div class="pilot-project-list"><header class="pilot-project-intro">'+
- '<h2>Deine Aufträge</h2><p>Hier findest du jeden Auftrag, seinen Stand und die fertigen Ergebnisse – zusammen an einem Ort.</p></header>'+
+ '<h2>Deine <span class="pilot-neon-keyword">Aufträge</span></h2><p>Jeder Auftrag enthält seinen aktuellen Stand und alle fertigen Ergebnisse.</p></header>'+
  (goals.map(pilotProjectCard).join("")||'<section class="pilot-project-card pilot-project-empty"><p>Hier erscheinen deine Aufträge und die fertigen Ergebnisse.</p><button type="button" data-jump="home" class="btn ai">Ersten Auftrag starten</button></section>')+
  '</div>';
 }
@@ -4697,7 +4697,21 @@ async function pilotBackgroundLiveCall(operation){
   else pilotBackgroundLiveDisplay();
  }
 }
-function alphaViewLegacy(){if(!effectiveAdmin())return home();const passed=readiness.filter(x=>x.status==="passed").length,total=readiness.length,last=evalRuns[0],aiCost=aiRequests.reduce((s,x)=>s+Number(x.actual_cost||0),0);return '<div class="grid"><div class="card"><h2>Bereitschaft der privaten Testphase</h2><div style="font-size:42px;font-weight:900">'+passed+' / '+total+'</div><p class="muted">Pflichtchecks bestanden</p>'+readiness.map(x=>'<div class="stat"><span class="muted">'+esc(x.description)+'</span><strong>'+esc(deStatus(x.status))+'</strong></div>').join("")+'<div class="btns"><button id="runEvals" class="btn primary">Prüfsuite ausführen</button><button id="runAlphaE2E" class="btn ai"'+(pilotE2EInFlight?' disabled':'')+'>'+(pilotE2EInFlight?'✈ Live-Prüfung läuft …':'✦ Live-Auftragskette prüfen')+'</button></div>'+
+function pilotReadinessStatus(status){
+ const names={passed:"Bestanden",ready_for_verify:"Prüfung offen",pending:"Ausstehend",failed:"Nicht bestanden",blocked:"Blockiert",running:"Läuft",in_progress:"Läuft",warning:"Prüfen"};
+ return names[String(status||"").toLowerCase()]||"Zu prüfen";
+}
+function pilotReadinessEntry(x){
+ const passed=x.status==="passed";
+ return '<div class="stat pilot-readiness-row"><span class="muted">'+esc(x.description)+'</span><strong class="pilot-readiness-status '+(passed?'pilot-readiness-status--passed':'pilot-readiness-status--open')+'">'+esc(pilotReadinessStatus(x.status))+'</strong></div>';
+}
+function alphaViewLegacy(){if(!effectiveAdmin())return home();const passed=readiness.filter(x=>x.status==="passed").length,total=readiness.length,last=evalRuns[0],aiCost=aiRequests.reduce((s,x)=>s+Number(x.actual_cost||0),0);
+ const remaining=readiness.filter(x=>x.status!=="passed"),complete=readiness.filter(x=>x.status==="passed");
+ return '<div class="grid pilot-admin-test-grid"><div class="card pilot-readiness-card"><h2>Bereitschaft der privaten Testphase</h2><div class="pilot-readiness-total">'+passed+' <span>/ '+total+'</span></div><p class="muted">Pflichtchecks bestanden</p>'+
+ '<div class="pilot-readiness-progress" role="progressbar" aria-label="Bestandene Pflichtchecks" aria-valuemin="0" aria-valuemax="'+total+'" aria-valuenow="'+passed+'"><span style="width:'+(total?Math.round(passed/total*100):0)+'%"></span></div>'+
+ (remaining.length?'<div class="pilot-readiness-subtitle">Noch zu prüfen · '+remaining.length+'</div>'+remaining.map(pilotReadinessEntry).join(""):'<p class="pilot-readiness-complete">Alle erfassten Pflichtchecks bestanden.</p>')+
+ (complete.length?'<details class="pilot-readiness-passed"><summary>'+complete.length+' bestandene Checks anzeigen</summary>'+complete.map(pilotReadinessEntry).join("")+'</details>':'')+
+ '<div class="btns"><button id="runEvals" class="btn primary">Prüfsuite ausführen</button><button id="runAlphaE2E" class="btn ai"'+(pilotE2EInFlight?' disabled':'')+'>'+(pilotE2EInFlight?'✈ Live-Prüfung läuft …':'✦ Live-Auftragskette prüfen')+'</button></div>'+
 '<div id="e2eStatus" role="status" aria-live="polite" aria-atomic="true">'+pilotE2EStatusHTML()+'</div>'+
 '<section class="pilot-bg-live-check" aria-label="Echter Hintergrundauftrag">'+
  '<div class="pilot-admin-quicktest-title">✈ HINTERGRUNDLAUF · ECHTER SERVERTEST</div>'+
@@ -4738,7 +4752,7 @@ function adminViewLegacy(){
   return '<div class="admin-page admin-command-center">'+
     '<header class="admin-hero admin-command-strip">'+
       '<div class="admin-hero-heading"><span class="admin-console-kicker"><i aria-hidden="true"></i> PILOT · SYSTEMSTEUERUNG</span>'+
-        '<h2>Admin-Cockpit</h2><p>Systemstatus, Rollen und Tests auf einen Blick.</p></div>'+
+        '<h2>Admin-Cockpit</h2><p>Systemstatus und wichtige Funktionen auf einen Blick.</p></div>'+
       '<div class="admin-hero-actions" aria-label="Administrationsfunktionen">'+
         '<button type="button" class="btn" data-jump="roadmap" aria-label="Entwicklungsplan öffnen">◫ Plan</button><button type="button" class="btn" data-jump="market" aria-label="Partnerprogramme verwalten">Partnerprogramme</button>'+
         '<button type="button" class="btn" data-jump="alpha" aria-label="Systemtest öffnen">✓ Tests</button>'+
@@ -5259,8 +5273,8 @@ function bind(){
   document.querySelectorAll("[data-partner-submitted]").forEach(b=>b.addEventListener("click",()=>void pilotPartnerSubmitted(b.dataset.partnerSubmitted)));
   document.getElementById("pilotMarketFeedForm")?.addEventListener("submit",event=>{event.preventDefault();void pilotMarketImportFile();});
   document.getElementById("pilotMarketForm")?.addEventListener("submit",e=>{e.preventDefault();void pilotMarketSearch(document.getElementById("pilotMarketInput")?.value||"")});
-  document.querySelectorAll("[data-view]").forEach(b=>b.onclick=async()=>{current=b.dataset.view;const menu=b.closest(".pilot-nav-more");if(menu)menu.open=false;if(current==="admin"&&isAdmin){try{await loadAdminConsole()}catch(e){pilotNotice(e.message||String(e))}}render();if(current==="alpha")void pilotBackgroundLiveCall("status")});
-  document.querySelectorAll("[data-jump]").forEach(b=>b.onclick=()=>{current=b.dataset.jump;render();if(current==="alpha")void pilotBackgroundLiveCall("status")});
+  document.querySelectorAll("[data-view]").forEach(b=>b.onclick=async()=>{if(b.dataset.view==="goals"&&current!=="goals")pilotProjectExpanded.clear();current=b.dataset.view;const menu=b.closest(".pilot-nav-more");if(menu)menu.open=false;if(current==="admin"&&isAdmin){try{await loadAdminConsole()}catch(e){pilotNotice(e.message||String(e))}}render();if(current==="alpha")void pilotBackgroundLiveCall("status")});
+  document.querySelectorAll("[data-jump]").forEach(b=>b.onclick=()=>{if(b.dataset.jump==="goals"&&current!=="goals")pilotProjectExpanded.clear();current=b.dataset.jump;render();if(current==="alpha")void pilotBackgroundLiveCall("status")});
    document.querySelectorAll("[data-open-goal]").forEach(b=>b.onclick=async()=>{if(activePilotFlight&&pilotFlightState.goalId&&pilotFlightState.goalId!==b.dataset.openGoal){pilotDestroyFlight(activePilotFlight);pilotSetFlightState(null,"idle","")}activeGoalId=b.dataset.openGoal;pilotPinnedGoalId=activeGoalId;pilotForceNewGoal=false;try{localStorage.setItem("nexaro_pilot_goal_"+user.id,activeGoalId)}catch{}await load();current="home";render()});
   document.getElementById("pilotNewProject")?.addEventListener("click",()=>{
     const draft=document.getElementById("goalText")?.value||"";
