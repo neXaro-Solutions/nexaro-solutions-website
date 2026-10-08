@@ -3181,11 +3181,69 @@ function executionView(){
   '</div>';
 }
 
+
+function pilotProjectDate(value){
+ const d=new Date(value||"");if(!Number.isFinite(d.getTime()))return "Datum nicht verfügbar";
+ return new Intl.DateTimeFormat("de-DE",{day:"2-digit",month:"2-digit",year:"numeric"}).format(d);
+}
+function pilotProjectResultsHTML(data,refActions=[]){
+ const map=new Map(),seen=new Set();
+ for(const r of data){
+  if(r.result_type==="research_analysis"||r.quality_status==="failed"||!["final","review","draft"].includes(String(r.status||"")))continue;
+  const identity=r.structured_content?.action_id||r.execution_id||r.id;
+  if(seen.has(identity))continue;
+  seen.add(identity);
+  const a=refActions.find(x=>x.id===r.structured_content?.action_id);
+  const raw=String(a?.title||r.title||"").toLowerCase();
+  const category=/businessplan|geschäftsplan/.test(raw)?"Businessplan":
+   /budget|kapital|finanz|betriebskosten/.test(raw)?"Finanzen":
+   /rechtsform|anmeld|kammer|notar|handelsregister|gründen|gründungsstatus/.test(raw)?"Gründung & Anmeldung":
+   /qualifikation|versicherung|fachkunde|nachweis/.test(raw)?"Voraussetzungen":
+   /logo|marken|website|webseite|geschäftsauftritt/.test(raw)?"Marke & Website":
+   /markt|konkurrenz|zielgruppe|kunden|vertrieb|marketing|verkauf|akquise/.test(raw)?"Markt & Kunden":
+   /skalier|wachstum/.test(raw)?"Wachstum":"Weitere Ergebnisse";
+  if(!map.has(category))map.set(category,[]);
+  map.get(category).push(r);
+ }
+ if(map.size===0)return '<p class="pilot-project-empty">Noch keine nutzbaren Ergebnisse vorhanden.</p>';
+ const categories=[...map.entries()].sort((a,b)=>PILOT_RESULT_CATEGORIES.indexOf(a[0])-PILOT_RESULT_CATEGORIES.indexOf(b[0]));
+ return '<div class="pilot-project-results-title">Ergebnisse <span>'+categories.reduce((n,c)=>n+c[1].length,0)+'</span></div>'+
+ categories.map(([category,items])=>'<details class="pilot-project-category"><summary><span>'+esc(category)+'</span><small>'+items.length+'</small></summary>'+
+ items.map(r=>{
+  const pending=["provisional","review_required"].includes(r.quality_status),name=pilotFriendlyActionTitle(r.title||"Ergebnis");
+  const text=String(r.content||"").replace(/\\n/g,"\n"),short=text.length>160?text.slice(0,157)+" …":text;
+  return '<article class="pilot-project-file"><span class="pilot-simple-tag '+(pending?"pending":"")+'">'+(pending?"Vorläufig":"Erarbeitet")+'</span>'+
+   '<h4>'+esc(name)+'</h4><p>'+esc(short)+'</p>'+
+   '<details class="pilot-project-document"><summary>Vollständiges Ergebnis</summary><div class="pilot-project-document-body">'+esc(text)+'</div></details></article>';
+ }).join("")+'</details>').join("");
+}
+function pilotProjectCard(goal){
+ const active=goal.id===goals[0]?.id;
+ return '<details class="pilot-project-card" data-project="'+esc(goal.id)+'" '+(active?"open":"")+'>'+
+ '<summary><span class="pilot-project-caret">▸</span><span class="pilot-project-heading"><strong>'+esc(goal.title||"Auftrag")+'</strong>'+
+ '<small>Erstellt am '+esc(pilotProjectDate(goal.created_at))+'</small></span>'+
+ (active?'<span class="pilot-project-state">Aktiv</span>':'')+'</summary>'+
+ '<div class="pilot-project-body"><button class="pilot-project-continue" data-open-goal="'+esc(goal.id)+'" type="button">✈ '+(active?"Weiterarbeiten":"Auftrag fortsetzen")+'</button>'+
+ '<div data-project-results="'+esc(goal.id)+'">'+(active?pilotProjectResultsHTML(results,actions):'<p class="pilot-project-empty">Ergebnisse werden beim Öffnen geladen.</p>')+'</div></div></details>';
+}
+async function pilotLoadProjectResults(id,node){
+ if(!node||node.dataset.loading==="1"||node.dataset.loaded==="1"||!goals.some(g=>g.id===id))return;
+ node.dataset.loading="1";node.textContent="Ergebnisse werden geladen …";
+ try{
+  const [rs,as]=await Promise.all([
+   sb.from("results").select("id,goal_id,title,content,status,quality_status,result_type,approval_status,execution_id,structured_content,created_at").eq("goal_id",id).order("created_at",{ascending:false}).limit(150),
+   sb.from("actions").select("id,goal_id,title").eq("goal_id",id).limit(160)
+  ]);
+  if(rs.error)throw rs.error;if(as.error)throw as.error;
+  if(!node.isConnected)return;
+  node.innerHTML=pilotProjectResultsHTML(rs.data||[],as.data||[]);node.dataset.loaded="1";
+ }catch{if(node.isConnected)node.innerHTML='<p class="pilot-project-empty">Ergebnisse konnten nicht geladen werden. Öffne den Auftrag erneut.</p>'}
+ finally{node.dataset.loading="0"}
+}
 function goalsView(){
- return '<div class="pilot-simple-results"><div class="pilot-simple-card"><span class="pilot-simple-kicker">DEINE AUFTRÄGE</span><h2>Meine Ziele</h2><p class="pilot-results-description">Wähle den Auftrag, den Pilot bearbeiten soll.</p></div>'+
- (goals.map(g=>'<button type="button" class="pilot-simple-goal-choice '+(g.id===goals[0]?.id?"selected":"")+'" data-open-goal="'+esc(g.id)+'">'+
- '<span><strong>'+esc(g.title||"Auftrag")+'</strong><small>'+(g.status==="achieved"?"Nachweislich erreicht":g.id===goals[0]?.id?"Aktiv":"Gespeichert")+'</small></span>'+
- '<span aria-hidden="true">→</span></button>').join("")||'<div class="pilot-simple-card"><p>Du hast noch keinen Auftrag angelegt.</p><button class="btn" data-jump="home">Pilot starten</button></div>')+
+ return '<div class="pilot-project-list"><header class="pilot-project-intro"><span class="pilot-simple-kicker">DEINE PROJEKTE</span>'+
+ '<h2>Meine Aufträge</h2><p>Name, Erstellungsdatum und Ergebnisse – alles an einem Ort.</p></header>'+
+ (goals.map(pilotProjectCard).join("")||'<section class="pilot-project-card pilot-project-empty"><p>Du hast noch keinen Auftrag erstellt.</p><button type="button" data-jump="home" class="btn">Ersten Auftrag starten</button></section>')+
  '</div>';
 }
 function goalsViewLegacy(){
@@ -3551,6 +3609,12 @@ function bind(){
   document.querySelectorAll("[data-view]").forEach(b=>b.onclick=async()=>{current=b.dataset.view;if(current==="admin"&&isAdmin){try{await loadAdminConsole()}catch(e){pilotNotice(e.message||String(e))}}render()});
   document.querySelectorAll("[data-jump]").forEach(b=>b.onclick=()=>{current=b.dataset.jump;render()});
    document.querySelectorAll("[data-open-goal]").forEach(b=>b.onclick=async()=>{activeGoalId=b.dataset.openGoal;try{localStorage.setItem("nexaro_pilot_goal_"+user.id,activeGoalId)}catch{}await load();current="home";render()});
+  document.querySelectorAll("details[data-project]").forEach(project=>project.addEventListener("toggle",()=>{
+   if(!project.open||project.dataset.project===goals[0]?.id)return;
+   const node=project.querySelector("[data-project-results]");
+   if(node)void pilotLoadProjectResults(project.dataset.project,node);
+  }));
+
   document.getElementById("createGoal")?.addEventListener("click",createGoal);
   document.getElementById("goalText")?.addEventListener("input",e=>{const c=document.getElementById("goalTextCount");if(c)c.textContent=String(e.target.value.length)+" / 3000"});
   document.getElementById("openActiveAction")?.addEventListener("click",()=>{
