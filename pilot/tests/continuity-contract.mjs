@@ -8,6 +8,7 @@ import {fileURLToPath} from "node:url";
 import ts from "typescript";
 const root=resolve(dirname(fileURLToPath(import.meta.url)),"../..");
 const file=readFileSync(resolve(root,"supabase/functions/pilot-intelligence/index.ts"),"utf8");
+const frontend=readFileSync(resolve(root,"pilot/index.html"),"utf8");
 const compiled=ts.transpileModule(file.replace(/^import "[^"]+";?\r?\n/gm,"").replace(/^import \{ createClient \} from "[^"]+";?\r?\n/gm,""),{
  compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.None},
  reportDiagnostics:true,fileName:"pilot-intelligence.ts"
