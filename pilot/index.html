@@ -2421,6 +2421,46 @@ body{background:radial-gradient(ellipse 72vw 60vw at 92% -10%,rgba(145,255,62,.1
 .pilot-auto-status.pilot-auto-error{background:linear-gradient(120deg,#fffbf6,#fff7ed);
  border-color:#efcfaa}
 
+
+/* LUMEN .38 — compact explicit legal-form choice, not an office form or unconfirmed AI draft. */
+.pilot-legal-decision{padding:15px!important;border-radius:21px!important}
+.pilot-legal-decision h3{font-size:clamp(21px,5vw,26px)!important;margin-bottom:7px!important}
+.pilot-legal-decision>p{font-size:12px!important;line-height:1.48!important;margin-bottom:12px!important}
+.pilot-legal-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:11px 0}
+.pilot-legal-option{display:flex;flex-direction:column;gap:5px;min-width:0;min-height:92px;padding:11px 10px;
+ text-align:left;border-radius:14px;border:1px solid #dce9d5;background:linear-gradient(145deg,#fff,#fafff8);
+ color:#2f482d;cursor:pointer;box-shadow:0 4px 13px rgba(45,90,39,.025);
+ transition:border-color .18s,box-shadow .18s,background .18s}
+.pilot-legal-option strong{display:flex;align-items:center;gap:6px;font-size:12px;line-height:1.3;font-weight:900}
+.pilot-legal-option small{font-size:10px;line-height:1.4;color:#748571;font-weight:550}
+.pilot-legal-option.is-selected{border-color:#83dd41;background:linear-gradient(140deg,#efffe6,#fff);
+ box-shadow:0 0 0 3px rgba(125,236,66,.12)}
+.pilot-legal-option:focus-visible{outline:3px solid #ff9d32;outline-offset:2px}
+.pilot-legal-choice-dot{flex:0 0 11px;width:11px;height:11px;border-radius:50%;
+ border:2px solid #a5bda1;background:#fff}
+.pilot-legal-option.is-selected .pilot-legal-choice-dot{border:3px solid #72e72c;background:#447d28}
+.pilot-legal-help,.pilot-legal-selected{padding:11px;margin:9px 0;border:1px solid #d4e6ca;
+ background:#f9fff5;border-radius:12px;line-height:1.45;color:#446447;font-size:11px}
+.pilot-legal-help strong{font-size:12px}.pilot-legal-help p{margin:5px 0 0;font-size:11px;line-height:1.5}
+.pilot-legal-selected{display:flex;flex-wrap:wrap;gap:5px;align-items:center;background:#edffe3}
+.pilot-legal-selected[hidden],.pilot-legal-help[hidden]{display:none!important}
+.pilot-legal-notes-label{display:block;margin:13px 0 6px;font-size:12px;font-weight:900;color:#355438}
+.pilot-legal-notes-label small{font-size:10px;color:#83947e;font-weight:600;margin-left:4px}
+.pilot-legal-decision textarea{width:100%;min-height:76px;max-height:144px!important;resize:vertical!important;
+ font-size:16px!important;line-height:1.45!important;padding:11px!important;border-radius:13px!important;
+ border:1px solid #cde9bd!important;background:#fff!important}
+.pilot-legal-notes-meta{display:flex;justify-content:space-between;gap:7px;margin:6px 0 11px;
+ font-size:10px;color:#829081;line-height:1.45}
+.pilot-legal-notes-meta span:last-child{flex:0 0 auto;font-variant-numeric:tabular-nums}
+.pilot-legal-decision .pilot-decision-go{min-height:54px!important;padding:11px 9px!important;
+ border-radius:15px!important;font-size:14px!important}
+.pilot-legal-existing{margin:12px 2px 0;color:#698265;font-size:11px}
+.pilot-legal-existing summary{cursor:pointer;font-weight:850;min-height:34px;display:flex;align-items:center}
+.pilot-legal-existing p{font-size:11px;line-height:1.6;color:#536451;margin:8px 0;overflow-wrap:anywhere}
+.pilot-legal-existing small{font-size:10px;line-height:1.4}
+@media(max-width:360px){.pilot-legal-option{padding:10px 8px;min-height:103px}.pilot-legal-option strong{font-size:11px}}
+@media(prefers-reduced-motion:reduce){.pilot-legal-option{transition:none}}
+
 </style></head>
 <body>
 <section id="auth" class="auth"><div class="box">
@@ -2608,8 +2648,95 @@ function pilotDecisionFields(sections){
      '" aria-describedby="pilotDecisionHint">'+esc(part.value)+'</textarea></section>';
  }).join("");
 }
+/* Explicit decision protocol: never present a legal-form comparison as a completed choice.
+   This deliberately does not decide for the user; only one concrete choice is sent to the server. */
+const PILOT_LEGAL_FORMS=[
+ {id:"einzelunternehmen",title:"Einzelunternehmen",hint:"Einfacher Einstieg; persönliche Haftung besonders prüfen."},
+ {id:"ug",title:"UG (haftungsbeschränkt)",hint:"Kapitalgesellschaft; Gründung und laufende Pflichten einplanen."},
+ {id:"gmbh",title:"GmbH",hint:"Kapitalgesellschaft; Kapitalbedarf und Verwaltungsaufwand prüfen."},
+ {id:"unsicher",title:"Noch nicht entschieden",hint:"Erst Unterschiede und persönliche Voraussetzungen klären."}
+];
+function pilotIsLegalFormDecision(ctx){
+ return !!ctx&&/rechtsform/i.test(String(ctx.ex?.input_snapshot?.action?.title||ctx.result?.title||""));
+}
+function pilotLegalFormReviewCard(ctx){
+ const draft=pilotDecisionFor(ctx);
+ const selected=String(draft.legalFormChoice||"");
+ const valid=PILOT_LEGAL_FORMS.slice(0,3).some(f=>f.id===selected);
+ const waiting=selected==="unsicher";
+ const options=PILOT_LEGAL_FORMS.map(form=>
+   '<button type="button" class="pilot-legal-option'+(selected===form.id?" is-selected":"")+
+   '" data-legal-form="'+form.id+'" aria-pressed="'+(selected===form.id?"true":"false")+'">'+
+   '<strong><span class="pilot-legal-choice-dot" aria-hidden="true"></span>'+esc(form.title)+'</strong>'+
+   '<small>'+esc(form.hint)+'</small></button>').join("");
+ return '<section class="pilot-review-card pilot-review-editable pilot-decision-hub pilot-legal-decision" aria-labelledby="pilotDecisionTitle">'+
+   '<div class="pilot-decision-eyebrow"><span class="pilot-decision-beacon" aria-hidden="true"></span>DEINE ENTSCHEIDUNG</div>'+
+   '<h3 id="pilotDecisionTitle">Welche Rechtsform möchtest du wählen?</h3>'+
+   '<p>Pilot hat Möglichkeiten recherchiert, aber noch nichts für dich entschieden. Wähle eine Option – erst dann kann Pilot darauf aufbauen.</p>'+
+   '<div class="pilot-legal-options" role="group" aria-label="Geplante Rechtsform auswählen">'+options+'</div>'+
+   '<div id="pilotLegalHelp" class="pilot-legal-help" '+(waiting?'':'hidden')+'>'+
+   '<strong>Worauf kommt es bei der Wahl an?</strong>'+
+   '<p>Entscheidend sind unter anderem persönliches Haftungsrisiko, verfügbares Kapital, Mitgründer und der laufende Verwaltungsaufwand. Pilot kann dir diese Punkte erklären – eine Rechtsform wird erst nach deiner Wahl übernommen.</p></div>'+
+   '<div id="pilotLegalSelected" class="pilot-legal-selected" '+(valid?'':'hidden')+'>'+
+   '<span aria-hidden="true">✓</span> <strong>Deine geplante Rechtsform:</strong> <span id="pilotLegalSelectedName">'+
+   esc(PILOT_LEGAL_FORMS.find(x=>x.id===selected)?.title||"")+'</span></div>'+
+   '<label class="pilot-legal-notes-label" for="pilotLegalNotes">Deine Hinweise an Pilot <small>optional</small></label>'+
+   '<textarea id="pilotLegalNotes" rows="3" maxlength="650" placeholder="z. B. Ich gründe allein, mein Startbudget steht noch nicht fest …">'+
+   esc(draft.legalNotes||"")+'</textarea>'+
+   '<div class="pilot-legal-notes-meta"><span>Die Entscheidung gilt zunächst für die weitere Planung – keine automatische Gewerbeanmeldung.</span>'+
+   '<span id="pilotLegalNotesCount">'+String(draft.legalNotes||"").length+' / 650</span></div>'+
+   '<button type="button" class="btn ai pilot-home-action-start pilot-decision-go" id="confirmPilotResult" data-execution="'+esc(ctx.ex.id)+
+     '" '+(!valid||pilotAutoSession?.active?'disabled':'')+'>'+
+   (valid?'⚡ Rechtsform festlegen · Pilot prüft weiter':'Wähle zuerst eine Rechtsform')+'</button>'+
+   '<details class="pilot-legal-existing"><summary>Was Pilot bisher herausgefunden hat</summary>'+
+     '<p>'+esc(pilotDecisionPlainText(ctx.result.content)).slice(0,2200)+'</p>'+
+     '<small>Der Entwurf ist keine abschließend geprüfte Rechtsauskunft. Kammer, Anmeldung und Fachkunde werden separat anhand amtlicher Quellen untersucht.</small></details>'+
+ '</section>';
+}
+function pilotLegalRefreshCard(){
+ const ctx=pilotReviewContext();
+ if(!pilotIsLegalFormDecision(ctx))return;
+ const draft=pilotDecisionFor(ctx);
+ const selected=draft.legalFormChoice||"";
+ const chosen=PILOT_LEGAL_FORMS.find(x=>x.id===selected);
+ const valid=!!chosen&&selected!=="unsicher";
+ document.querySelectorAll("[data-legal-form]").forEach(b=>{
+   const active=b.dataset.legalForm===selected;
+   b.classList.toggle("is-selected",active);b.setAttribute("aria-pressed",String(active));
+ });
+ const help=document.getElementById("pilotLegalHelp");
+ if(help)help.hidden=selected!=="unsicher";
+ const status=document.getElementById("pilotLegalSelected");
+ if(status)status.hidden=!valid;
+ const label=document.getElementById("pilotLegalSelectedName");
+ if(label)label.textContent=valid?chosen.title:"";
+ const counter=document.getElementById("pilotLegalNotesCount");
+ if(counter)counter.textContent=String(draft.legalNotes||"").length+" / 650";
+ const go=document.getElementById("confirmPilotResult");
+ if(go){go.disabled=!valid||!!pilotAutoSession?.active;
+   go.textContent=valid?"⚡ Rechtsform festlegen · Pilot prüft weiter":"Wähle zuerst eine Rechtsform";}
+}
+function bindPilotLegalFormDecision(){
+ if(!document.querySelector(".pilot-legal-decision"))return;
+ document.querySelectorAll("[data-legal-form]").forEach(btn=>btn.addEventListener("click",()=>{
+   const ctx=pilotReviewContext();if(!pilotIsLegalFormDecision(ctx))return;
+   const choice=String(btn.dataset.legalForm||"");
+   if(!PILOT_LEGAL_FORMS.some(x=>x.id===choice))return;
+   pilotDecisionFor(ctx).legalFormChoice=choice;
+   pilotLegalRefreshCard();
+ }));
+ const notes=document.getElementById("pilotLegalNotes");
+ notes?.addEventListener("input",()=>{
+   const ctx=pilotReviewContext();if(!pilotIsLegalFormDecision(ctx))return;
+   pilotDecisionFor(ctx).legalNotes=notes.value.slice(0,650);
+   pilotLegalRefreshCard();
+ });
+ pilotLegalRefreshCard();
+}
+
 function pilotReviewCard(ctx){
  if(!ctx)return "";
+ if(pilotIsLegalFormDecision(ctx))return pilotLegalFormReviewCard(ctx);
  const draft=pilotDecisionFor(ctx);
  const count=draft.text.length;
  return '<section class="pilot-review-card pilot-review-editable pilot-decision-hub" aria-labelledby="pilotDecisionTitle">'+
@@ -3171,6 +3298,7 @@ function bind(){
   document.getElementById("executeAction")?.addEventListener("click",executeAction);
   document.getElementById("confirmPilotResult")?.addEventListener("click",confirmPilotResult);
   bindPilotDecisionEditor();
+  bindPilotLegalFormDecision();
   document.getElementById("pausePilotAutopilot")?.addEventListener("click",()=>{if(pilotAutoSession?.active){pilotAutoSession.cancelRequested=true;pilotAutoSession.label="Der laufende Schritt wird sicher beendet; danach hält Pilot an.";render()}});
   document.getElementById("uploadDoc")?.addEventListener("click",uploadDocument);
   document.getElementById("completeAction")?.addEventListener("click",()=>completeAction(false,false));
@@ -3205,7 +3333,7 @@ function nxOpenNext(){
   const mask=document.createElement("div");mask.className="nx-mask";
   const safe=esc;
   mask.innerHTML='<section class="nx-modal" role="dialog" aria-modal="true" aria-labelledby="nxTitle" aria-describedby="nxDesc">'+
-    '<div class="nx-top"><div class="nx-symbol" aria-hidden="true">✦</div><span class="nx-kicker">neXaro · PILOT · LUMEN 2026.10.08.37</span><button type="button" class="nx-close" aria-label="Schließen">×</button></div>'+
+    '<div class="nx-top"><div class="nx-symbol" aria-hidden="true">✦</div><span class="nx-kicker">neXaro · PILOT · LUMEN 2026.10.08.38</span><button type="button" class="nx-close" aria-label="Schließen">×</button></div>'+
     '<h2 id="nxTitle">'+safe(config.title||"Pilot fragt nach")+'</h2><p class="nx-description" id="nxDesc">'+safe(config.description||"Bitte ergänze die noch fehlenden Angaben.")+'</p>'+
     '<form novalidate><div class="nx-fields">'+fields.map((f,i)=>'<div class="nx-field"><label for="nxInput'+i+'">'+safe(f.label)+'</label>'+
       (f.short?'<input id="nxInput'+i+'" type="text" name="'+safe(f.key)+'" maxlength="500" placeholder="'+safe(f.placeholder||"")+'" data-required="'+(f.required?"1":"0")+'">':
@@ -3817,18 +3945,29 @@ async function pilotContinueSafely(goalId,maxSteps=3){
 async function confirmPilotResult(){
  const ctx=pilotReviewContext();
  if(!ctx||pilotAutoSession?.active)return;
- const editedText=String(pilotDecisionFor(ctx).text||"").trim();
- if(editedText.length<35||editedText.length>2500){
+ const draft=pilotDecisionFor(ctx);
+ const legalForm=pilotIsLegalFormDecision(ctx);
+ const selected=legalForm?String(draft.legalFormChoice||""):"";
+ if(legalForm&&!PILOT_LEGAL_FORMS.slice(0,3).some(x=>x.id===selected)){
+   pilotNotice("Bitte wähle zuerst eine konkrete Rechtsform. Ohne Auswahl legt Pilot nichts fest.","error");
+   return;
+ }
+ const editedText=String(draft.text||"").trim();
+ if(!legalForm&&(editedText.length<35||editedText.length>2500)){
    pilotNotice("Bitte beschreibe deine Entscheidung in mindestens 35 und höchstens 2500 Zeichen.","error");
    document.getElementById("pilotDecisionText")?.focus();return;
  }
- pilotDecisionFor(ctx).text=editedText;
+ if(!legalForm)draft.text=editedText;
  const btn=document.getElementById("confirmPilotResult");
  if(btn)btn.disabled=true;
  startPilotFlight(btn);
  PS.textContent="Pilot übernimmt dein bestätigtes Ergebnis …";
  try{
-   const response=await sb.functions.invoke("execution-engine",{body:{operation:"confirm",execution_id:ctx.ex.id,approved:true,edited_content:editedText}});
+   const response=await sb.functions.invoke("execution-engine",{body:{
+     operation:"confirm",execution_id:ctx.ex.id,approved:true,
+     ...(legalForm?{decision_selection:selected,decision_notes:String(draft.legalNotes||"").slice(0,650)}:
+       {edited_content:editedText})
+   }});
    if(response.error)throw await pilotApiError(response,"Der Vorschlag konnte nicht bestätigt werden.");
    if(response.data?.status!=="completed")throw new Error("Die Bestätigung ist noch nicht abgeschlossen.");
    await load();
