@@ -245,7 +245,7 @@ for(const stage of ["preparing","drafting","verifying","saving"]){
 assert.deepEqual(stageWrites.map(x=>x.stage),["preparing","drafting","verifying","saving"]);
 assert(stageWrites.every(x=>x.current_action_title==="Flyer texten"));
 console.log("PASS Durable stage transitions are tied to the current action and worker lease");
-assert(ui.includes("pilotBgProgressHTML(pilotBackgroundJob)"),"Mobile UI must render actual persisted stages");
+assert(ui.includes("function pilotMissionPanel()")&&ui.includes("pilotBackgroundWorking(g?.id)"),"Task screen must use actual persisted background state");
 assert(ui.includes("keine unabhängige Quellenprüfung"),"Project results must not claim external verification");
 console.log("PASS Project view reports creative results honestly and compactly");
 

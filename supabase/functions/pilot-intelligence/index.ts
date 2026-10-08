@@ -87,9 +87,17 @@ function firstAction(domain:string){
 }
 
 
+/* Clear creation requests need one production task, not a generic business workflow. */
+function directCreativeTask(input:string,intent:any):string|null{
+ if(intent.domain.primary==='medical_documentation'||/gründ|gruend|selbstst|buch|bestell|kauf|bezahl|veröffent|veroeffent|publish|versend|senden|vertrag|rechts|gesetz|steuer|finanz|budget|medizin|therapie|recherch|vergleich|aktuell/i.test(input))return null;
+ if(!/erstell|entwirf|gestalt|schreib|generier|entwickl|brauche|benötige|möchte|will/i.test(input))return null;
+ const kinds=[[/\b(?:logo|grafik|illustration)\b/i,'Logo oder Grafik erstellen'],[/präsentation|praesentation|powerpoint|pitch.?deck/i,'Präsentation erstellen'],[/homepage|website|webseite|landing.?page/i,'Homepage erstellen'],[/werbetext|marketingtext|produkttext|produktbeschreibung|social.?media.?text|\btext\b/i,'Fertigen Text erstellen']].filter(([pattern])=>(pattern as RegExp).test(input));
+ return kinds.length===1?String(kinds[0][1]):null;
+}
+
 /* Permanent execution scope: anticipate essential deliverables before work starts. */
 function buildExecutionContract(intent:Intent,goal:string){
- const startup=intent.domain.primary==="business"&&/gründ|gruend|selbstst|firma|unternehmen|startup/i.test(goal);
+ const startup=intent.domain.primary==="business"&&/gründ|gruend|selbstst|startup|firma aufbauen|unternehmen aufbauen/i.test(goal);
  const flight=/\b(?:flug|flüge|fluege|flight|hinflug|rückflug)\b/i.test(goal);
  const visual=/logo|marke|branding|homepage|website|webseite|design|flyer|präsentation|praesentation|powerpoint/i.test(goal);
  const m=(key:string,title:string,proof:string,kind="draft")=>({key,title,proof,kind});
@@ -779,6 +787,7 @@ const pilotCorsHandler=async(req:Request)=>{
   }
 
   const isFlight=executionContract.scope==="flight_booking";
+  const directTask=directCreativeTask(input,intent);
   const defaultPhaseNames=isFlight?[
     "Aktuelle Flugangebote für die angegebenen Reisedaten recherchieren und vergleichen. Nur belegte Gesamtpreise für alle Reisenden, Quellen und Abrufzeit verwenden. Fehlende Gepäckangaben offenhalten; keine Live-Verfügbarkeit aus Suchtreffern ableiten.",
     "Die recherchierten Flugangebote auf Route, Reisedaten, Reisendenzahl, Gesamtpreis, Gepäck und Tarifbedingungen prüfen. Fehlende Angebotsdaten ausdrücklich nennen; nur innerhalb der tatsächlich geprüften Angebote vergleichen.",
@@ -789,7 +798,7 @@ const pilotCorsHandler=async(req:Request)=>{
   const planningQuality=profile?.quality_rules?.minimum_quality==="high"||complexPlan?"high":"standard";
   const planningTask=complexPlan?"complex_plan":"plan";
   let planGateway:any=null;
-  try{
+  if(!directTask)try{
     const endpoint=(planningQuality==="high"&&planningSensitivity!=="sensitive")?"best-of-ai":"ai-gateway";
     const payload=endpoint==="best-of-ai"
       ? {task_type:planningTask,goal_id:goal.id,input:{goal:desiredOutcome,execution_contract:executionContract,domain:intent.domain,reality_check:check,constraints:intent.constraints,unknowns:intent.unknowns,research:researchContext?{answer:researchContext.answer,sources:researchContext.sources,uncertainties:researchContext.uncertainties}:null},mode:"best",sensitivity:planningSensitivity,required_fields:["strategy","phases","next_action"],evidence_required:profile?.evidence_rules?.required_for_critical_claims===true||!!researchContext,human_review_required:profile?.safety_rules?.human_review===true}
@@ -797,9 +806,9 @@ const pilotCorsHandler=async(req:Request)=>{
     const rr=await fetch(base+"/functions/v1/"+endpoint,{method:"POST",headers:{"content-type":"application/json","apikey":pub,"authorization":auth},body:JSON.stringify(payload)});
     if(rr.ok){const data=await rr.json();planGateway=endpoint==="best-of-ai"?{...data,output:data.final_output,route:{route_key:"best_of_ai",provider:"multi",model_name:"gpt-6-sol+claude-sonnet-5"},quality_contract:{status:"passed"},attempts:1}:data}
   }catch{}
-  const strategy=planGateway?.output?.strategy||(check.feasibility==="high_risk"?"Mit kleiner Validierungsstufe starten":"Schrittweise und outcome-orientiert vorgehen");
+  const strategy=directTask?"Gewünschtes Ergebnis direkt erstellen und vor der Übergabe prüfen":planGateway?.output?.strategy||(check.feasibility==="high_risk"?"Mit kleiner Validierungsstufe starten":"Schrittweise und outcome-orientiert vorgehen");
   const modelPhases=Array.isArray(planGateway?.output?.phases)?planGateway.output.phases.map((x:any)=>String(x).trim()).filter(Boolean).slice(0,6):[];
-  const phaseNames=isFlight?defaultPhaseNames:modelPhases.length>=3?modelPhases:defaultPhaseNames;
+  const phaseNames=directTask?[directTask]:isFlight?defaultPhaseNames:modelPhases.length>=3?modelPhases:defaultPhaseNames;
   const planIns=await sb.from("plans").insert({goal_id:goal.id,version:1,status:"active",strategy,assumptions:[],dependencies:[]}).select("*").single();
   if(planIns.error) return Response.json({error:"plan_create_failed",detail:planIns.error.message},{status:500,headers:cors});
   const plan=planIns.data;
@@ -807,7 +816,7 @@ const pilotCorsHandler=async(req:Request)=>{
   // Never label a milestone with an unrelated firstAction() title.
   // Preserve each source plan phase as its own step and create a separate foundation
   // task if the first domain decision is different from the plan's first phase.
-  const firstTask=isFlight?defaultPhaseNames[0]:executionContract.scope==="business_startup"?"Geschäftsmodell und Zielgruppe ausarbeiten":firstAction(intent.domain.primary);
+  const firstTask=directTask|| (isFlight?defaultPhaseNames[0]:executionContract.scope==="business_startup"?"Geschäftsmodell und Zielgruppe ausarbeiten":firstAction(intent.domain.primary));
   const needsFoundation=phaseNames.length>0&&overlapScore(firstTask,phaseNames[0])<0.32;
   const workingPhases=[
     ...(needsFoundation?[{name:firstTask,phase_key:"foundation",foundation:true}]:[]),
@@ -816,7 +825,7 @@ const pilotCorsHandler=async(req:Request)=>{
   const milestonePayload=workingPhases.map((item,i)=>({
     goal_id:goal.id,plan_id:plan.id,phase_key:item.phase_key,
     title:item.name+" abgeschlossen",desired_state:item.name,
-    success_condition:item.foundation?"Das erste Ergebnis ist überprüft und ausdrücklich bestätigt.":"Ergebnis der Phase ist überprüfbar vorhanden.",
+    success_condition:directTask?"Die angeforderte Datei oder der fertige Text liegt vor und hat die Ergebnisprüfung bestanden.":item.foundation?"Das erste Ergebnis ist überprüft und ausdrücklich bestätigt.":"Ergebnis der Phase ist überprüfbar vorhanden.",
     status:i===0?"active":"pending",weight:1
   }));
   const miles=await sb.from("milestones").insert(milestonePayload).select("*");
@@ -824,8 +833,8 @@ const pilotCorsHandler=async(req:Request)=>{
 
   const actionPayload=workingPhases.map((item,i)=>({
     goal_id:goal.id,plan_id:plan.id,milestone_id:miles.data[i].id,
-    title:isFlight?["Aktuelle Flugangebote recherchieren und vergleichen","Flugangebote und Gesamtpreis prüfen","Belegten Buchungsvorschlag vorbereiten"][i]:item.foundation?firstTask:"Nächsten Schritt für „"+item.name+"“ ausführen",
-    objective:item.foundation
+    title:directTask|| (isFlight?["Aktuelle Flugangebote recherchieren und vergleichen","Flugangebote und Gesamtpreis prüfen","Belegten Buchungsvorschlag vorbereiten"][i]:item.foundation?firstTask:"Nächsten Schritt für „"+item.name+"“ ausführen"),
+    objective:directTask?input+". Erstelle das vollständige nutzbare Lieferobjekt. Prüfe es vor der Übergabe. Keine vorgeschalteten Konzeptfreigaben; nur zwingend fehlende Angaben oder externe Handlungen benötigen Rückfrage.":item.foundation
       ?(needsFoundation
         ?firstTask+". Erstelle eine konkrete, nachvollziehbare Arbeitsfassung, kennzeichne Annahmen und lege das Ergebnis dem Nutzer zur Bestätigung vor."
         :item.name)

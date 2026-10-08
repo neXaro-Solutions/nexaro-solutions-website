@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="de" data-pilot-release="orbit-2026-10-08"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><meta name="referrer" content="same-origin"><meta name="color-scheme" content="light">
+<html lang="de" data-pilot-release="focus-2026-10-08"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><meta name="referrer" content="same-origin"><meta name="color-scheme" content="light">
 <title>neXaro Pilot · Zukunft operativer KI</title>
 <style>
 :root{--bg:#f7f8f5;--s:#fff;--l:#e2e6de;--t:#151715;--m:#737973;--g:#7dff00;--o:#ff6a00;--sh:0 16px 45px rgba(28,34,27,.08)}
@@ -3270,11 +3270,57 @@ body::before{opacity:.2!important;background-size:64px 64px!important}
 @media(prefers-reduced-motion:reduce){#pilotFlightLayer .pilot-worker-avatar.pilot-worker--patrol :is(.pilot-worker-figure,.pilot-worker-leg,.pilot-worker-arm){animation:none!important}.pilot-simple-entry::before{animation:none!important}}
 
 .pilot-push-card{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:18px 22px;border:1px solid #d2dfd6;border-radius:20px;background:#ffffff7a}.pilot-push-card strong{font-size:12px;color:#34583e}.pilot-push-card p{font-size:11px;line-height:1.65;color:#60776a;max-width:490px;margin:6px 0 0}.pilot-push-card .btn{font-size:12px;white-space:nowrap;background:#fff}.pilot-push-card .btns{margin:0}.pilot-order-results .pilot-project-document-body{white-space:pre-wrap}.pilot-simple-entry::before{background:radial-gradient(ellipse at 95% 0,#c9edaa66,transparent 45%),repeating-radial-gradient(circle at 100% 0,transparent 0 69px,#bbd5bf24 70px 71px,transparent 72px 105px)!important}@media(max-width:760px){.pilot-push-card{flex-direction:column;align-items:flex-start;padding:18px 20px}.pilot-push-card .btns{width:100%}}
+/* FOCUS: one input surface; the machine is felt through light and motion. */
+.shell[data-screen="home"]{padding:0!important}
+.shell[data-screen="home"]>.main>.head{display:none!important}
+.shell[data-screen="home"] .main{max-width:1200px!important;padding:0 24px 100px!important}
+body:has(.shell[data-screen="home"]:not(.hidden)){background:radial-gradient(ellipse at 50% 27%,#edf5ef 0,transparent 52%),#f8faf8!important}
+body:has(.shell[data-screen="home"]:not(.hidden))::before{display:none!important}
+.pilot-focus{min-height:calc(100dvh - 120px);display:flex;align-items:center;justify-content:center;--core-x:0px;--core-y:0px}
+.pilot-focus-entry{width:100%;max-width:740px;text-align:center;padding:34px 0 50px;position:relative}
+.pilot-focus-brand{font-size:11px;font-weight:750;letter-spacing:.32em;color:#6b8275;margin:22px 0 14px}
+.pilot-focus :is(#homeComposeTitle,#guestComposeTitle){font-size:clamp(27px,3.5vw,43px)!important;line-height:1.14!important;letter-spacing:-.05em!important;font-weight:580!important;margin:0 0 34px!important;color:#20352c!important}
+.pilot-machine-core{width:118px;height:118px;margin:auto;position:relative;isolation:isolate;transform:translate(var(--core-x),var(--core-y));transition:transform .5s ease-out}
+.pilot-machine-core::before{content:'';position:absolute;inset:-75px;border-radius:50%;background:radial-gradient(circle,#9fd7b233,transparent 65%);filter:blur(8px);animation:pilotCoreBreath 7s ease-in-out infinite}
+.pilot-machine-core i{position:absolute;inset:8px;border-radius:50%;border:1px solid #a4c0af80;box-shadow:inset 0 0 20px #b8d4c329;transform:rotateX(58deg) rotateZ(-30deg);animation:pilotCoreOrbit 18s linear infinite}
+.pilot-machine-core i:nth-child(2){inset:0;transform:rotateY(60deg) rotateZ(25deg);animation:pilotCoreOrbitTwo 23s linear infinite;border-color:#bfcebccc}
+.pilot-machine-core i:nth-child(3){inset:17px;border-color:#fff;border-width:2px;background:radial-gradient(circle at 30% 24%,#ffffffd9,#d5e4dc66 56%,#75948633);box-shadow:0 0 30px #aacfb754,inset 0 0 16px #fff;animation:pilotCoreBreath 7s ease-in-out infinite;transform:none}
+.pilot-machine-core>span{position:absolute;inset:29px;display:grid;place-items:center;opacity:.75}
+.pilot-machine-core .pilot-aircraft{width:100%;height:100%;transform:rotate(-25deg)}
+@keyframes pilotCoreOrbit{to{transform:rotateX(58deg) rotateZ(330deg)}}
+@keyframes pilotCoreOrbitTwo{to{transform:rotateY(60deg) rotateZ(385deg)}}
+@keyframes pilotCoreBreath{0%,100%{opacity:.65;scale:.97}50%{opacity:1;scale:1.04}}
+.pilot-focus-composer{background:#ffffffed;border:1px solid #d8e1da;border-radius:26px;box-shadow:0 12px 48px #273e2f0a,0 2px 6px #273e2f04;padding:8px 10px 10px;text-align:left;transition:border-color .25s,box-shadow .25s;position:relative}
+.pilot-focus-composer:focus-within{border-color:#86a791;box-shadow:0 10px 50px #719f7d15,0 0 0 3px #9abea70d}
+.pilot-focus :is(#goalText,#guestTask){width:100%;min-height:114px;max-height:240px;resize:none;background:transparent!important;box-shadow:none!important;border:0!important;outline:0!important;padding:20px 18px 8px!important;border-radius:18px;font:400 17px/1.65 inherit;color:#213a2d;font-size:17px!important;line-height:1.65!important;overflow:auto}
+.pilot-focus :is(#goalText,#guestTask)::placeholder{color:#89968d}
+.pilot-focus-tools{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:0 3px}
+.pilot-focus .attach-btn{display:grid;place-items:center;width:43px;height:43px;min-width:43px;padding:10px!important;border:0!important;border-radius:50%!important;background:transparent!important;color:#687d6e!important;cursor:pointer}
+.pilot-focus .attach-btn:hover{background:#f0f4ef!important}.pilot-focus-tools svg{width:23px;height:23px;flex-shrink:0}
+.pilot-focus .launch-primary{width:auto!important;display:flex;align-items:center;gap:14px;min-height:44px!important;border-radius:17px!important;padding:0 14px 0 18px!important;background:#263f31!important;border:1px solid #263f31!important;color:#fff!important;box-shadow:none!important;font-size:13px!important}
+.pilot-focus .launch-primary:hover{background:#3f634b!important}.pilot-focus .launch-primary:disabled{opacity:.65}
+.pilot-focus .pilot-context-hint{border:0;background:#f3f6f2;margin:4px 4px 0;font-size:11px;padding:9px 12px;border-radius:14px}
+.pilot-focus .attachment-tray:empty{display:none}.pilot-focus .attachment-tray{padding:0 8px}
+.side .nav,.pilot-nav-more>summary{width:78px!important;min-height:58px!important}
+.side .nav::after{display:none!important}.side .nav[data-activity="working"] .pilot-nav-icon::after,.side .nav[data-activity="attention"] .pilot-nav-icon::after{content:'';position:absolute;right:0;top:0;width:7px;height:7px;border-radius:50%;background:#76ad80;box-shadow:0 0 0 3px #fff}
+.side .nav[data-activity="attention"] .pilot-nav-icon::after{background:#db9659}.side .pilot-nav-icon{position:relative}
+.pilot-mission-focus{padding:28px 30px 24px;border:1px solid #d4e1d6;border-radius:24px;background:linear-gradient(140deg,#fff,#eff6ef);margin-bottom:22px}
+.pilot-mission-heading{display:flex;gap:9px;align-items:center;font-size:12px;color:#65806c}.pilot-mission-light{width:7px;height:7px;background:#90b798;border-radius:50%}.pilot-mission-light.working{box-shadow:0 0 0 5px #b0d5b52b;animation:pilotCoreBreath 3s ease-in-out infinite}.pilot-mission-light.attention{background:#d89a62}
+.pilot-mission-focus>h2{font-size:25px;letter-spacing:-.035em;line-height:1.3;margin:16px 0 10px}.pilot-mission-focus>p{font-size:13px;color:#617968;line-height:1.6}.pilot-mission-tools{display:flex;align-items:center;flex-wrap:wrap;gap:16px;margin-top:18px}.pilot-mission-tools .pilot-simple-textbutton{font-size:12px;padding:10px 0;color:#526d5b}
+.pilot-project-intro{margin-bottom:22px!important}.pilot-project-intro h2{font-size:30px!important;letter-spacing:-.035em!important}.pilot-project-list .pilot-project-card{box-shadow:none!important;background:#ffffffb0!important}
+@media(max-width:600px){.shell[data-screen="home"] .main{padding:0 18px 105px!important}.pilot-focus{min-height:calc(100dvh - 108px)}.pilot-focus-entry{padding:25px 0 35px}.pilot-machine-core{width:98px;height:98px}.pilot-machine-core>span{inset:24px}.pilot-focus :is(#homeComposeTitle,#guestComposeTitle){font-size:30px!important;max-width:300px;margin:0 auto 28px!important}.pilot-focus-brand{margin-top:18px}.pilot-focus :is(#goalText,#guestTask){font-size:16px!important;min-height:125px;padding:15px 12px 8px!important}.pilot-focus-composer{border-radius:23px}.side .nav,.pilot-nav-more>summary{width:67px!important;min-height:55px!important}.pilot-mission-focus{padding:23px 20px}.pilot-mission-focus>h2{font-size:23px}}
+@media(max-height:650px){.pilot-focus-entry{padding-top:24px}.pilot-machine-core{width:65px;height:65px}.pilot-machine-core>span{inset:17px}.pilot-focus-brand{margin:12px 0}.pilot-focus :is(#homeComposeTitle,#guestComposeTitle){margin-bottom:20px!important;font-size:28px!important}}
+@media(prefers-reduced-motion:reduce){.pilot-machine-core,.pilot-machine-core i,.pilot-machine-core::before,.pilot-mission-light{animation:none!important;transition:none!important;transform:none!important}}
+
+#auth.auth{padding:0 24px!important;min-height:100dvh;background:#f8faf8!important}
+#auth>.box{display:block!important;max-width:740px!important;width:100%!important;margin:auto!important;padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important;overflow:visible!important;min-height:0!important}
+#auth .pilot-focus{min-height:calc(100dvh - 90px)}
+.pilot-guest-dock{position:fixed;bottom:max(24px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);display:flex;gap:8px;padding:7px;border:1px solid #d8e3da;background:#fffffff0;border-radius:20px;box-shadow:0 8px 28px #26422e0b;z-index:20}
+.pilot-guest-dock button{border:0;background:transparent;border-radius:13px;padding:12px 18px;font:600 12px inherit;color:#3e5b48;white-space:nowrap;cursor:pointer}.pilot-guest-dock button:hover{background:#eaf2e8}
 </style><link rel="manifest" href="/pilot/manifest.webmanifest"><link rel="apple-touch-icon" href="/pilot/icon-192.png"><meta name="theme-color" content="#f2f6f3"><meta name="apple-mobile-web-app-capable" content="yes"></head>
 <body>
 <section id="auth" class="auth"><div class="box">
-<section class="auth-core-panel"><div class="machine-depth-layer"></div><div class="auth-core-copy"><div class="system-kicker"><span class="live-pulse"></span>neXaro · Pilot-Zentrale aktiv</div><h1>Dein Ziel.<br><em>Ein klarer Weg zum Ergebnis.</em></h1><p>Dein Auftrag bleibt der Mittelpunkt. Pilot recherchiert und erstellt nutzbare Ergebnisse. Offene Entscheidungen und fehlende Anbindungen bleiben sichtbar.</p></div><div class="visual-flow" aria-hidden="true"><span></span><span></span><span></span></div><div class="gear-cluster" aria-hidden="true"><div class="gear-energy"></div><div class="gear g1"></div><div class="gear g2"></div><div class="gear g3"></div><div class="gear g4"></div></div><span class="system-visual-chip c1">KONTEXT BLEIBT</span><span class="system-visual-chip c2">SYSTEM PASST SICH AN</span><span class="system-visual-chip c3">BIS ZUM ERGEBNIS</span><div class="auth-capabilities"><div><span>01</span><strong>Merkt sich</strong><small>Kontext bleibt erhalten.</small></div><div><span>02</span><strong>Passt sich an</strong><small>Der nächste Weg entsteht dynamisch.</small></div><div><span>03</span><strong>Erledigt</strong><small>Ergebnisse und offene Schritte an einem Ort.</small></div></div><div class="auth-curiosity"><span class="dot"></span><strong>Gib Pilot ein Ziel.</strong><small>Sieh, wie daraus ein ausführbarer Weg entsteht.</small></div></section>
-<section class="auth-form-panel"><div class="brand-login"><img src="/nexaro-transparent-logo.webp" class="brand-logo-login" alt="neXaro Solutions"></div><div class="ey">PILOT-ZENTRALE · PRIVATE TESTPHASE</div><h2>Bereit, Pilot arbeiten zu sehen?</h2><p>Gib Pilot deinen Auftrag. Verfolge die Bearbeitung und finde die Ergebnisse an einem Ort.</p><div class="access-actions"><button id="openLogin" class="btn primary">Pilot öffnen</button><button id="openRegister" class="btn">Zugang erstellen</button></div><div class="free-start-note"><strong>Dein Ziel steht im Mittelpunkt</strong><span>Auftrag · Recherche · Lösung · Ergebnis</span></div><div class="auth-trust"><span class="dot"></span><span>Geschützte Sitzung · Zugriffsschutz aktiv</span></div><div class="mini-trust"><strong>Datenschutz von Beginn an</strong><span>Verschlüsselte Verbindung · geschützte Anmeldung · Zugriff nur innerhalb deiner Sitzung</span></div></section>
+<div class="pilot-focus"><section class="pilot-focus-entry" aria-labelledby="guestComposeTitle"><div class="pilot-machine-core" aria-hidden="true"><i></i><i></i><i></i><span>✦</span></div><div class="pilot-focus-brand">PILOT</div><h2 id="guestComposeTitle">Was soll ich für dich erledigen?</h2><div class="pilot-focus-composer"><textarea id="guestTask" maxlength="3000" rows="3" aria-label="Dein Auftrag" placeholder="Beschreibe dein gewünschtes Ergebnis …"></textarea><div class="pilot-focus-tools"><span></span><button id="guestStart" type="button" class="btn ai launch-primary">Starten <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 19V5m-6 6 6-6 6 6"/></svg></button></div></div></section></div><nav class="pilot-guest-dock" aria-label="Zugang"><button id="openLogin" type="button">Anmelden</button><button id="openRegister" type="button">Konto erstellen</button></nav>
 </div></section>
 <div id="authModal" class="auth-modal hidden" role="dialog" aria-modal="true" aria-labelledby="authModalTitle">
   <button class="auth-modal-backdrop" id="closeAuthBackdrop" aria-label="Fenster schließen"></button>
@@ -3323,7 +3369,7 @@ body::before{opacity:.2!important;background-size:64px 64px!important}
 </div>
 
 <section id="app" class="shell hidden"><aside class="side"><div class="brand"><div class="brand-meta"><img src="/nexaro-transparent-logo.webp" class="brand-logo" alt="neXaro Solutions"><div class="ey">Dein intelligenter Mitarbeiter</div></div></div>
-<nav class="pilot-minimal-nav" aria-label="Hauptnavigation"><button class="nav active" data-view="home" aria-label="Pilot"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="m3 10 9-7 9 7"/><path d="M5 9v11h14V9"/><path d="M9.5 20v-7h5v7"/></svg></span><span>Pilot</span></button><button class="nav" data-view="goals" aria-label="Aufträge"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/></svg></span><span>Aufträge</span></button><details class="pilot-nav-more"><summary aria-label="Weitere Bereiche"><span class="pilot-nav-more-symbol">•••</span><span>Mehr</span></summary><div class="pilot-nav-more-content"><button class="nav" data-view="documents" aria-label="Dokumente"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M7 3.5h7l4 4V21H7a2 2 0 0 1-2-2V5.5a2 2 0 0 1 2-2Z"/><path d="M14 3.5V8h4"/><path d="M9 12h6M9 16h6"/></svg></span><span>Dokumente</span></button><button class="nav" data-view="execution" aria-label="Ausführung"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M5 19c1-3.5 4-6.2 7-8.6l4.4-6.4c1 2.6 3 4.4 4 7l-6.3 4.5c-2.3 3-4.9 5.1-8.1 5.5"/><path d="m8.4 15.5-1.5 1.9M16.9 8l-1.4-1.4"/><path d="m4 12.6-1.6 1.6m7.8 6.7-1.5 1.5"/></svg></span><span>Ausführung</span></button><button class="nav auxiliary-nav" data-view="canva" aria-label="Gestaltung"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="m12 2 2.8 7.2L22 12l-7.2 2.8L12 22l-2.8-7.2L2 12l7.2-2.8L12 2Z"/></svg></span><span>Gestaltung</span></button><button class="nav admin-only hidden" data-view="roadmap" aria-label="Entwicklungsplan"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M9 9v12"/></svg></span><span>Entwicklungsplan</span></button><button class="nav admin-only hidden" data-view="alpha" aria-label="Systemtest"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="m4 12 5 5L20 6"/><circle cx="12" cy="12" r="9"/></svg></span><span>Systemtest</span></button><button class="nav account-nav" data-view="me" aria-label="Einstellungen"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M10 2h4l.7 2.3 2.2 1.2 2.3-.8 2 3.4-1.7 1.7v2.5l1.7 1.7-2 3.4-2.3-.8-2.2 1.2L14 22h-4l-.7-2.3-2.2-1.2-2.3.8-2-3.4 1.7-1.7v-2.5L2.8 10l2-3.4 2.3.8 2.2-1.2L10 2Z"/><circle cx="12" cy="12" r="3"/></svg></span><span>Einstellungen</span></button></div></details></nav>
+<nav class="pilot-minimal-nav" aria-label="Hauptnavigation"><button class="nav active" data-view="home" aria-label="Pilot"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="m3 10 9-7 9 7"/><path d="M5 9v11h14V9"/><path d="M9.5 20v-7h5v7"/></svg></span><span>Pilot</span></button><button class="nav" data-view="goals" aria-label="Aufträge"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/></svg></span><span>Aufträge</span></button><button class="nav" data-view="results" aria-label="Ergebnisse"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="4"/><path d="m8 12 3 3 5-6"/></svg></span><span>Ergebnisse</span></button><details class="pilot-nav-more"><summary aria-label="Weitere Bereiche"><span class="pilot-nav-more-symbol">•••</span><span>Mehr</span></summary><div class="pilot-nav-more-content"><button class="nav" data-view="notifications" aria-label="Mitteilungen"><span class="pilot-nav-icon" aria-hidden="true">◉</span><span>Mitteilungen & Push</span></button><button class="nav" data-view="documents" aria-label="Dokumente"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M7 3.5h7l4 4V21H7a2 2 0 0 1-2-2V5.5a2 2 0 0 1 2-2Z"/><path d="M14 3.5V8h4"/><path d="M9 12h6M9 16h6"/></svg></span><span>Dokumente</span></button><button class="nav auxiliary-nav" data-view="canva" aria-label="Gestaltung"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="m12 2 2.8 7.2L22 12l-7.2 2.8L12 22l-2.8-7.2L2 12l7.2-2.8L12 2Z"/></svg></span><span>Gestaltung</span></button><button class="nav admin-only hidden" data-view="roadmap" aria-label="Entwicklungsplan"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M9 9v12"/></svg></span><span>Entwicklungsplan</span></button><button class="nav admin-only hidden" data-view="alpha" aria-label="Systemtest"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="m4 12 5 5L20 6"/><circle cx="12" cy="12" r="9"/></svg></span><span>Systemtest</span></button><button class="nav account-nav" data-view="me" aria-label="Einstellungen"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M10 2h4l.7 2.3 2.2 1.2 2.3-.8 2 3.4-1.7 1.7v2.5l1.7 1.7-2 3.4-2.3-.8-2.2 1.2L14 22h-4l-.7-2.3-2.2-1.2-2.3.8-2-3.4 1.7-1.7v-2.5L2.8 10l2-3.4 2.3.8 2.2-1.2L10 2Z"/><circle cx="12" cy="12" r="3"/></svg></span><span>Einstellungen</span></button><button class="nav admin-only hidden" data-view="admin">Administration</button></div></details></nav>
 <button id="logout" class="btn logout">Abmelden</button></aside>
 <main class="main"><div class="head"><div><div class="ey">PILOT · DEIN KI-MITARBEITER</div><h1 id="title">Pilot</h1></div><div class="head-actions"><button id="adminSystem" class="head-tool admin-only hidden" data-view="admin">Admin</button><button id="customerPreviewToggle" class="head-tool admin-preview hidden" type="button">Kundenansicht</button><button id="accountButton" class="head-tool" data-view="me">Profil</button><div class="status"><span class="dot"></span><span id="pilotStatus">Pilot bereit</span></div></div></div><div id="view"><section class="pilot-initial-fallback" role="status" aria-live="polite"><span class="pilot-initial-beacon" aria-hidden="true">✈</span><div><strong>Pilot wird geladen</strong><p>Dein Auftrag und deine Ergebnisse bleiben gespeichert.</p></div></section></div></main></section><div id="pilotFlightLayer" aria-hidden="true"></div>
 
@@ -4011,65 +4057,50 @@ function pilotUpdateTravelBrief(){
 
 function home(){
  const g=goals[0]||null;
- const n=pilotNextQueuedAction();
- const approval=pilotReviewContext();
- const interrupt=pilotRelevantInterruption();
- const inProgress=!!pilotAutoSession?.active||pilotBackgroundWorking(g?.id);
- const done=actions.filter(x=>x.status==="completed").length;
- const count=actions.length;
- const currentTask=n?pilotFriendlyActionTitle(n):"";
  const attach='<input id="attachmentPhotoInput" class="hidden-file" type="file" accept="image/*" capture="environment" multiple>'+
  '<input id="attachmentDocumentInput" class="hidden-file" type="file" accept=".pdf,.docx,.txt,.md,.csv,.json,.xml,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,text/csv,application/json,application/xml" multiple>'+
  '<input id="attachmentFileInput" class="hidden-file" type="file" accept="image/*,.pdf,.docx,.txt,.md,.csv,.json,.xml" multiple>';
- const entry='<section class="pilot-simple-card pilot-simple-entry" aria-labelledby="homeComposeTitle">'+
- '<div class="pilot-simple-heading"><span class="pilot-simple-orb" aria-hidden="true">'+pilotAircraftSVG()+'</span><div><span class="pilot-simple-kicker">DEIN AUFTRAG. PILOTS ARBEIT.</span><h2 id="homeComposeTitle">Was möchtest du erledigt haben?</h2>'+
- '<p>Beschreibe dein Ziel. Pilot recherchiert, erstellt dein fertiges Ergebnis und meldet sich, sobald es bereitliegt.</p></div></div>'+
- (pilotForceNewGoal?'<div class="pilot-context-hint" role="status"><span><strong>Neues Projekt</strong> · Der nächste Auftrag wird unabhängig angelegt.</span><button id="pilotCancelNewProject" type="button">Bestehendes Projekt</button></div>':
-   pilotPinnedGoalId&&g?.id===pilotPinnedGoalId?'<div class="pilot-context-hint" role="status"><span>Du setzt fort: <strong>'+esc(g.title||"Dein Projekt")+'</strong></span><button id="pilotNewProject" type="button">Neues Projekt</button></div>':'')+
- '<textarea id="goalText" maxlength="3000" rows="3" placeholder="'+"Zum Beispiel: Finde einen günstigen Flug von Berlin nach Paris am 20.11.2026, zurück am 22.11.2026, für 2 Personen."+'" aria-label="Dein Auftrag">'+esc(pilotComposerDraft)+'</textarea>'+
- '<div id="pilotTravelIntake" aria-live="polite">'+pilotTravelBriefHTML(pilotComposerDraft)+'</div>'+
- '<div class="pilot-simple-entry-footer"><div class="command-attachments"><div class="attachment-actions"><button class="attach-btn" type="button" data-attach-kind="file">＋ Datei hinzufügen</button></div>'+
- attach+'<div id="attachmentTray" class="attachment-tray" aria-live="polite"></div></div>'+
- '<button id="createGoal" type="button" class="btn ai launch-primary">Pilot jetzt starten <span aria-hidden="true">↗</span></button></div>'+
- '<span id="goalTextCount" class="pilot-simple-counter" aria-hidden="true">0 / 3000</span>'+
- '<p class="pilot-command-promise">Du gibst das Ziel vor. Pilot erledigt die verfügbaren Schritte. Verbindliche Aktionen brauchen deine Bestätigung.</p>'+
- '</section>';
- if(!g)return '<div class="pilot-simple">'+entry+'<div class="pilot-empty-explanation"><strong>Ein Auftrag. Ein klarer Weg.</strong><p>Du erhältst eine Lösung mit nachvollziehbaren Grundlagen. Fehlt eine Information oder Verbindung, sagt Pilot dir genau, was gebraucht wird.</p></div>'+pilotPushCard()+'</div>';
- const backgroundAttention=pilotBackgroundJob?.goal_id===g.id&&pilotBackgroundJob.status==="waiting_user";
- const needsHuman=!inProgress&&(backgroundAttention||!!approval||
-   !!(interrupt&&["waiting_approval","review_required"].includes(interrupt.status))||
-   !!(n&&n.status==="ready"&&(n.owner_type==="joint"||n.owner_type==="user"||n.recommended_mode==="together"||n.blocking===true)));
- let label=inProgress?"Pilot arbeitet an deinem Auftrag":needsHuman?"Hier ist deine Handlung erforderlich":interrupt?"Pilot benötigt Aufmerksamkeit":n?"Bereit zum Weiterarbeiten":g.status==="achieved"?"Ziel nachweislich erreicht":"Vorbereitung beendet · Zielabschluss noch offen";
- const status='<section class="pilot-simple-card pilot-simple-work" id="pilotNextActionPanel" aria-labelledby="homeNextTitle">'+
- '<span class="pilot-simple-kicker">DEIN AKTUELLER AUFTRAG</span>'+
- '<h2 id="homeNextTitle">'+esc(g.title||"Dein Ziel")+'</h2><div class="pilot-simple-created">Erstellt am '+esc(pilotProjectDate(g.created_at))+'</div>'+
- '<div class="pilot-simple-state"><span class="pilot-simple-indicator '+(inProgress?"running":needsHuman||interrupt?"needs":"")+'"></span>'+
- '<span>'+esc(label)+'</span></div>'+
- 
- pilotTravelBriefHTML(g.description||g.desired_outcome||g.title||'')+
- (needsHuman?'<div id="pilotFlightAttention" class="pilot-flight-attention" role="status"><strong>Deine Entscheidung ist gefragt.</strong> '+(activePilotFlight?.phase==="parked"?"✈ Pilot ist gelandet. ":"")+'Nach deiner Entscheidung arbeitet Pilot weiter.</div>':'')+
- (pilotBackgroundJob?.goal_id===g.id&&pilotBackgroundJob.status==="paused"?
-  '<button type="button" id="resumePilotBackground" class="btn">✈ Hintergrundarbeit fortsetzen</button>':'')+
- (pilotBackgroundJob?.goal_id===g.id?pilotBgProgressHTML(pilotBackgroundJob):'')+
- (inProgress?'<div class="pilot-simple-activity">'+esc(pilotAutoSession?.label||"Pilot bearbeitet sichere Schritte auch bei geschlossener App …")+
- (pilotBackgroundWorking(g.id)?'<button id="pausePilotBackground" class="pilot-simple-textbutton" type="button">Hintergrund pausieren</button>':
- '<button id="pausePilotAutopilot" class="pilot-simple-textbutton" type="button">Nach diesem Schritt stoppen</button>')+'</div>':
- approval?pilotReviewCard(approval):
- interrupt?'<div class="command-card pilot-simple-action"><p>Pilot wartet auf die nötige Prüfung oder Freigabe.</p>'+
- '<button type="button" data-jump="execution" class="btn">Prüfung öffnen</button></div>':
- n?'<div class="command-card pilot-simple-action">'+
- (n.status!=="ready"?'<p>Dieser Schritt wartet auf den Abschluss vorheriger Aufgaben. Pilot überspringt keine Abhängigkeiten.</p>':
- '<div class="pilot-home-action-buttons"><button type="button" id="executeAction" class="btn ai" data-action="'+esc(n.id)+'">'+(n.owner_type==="joint"||n.owner_type==="user"||n.recommended_mode==="together"||n.blocking===true?"Entscheidung prüfen":"✈ Auftrag fortsetzen")+'</button></div>')+'</div>':
- '<p class="pilot-simple-count">Die vorbereiteten Schritte sind bearbeitet. Den tatsächlichen Abschluss prüft Pilot weiterhin.</p>')+
- '<details open class="pilot-simple-details pilot-order-results"><summary>Fertige Ergebnisse <span>'+pilotCustomerResults().length+'</span></summary>'+pilotProjectResultsHTML(results,actions)+'</details>'+
- '<details class="pilot-simple-details"><summary>Arbeitsdetails anzeigen</summary>'+
- pilotJourneyHTML(g,{working:inProgress,attention:needsHuman})+
- '<p>'+done+' von '+count+' geplanten Schritten bearbeitet. Das ist kein Nachweis für den Abschluss des Gesamtziels.</p>'+
- '<p>Die technische Planung läuft im Hintergrund. Du musst diese Schritte nicht einzeln verwalten.</p>'+
- '<button type="button" data-jump="goals" class="btn">Alle Ziele</button> '+
- '<button type="button" data-jump="execution" class="btn">Ausführungsverlauf</button>'+
- '</details></section>';
- return '<div class="pilot-simple">'+entry+status+pilotPushCard()+'</div>';
+
+ return '<div class="pilot-focus"><section class="pilot-focus-entry" aria-labelledby="homeComposeTitle">'+
+ '<div class="pilot-machine-core" aria-hidden="true"><i></i><i></i><i></i><span>'+pilotAircraftSVG()+'</span></div>'+
+ '<div class="pilot-focus-brand">PILOT</div><h2 id="homeComposeTitle">Was soll ich für dich erledigen?</h2>'+
+ '<div class="pilot-focus-composer">'+
+ (pilotForceNewGoal?'<div class="pilot-context-hint"><span>Neuer Auftrag</span><button id="pilotCancelNewProject" type="button">Zurück</button></div>':pilotPinnedGoalId&&g?.id===pilotPinnedGoalId?'<div class="pilot-context-hint"><span>Ergänzung zu <strong>'+esc(g.title)+'</strong></span><button id="pilotNewProject" type="button">Neuer Auftrag</button></div>':'')+
+ '<textarea id="goalText" maxlength="3000" rows="3" placeholder="Beschreibe dein gewünschtes Ergebnis …" aria-label="Dein Auftrag">'+esc(pilotComposerDraft)+'</textarea>'+
+ '<div class="pilot-focus-tools"><div class="command-attachments"><button class="attach-btn" type="button" data-attach-kind="file" aria-label="Datei hinzufügen">'+
+ '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>'+attach+'</div>'+
+ '<button id="createGoal" type="button" class="btn ai launch-primary" aria-label="Auftrag starten"><span class="pilot-send-label">Starten</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 19V5m-6 6 6-6 6 6"/></svg></button></div>'+
+ '<div id="attachmentTray" class="attachment-tray" aria-live="polite"></div></div></section></div>';
+}
+function pilotNextMove(){
+ const g=goals[0],n=pilotNextQueuedAction(),approval=pilotReviewContext(),interrupt=pilotRelevantInterruption();
+ const job=pilotBackgroundJob?.goal_id===g?.id?pilotBackgroundJob:null;
+ if(approval)return {kind:'decision',title:'Ein Punkt braucht dein Okay.',text:'Pilot hat den Vorschlag vorbereitet. Nach deiner Entscheidung geht es weiter.',approval};
+ if(!!pilotAutoSession?.active||pilotBackgroundWorking(g?.id))return {kind:'working',title:'Ich kümmere mich darum.',text:pilotBackgroundWorking(g?.id)?'Du kannst Pilot schließen. Dein Ergebnis bleibt hier für dich bereit.':'Pilot arbeitet an deinem Ergebnis. Lass diese Sitzung für die laufende Ausführung geöffnet.'};
+ if(interrupt||job?.status==='waiting_user')return {kind:'attention',title:'Hier braucht Pilot kurz deine Hilfe.',text:'Ein offener Punkt verhindert gerade das Ergebnis.',cta:'Offenen Punkt klären'};
+ if(job?.status==='paused')return {kind:'paused',title:'Bereit, wenn du es bist.',text:'Pilot setzt deinen Auftrag an der gespeicherten Stelle fort.',cta:'Weiter mit Pilot'};
+ if(n)return {kind:'continue',title:n.owner_type==='pilot'&&!n.blocking?'Pilot kann für dich weiterarbeiten.':'Deine Auswahl macht den Weg frei.',text:'Dein bisheriger Auftrag und deine Angaben bleiben erhalten.',cta:n.owner_type==='pilot'&&!n.blocking?'Weiter mit Pilot':'Vorschlag ansehen',action:n};
+ const r=pilotCustomerResults()[0];
+ if(r){const kind=pilotDeliveryKind(r);return {kind:'result',result:r,title:kind==='image'?'Dein Logo ist bereit.':kind==='presentation'?'Deine Präsentation ist bereit.':kind==='website'?'Deine Homepage-Datei ist bereit.':'Dein Text ist bereit.',text:kind==='website'?'Du kannst sie jetzt ansehen oder herunterladen. Die Datei ist noch nicht veröffentlicht.':'Öffne dein fertiges Ergebnis. Änderungen kannst du Pilot direkt mitteilen.',cta:kind==='image'?'Logo ansehen':kind==='presentation'?'Präsentation ansehen':kind==='website'?'Homepage ansehen':'Text lesen'}};
+ return {kind:'attention',title:'Dein Ergebnis ist noch offen.',text:'Pilot hat noch kein fertiges Lieferobjekt hinterlegt.',cta:'Offenen Punkt klären'};
+}
+function pilotMissionPanel(){
+ const g=goals[0];if(!g)return '';
+ const move=pilotNextMove();
+ let action='';
+ if(move.kind==='decision')action=pilotReviewCard(move.approval);
+ else if(move.kind==='attention')action='<button type="button" class="btn ai" data-jump="execution">'+move.cta+'</button>';
+ else if(move.kind==='paused')action='<button id="resumePilotBackground" type="button" class="btn ai">'+move.cta+'</button>';
+ else if(move.kind==='continue')action='<button id="'+(move.action.status==='ready'?'executeAction':'pilotResumeMission')+'" type="button" class="btn ai" data-action="'+esc(move.action.id)+'">'+move.cta+'</button>';
+ else if(move.kind==='result'){
+  const r=move.result;pilotDownloadCache.set(r.id,r);
+  action=pilotDeliveryKind(r)==='text'?'<button type="button" class="btn ai" data-jump="results">'+move.cta+'</button>':'<button type="button" class="btn ai" data-artifact-open="'+esc(r.id)+'">'+move.cta+'</button>';
+  action+='<div data-artifact-preview="'+esc(r.id)+'"></div>';
+ }
+ return '<section class="pilot-mission-focus" id="pilotNextActionPanel" aria-labelledby="pilotNextMoveTitle"><div class="pilot-mission-heading"><span class="pilot-mission-light '+(move.kind==='working'?'working':['attention','decision'].includes(move.kind)?'attention':'')+'"></span><span>'+esc(g.title||'Dein Auftrag')+'</span></div>'+
+ '<h2 id="pilotNextMoveTitle">'+esc(move.title)+'</h2><p>'+esc(move.text)+'</p>'+action+
+ '<div class="pilot-mission-tools"><button type="button" class="pilot-simple-textbutton" data-open-goal="'+esc(g.id)+'">'+(move.kind==='result'?'Änderung wünschen':'Auftrag ergänzen')+'</button>'+
+ (move.kind==='working'?'<button type="button" class="pilot-simple-textbutton" id="'+(pilotBackgroundWorking(g.id)?'pausePilotBackground':'pausePilotAutopilot')+'">Pausieren</button>':'')+'</div></section>';
 }
 
 /** LUMEN: shared scene header for every customer-facing Pilot screen. */
@@ -4242,16 +4273,16 @@ function pilotProjectCard(goal){
  const active=goal.id===goals[0]?.id;
  const bg=pilotBackgroundByGoal[goal.id]||null;
  const bgState=["queued","running"].includes(bg?.status)?
-   "✈ In Arbeit · "+Number(bg.steps_completed||0)+" / "+Number(bg.max_steps||6):
+   "Pilot arbeitet":
    bg?.status==="waiting_user"?"Prüfung erforderlich":
    bg?.status==="paused"?"Pausiert":
-   bg?.status==="completed"?"Arbeitsabschnitt beendet":"";
- return '<details class="pilot-project-card" data-project="'+esc(goal.id)+'" '+(active?"open":"")+'>'+
+   bg?.status==="completed"?"Bearbeitet":"";
+ return '<details class="pilot-project-card" data-project="'+esc(goal.id)+'" '+""+'>'+
  '<summary><span class="pilot-project-caret">▸</span><span class="pilot-project-heading"><strong>'+esc(goal.title||"Auftrag")+'</strong>'+
  '<small>Erstellt am '+esc(pilotProjectDate(goal.created_at))+'</small></span>'+
  (bgState?'<span class="pilot-project-state">'+esc(bgState)+'</span>':
    active?'<span class="pilot-project-state">Aktiv</span>':'')+'</summary>'+
- '<div class="pilot-project-body"><button class="pilot-project-continue" data-open-goal="'+esc(goal.id)+'" type="button">✈ '+(active?"Weiterarbeiten":"Auftrag fortsetzen")+'</button>'+
+ '<div class="pilot-project-body"><button class="pilot-project-continue" data-open-goal="'+esc(goal.id)+'" type="button">✈ '+"Auftrag ergänzen"+'</button>'+
  '<div data-project-results="'+esc(goal.id)+'">'+(active?pilotProjectResultsHTML(results,actions):'<p class="pilot-project-empty">Ergebnisse werden beim Öffnen geladen.</p>')+'</div>'+
  '<details class="pilot-journal" data-journal-project="'+esc(goal.id)+'"><summary>🧠 Bestätigte Entscheidungen</summary>'+
  '<div class="pilot-journal-body" data-journal-list="'+esc(goal.id)+'">Zum Anzeigen aufklappen.</div></details>'+
@@ -4271,9 +4302,16 @@ async function pilotLoadProjectResults(id,node){
  }catch{if(node.isConnected)node.innerHTML='<p class="pilot-project-empty">Ergebnisse konnten nicht geladen werden. Öffne den Auftrag erneut.</p>'}
  finally{node.dataset.loading="0"}
 }
+function pilotNotificationsView(){return '<div class="pilot-simple"><header class="pilot-project-intro"><h2>Du musst nicht warten.</h2><p>Pilot meldet sich, wenn dein Ergebnis bereitliegt oder eine Entscheidung nötig ist.</p></header>'+pilotPushCard()+'</div>'}
+function pilotUpdateDock(){
+ const b=document.querySelector('.pilot-minimal-nav>[data-view="goals"]');if(!b)return;
+ const working=!!pilotAutoSession?.active||pilotBackgroundWorking(goals[0]?.id);
+ const attention=!working&&(!!pilotReviewContext()||!!pilotRelevantInterruption()||pilotBackgroundJob?.status==='waiting_user');
+ b.dataset.activity=attention?'attention':working?'working':'idle';b.setAttribute('aria-label',attention?'Aufträge – deine Entscheidung ist gefragt':working?'Aufträge – Pilot arbeitet':'Aufträge');
+}
 function goalsView(){
- return '<div class="pilot-project-list"><header class="pilot-project-intro"><span class="pilot-simple-kicker">DEINE PROJEKTE</span>'+
- '<h2>Meine Aufträge</h2><p>Name, Erstellungsdatum und Ergebnisse – alles an einem Ort.</p></header>'+
+ return '<div class="pilot-project-list"><header class="pilot-project-intro"><span class="pilot-simple-kicker">PILOT ARBEITET FÜR DICH</span>'+
+ '<h2>Deine Aufträge</h2></header>'+pilotMissionPanel()+''+
  (goals.map(pilotProjectCard).join("")||'<section class="pilot-project-card pilot-project-empty"><p>Du hast noch keinen Auftrag erstellt.</p><button type="button" data-jump="home" class="btn">Ersten Auftrag starten</button></section>')+
  '</div>';
 }
@@ -4655,7 +4693,7 @@ function pilotSyncFlightScreen(){
      void pilotLandAtAttention(goalId,"Hier ist deine Handlung erforderlich");
  });
 }
-function render(){if(!effectiveAdmin()&&["roadmap","alpha","admin"].includes(current))current="home";applyRoleUI();document.querySelectorAll("[data-view]").forEach(b=>b.classList.toggle("active",b.dataset.view===current));T.textContent={home:"Pilot",goals:"Aufträge",documents:"Dokumente",results:"Ergebnisse",execution:"Ausführung",canva:"Gestaltung",roadmap:"Entwicklungsplan",alpha:"Systemtest",admin:"Admin-Cockpit",me:"Einstellungen"}[current];V.dataset.screen=current;V.innerHTML={home:home,goals:goalsView,documents:documentsView,results:resultsView,execution:executionView,canva:canvaView,roadmap:roadmap,alpha:alphaView,admin:adminView,me:me}[current]();document.querySelectorAll(".side .nav[data-view]").forEach(b=>{if(b.dataset.view===current)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current")});bind();pilotBindSpatialUI();pilotSyncFlightScreen()}
+function render(){if(!effectiveAdmin()&&["roadmap","alpha","admin"].includes(current))current="home";applyRoleUI();document.querySelectorAll("[data-view]").forEach(b=>b.classList.toggle("active",b.dataset.view===current));T.textContent={home:"Pilot",goals:"Aufträge",documents:"Dokumente",results:"Ergebnisse",notifications:"Mitteilungen",execution:"Ausführung",canva:"Gestaltung",roadmap:"Entwicklungsplan",alpha:"Systemtest",admin:"Admin-Cockpit",me:"Einstellungen"}[current];V.dataset.screen=current;APP.dataset.screen=current;V.innerHTML={home:home,goals:goalsView,documents:documentsView,results:resultsView,notifications:pilotNotificationsView,execution:executionView,canva:canvaView,roadmap:roadmap,alpha:alphaView,admin:adminView,me:me}[current]();document.querySelectorAll(".side .nav[data-view]").forEach(b=>{if(b.dataset.view===current)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current")});bind();pilotBindSpatialUI();pilotSyncFlightScreen();pilotUpdateDock()}
 
 function formatBytes(n){const v=Number(n||0);if(v<1024)return v+" B";if(v<1024*1024)return (v/1024).toFixed(1)+" KB";return (v/1024/1024).toFixed(1)+" MB"}
 function renderAttachmentTray(){
@@ -4802,7 +4840,9 @@ function bind(){
     });
   });
   document.getElementById("createGoal")?.addEventListener("click",createGoal);
-  document.getElementById("goalText")?.addEventListener("input",e=>{pilotComposerDraft=e.target.value;pilotUpdateTravelBrief();const c=document.getElementById("goalTextCount");if(c)c.textContent=String(e.target.value.length)+" / 3000"});
+  document.getElementById("goalText")?.addEventListener("input",e=>{pilotComposerDraft=e.target.value;e.target.style.height='auto';e.target.style.height=Math.min(240,e.target.scrollHeight)+'px';});
+ document.getElementById('goalText')?.addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)&&!e.isComposing){e.preventDefault();document.getElementById('createGoal')?.click()}});
+ document.querySelector('.pilot-focus')?.addEventListener('pointermove',e=>{if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;const r=e.currentTarget.getBoundingClientRect();e.currentTarget.style.setProperty('--core-x',((e.clientX-r.left)/r.width-.5)*12+'px');e.currentTarget.style.setProperty('--core-y',((e.clientY-r.top)/r.height-.5)*10+'px')});
   document.getElementById("openActiveAction")?.addEventListener("click",()=>{
     const p=document.getElementById("pilotNextActionPanel");
     if(p?.querySelector("#executeAction")){p.scrollIntoView({behavior:"smooth",block:"center"});p.classList.add("pilot-action-landed")}
@@ -4813,6 +4853,7 @@ function bind(){
   document.getElementById("diagnosePilotAI")?.addEventListener("click",pilotExecutionProviderDiagnostic);
   document.getElementById("pilotBraveTest")?.addEventListener("click",pilotBraveDiagnostic);
   document.getElementById("executeAction")?.addEventListener("click",executeAction);
+  document.getElementById("pilotResumeMission")?.addEventListener("click",()=>void pilotContinueSafely(goals[0]?.id,32));
   document.getElementById("confirmPilotResult")?.addEventListener("click",confirmPilotResult);
   bindPilotDecisionEditor();
   bindPilotLegalFormDecision();
@@ -5290,6 +5331,7 @@ async function createGoal(){
       }
     });
     pilotComposerDraft="";
+    current="goals";
     render();
     if(data.recovered){
       pilotNotice("Auftrag bereits übernommen. Pilot legt keinen zweiten Auftrag an.");
@@ -6422,6 +6464,9 @@ function setAuthMode(mode){authMode=mode;const reg=mode==="register";document.qu
 let pilotAuthPreviousFocus=null;
 function openAuth(mode){pilotAuthPreviousFocus=document.activeElement;setAuthMode(mode);AUTHM.classList.remove("hidden");document.body.style.overflow="hidden";AUTHM.scrollTop=0;requestAnimationFrame(()=>{if(!AUTHM.classList.contains("hidden")){AUTHM.scrollTop=0;ME.focus({preventScroll:true})}})}
 function closeAuth(){AUTHM.classList.add("hidden");document.body.style.overflow="";if(pilotAuthPreviousFocus?.isConnected)pilotAuthPreviousFocus.focus({preventScroll:true});pilotAuthPreviousFocus=null}
+document.getElementById('guestStart').onclick=()=>{pilotComposerDraft=document.getElementById('guestTask').value.trim();openAuth('login')};
+document.getElementById('guestTask').addEventListener('input',e=>{pilotComposerDraft=e.target.value});
+document.getElementById('guestTask').addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)&&!e.isComposing){e.preventDefault();document.getElementById('guestStart').click()}});
 document.getElementById("openLogin").onclick=()=>openAuth("login");
 document.getElementById("openRegister").onclick=()=>openAuth("register");
 document.getElementById("closeAuth").onclick=closeAuth;
