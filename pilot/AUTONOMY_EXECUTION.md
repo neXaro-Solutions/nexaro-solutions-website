@@ -158,3 +158,12 @@ Beim erneuten iPhone-Test brach die Recherche **nicht** ab: zwei Quellen gefunde
 - Live-Konto: OpenAI-API-Abrechnung muss separat von einem ChatGPT-Abo geprüft/aktiviert werden. Nur der Kontoinhaber kann dies in den OpenAI Platform Billing-Einstellungen ändern.
 - Aktuelle Alpha-Versionen der Edge-Funktionen und Admin-Diagnostik sind installiert; **noch kein realer Haiku-5.5-Aufruf mit der Kundensitzung erfolgreich bestätigt.** Der KI-Kurztest geht vor einem erneuten vollständigen Auftragstest.
 - Keine falsche Erfolgsmeldung und kein automatisches Erledigt, solange eine verifizierte Ergebnisspeicherung fehlt. Die Architektur darf rechtlich relevante Fragen nicht aufgrund von bloßen Wikipedia-Links als abschließend geklärt markieren.
+
+
+## LUMEN 2026.10.08.31 – Mobile Admin-Kompaktmodus und API-Guthaben-Recovery
+
+**UX:** Der iPhone-Screenshot um 10:55 zeigte zwei große Administrator-Kopfkarten hintereinander, abgeschnittene rechte KPI-Karten und überdimensionierte Buttons. `pilot/index.html` hat nun nur einen kompakt leuchtenden Admin-Kommandobereich statt `pilotScene` plus „Betreiber-Cockpit“. Fünf Kennzahlen stehen in responsiven `minmax(0,1fr)`-Zellen, Nutzer/Rollen/Trends und Ereignisse lassen sich in zwei nativen `details`-Sektionen öffnen. Auf dem Smartphone werden Benutzerrollen als handhabbare Karten statt als breite Desktop-Tabelle gezeigt. Frühere IDs (`refreshAdmin`, `data-role-user`) und Navigation (`roadmap`, `alpha`) sind erhalten; JavaScript sowie 11 Mock-Rendering-/Markup-/Berechtigungstests bestanden. Kein echter iPhone-Bildschirmtest nach Deployment.
+
+**API-Guthaben:** Nutzer meldet, Guthaben wurde wieder aufgeladen. Die bisherige 90-Minuten-Sperre für eine ehemals inaktive OpenAI-API wäre nun unnötig lang gewesen. `best-of-ai v21` prüft deshalb höchstens fünf Minuten zurückliegende OpenAI-Abrechnungsblockaden und probiert anschließend wieder OpenAI, mit Claude als sicherem Ersatz. Bei frischer Sperre bleibt Claude vorrangig, bei erneuter Aktivierung kann OpenAI wieder antworten. **Das Guthaben wurde nicht über den Connector verifiziert, die API-Verfügbarkeit ist weiter durch einen kurzen echten Administratortest zu bestätigen**.
+
+**Offene Abnahmen:** Admin-Cockpit auf dem echten iPhone visuell prüfen und die kurze `✦ KI-Ausführung testen`-Funktion in der Zentrale mit angemeldeter Admin-Sitzung starten. Danach erst vollständige Ausführung. Den Entwicklungsstatus weiterhin nicht auf Ready setzen, bevor die entsprechende Live-Abnahme bestanden ist.
