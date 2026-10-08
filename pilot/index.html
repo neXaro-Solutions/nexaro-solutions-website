@@ -3527,7 +3527,69 @@ function bindPilotDecisionEditor(){
  scroll?.addEventListener("wheel",event=>event.stopPropagation(),{passive:true});
  pilotDecisionRefreshCard();
 }
+
+/* The authenticated client only observes durable server-side jobs. */
+let pilotBackgroundJob=null,pilotBackgroundTimer=null,pilotBackgroundBusy=false;
+function pilotBackgroundWorking(id){return !!id&&pilotBackgroundJob?.goal_id===id&&["queued","running"].includes(pilotBackgroundJob.status)}
+async function pilotBackgroundRead(id){
+ if(!id||!user)return null;
+ const r=await sb.from("pilot_background_jobs").select("goal_id,status,steps_completed,max_steps,cost_spent_usd,max_cost_usd,last_error")
+  .eq("goal_id",id).maybeSingle();
+ if(r.error)throw new Error("Hintergrundstatus nicht abrufbar.");
+ if(goals[0]?.id===id)pilotBackgroundJob=r.data||null;
+ return r.data||null;
+}
+async function pilotBackgroundCall(operation,id){
+ const r=await sb.functions.invoke("pilot-background",{body:{operation,goal_id:id}});
+ if(r.error)throw await pilotApiError(r,"Hintergrundauftrag konnte nicht übernommen werden.");
+ return r.data||{};
+}
+function pilotBackgroundStopPolling(){if(pilotBackgroundTimer){clearInterval(pilotBackgroundTimer);pilotBackgroundTimer=null}}
+async function pilotBackgroundObserve(id){
+ pilotBackgroundStopPolling();
+ const poll=async()=>{
+  if(!user||pilotBackgroundBusy||goals[0]?.id!==id)return;
+  pilotBackgroundBusy=true;
+  try{
+   const prev=pilotBackgroundJob?.status||"",done=pilotBackgroundJob?.steps_completed||0;
+   const job=await pilotBackgroundRead(id);if(!job)return;
+   if(prev!==job.status||done!==job.steps_completed){await load();if(!document.querySelector("#goalText:focus"))render()}
+   if(pilotBackgroundWorking(id)){if(current==="home")pilotEnsureContinuousFlight(id)}
+   else{
+    pilotBackgroundStopPolling();
+    if(current==="home"){
+     if(job.status==="waiting_user")void pilotLandAtAttention(id,"Pilot benötigt deine Entscheidung oder Prüfung");
+     else pilotEndContinuousFlight(id,job.status==="completed"?"Sicherer Hintergrundabschnitt bearbeitet":"Hintergrundlauf pausiert");
+    }
+   }
+  }catch(e){console.warn("Pilot-Hintergrund",String(e?.message||e).slice(0,120))}
+  finally{pilotBackgroundBusy=false}
+ };
+ await poll();
+ if(pilotBackgroundWorking(id))pilotBackgroundTimer=setInterval(()=>void poll(),10000);
+}
+async function pilotBackgroundStart(id){
+ const r=await pilotBackgroundCall("start",id);
+ if(!["queued","running"].includes(r.status))throw Error("Serverstart nicht bestätigt.");
+ pilotAutoRunPreference(id,false);pilotBackgroundJob=r.job||null;
+ await pilotBackgroundObserve(id);return r;
+}
+async function pilotBackgroundPause(){
+ const id=goals[0]?.id;if(!id)return;
+ try{await pilotBackgroundCall("pause",id);pilotBackgroundStopPolling();await pilotBackgroundRead(id);
+  pilotEndContinuousFlight(id,"Hintergrund pausiert");render();pilotNotice("Pilot startet keine weiteren Hintergrundschritte.")}
+ catch(e){pilotNotice(String(e?.message||e),"error")}
+}
+async function pilotBackgroundResume(id){
+ if(!id)return false;
+ const prior=await pilotBackgroundRead(id);
+ if(!prior||!["paused","waiting_user","queued","running"].includes(prior.status))return false;
+ const r=await pilotBackgroundCall("resume",id);
+ if(["queued","running"].includes(r.status)){pilotBackgroundJob=r.job||prior;void pilotBackgroundObserve(id);return true}
+ return false;
+}
 function pilotAutoStatusCard(){
+ if(pilotBackgroundWorking(goals[0]?.id))return '<div class="pilot-auto-status" role="status"><span>✈</span><div><strong>Pilot arbeitet auch bei geschlossener App</strong><small>'+pilotBackgroundJob.steps_completed+' / '+pilotBackgroundJob.max_steps+' sichere Kreativschritte · bis '+Number(pilotBackgroundJob.max_cost_usd).toFixed(2)+' USD geschätzte KI-Kosten</small></div><button id="pausePilotBackground" class="btn" type="button">Pausieren</button></div>';
  if(pilotAutoSession?.active)return '<div class="pilot-auto-status" role="status" aria-live="polite"><span class="pilot-auto-orbit" aria-hidden="true">✦</span><div><strong>Pilot arbeitet selbstständig</strong><small>'+esc(pilotAutoSession.label||"Arbeitsschritt wird bearbeitet …")+'</small></div>'+
  '<button id="pausePilotAutopilot" type="button" class="btn">'+(pilotAutoSession.cancelRequested?"Stop angefordert":"Nach diesem Schritt stoppen")+'</button></div>';
  if(pilotAutoSummary?.text)return '<div class="pilot-auto-status pilot-auto-summary pilot-auto-'+esc(pilotAutoSummary.kind||"completed")+'" role="status"><span aria-hidden="true">'+(pilotAutoSummary.kind==="waiting"?"◌":pilotAutoSummary.kind==="error"?"!":"✓")+'</span><div><strong>'+(pilotAutoSummary.kind==="waiting"?"Pilot wartet auf dich":pilotAutoSummary.kind==="error"?"Prüfung benötigt":"Automatischer Arbeitslauf")+'</strong><small>'+esc(pilotAutoSummary.text)+'</small></div></div>';
@@ -3645,7 +3707,7 @@ function home(){
  const n=pilotNextQueuedAction();
  const approval=pilotReviewContext();
  const interrupt=pilotRelevantInterruption();
- const inProgress=!!pilotAutoSession?.active;
+ const inProgress=!!pilotAutoSession?.active||pilotBackgroundWorking(g?.id);
  const done=actions.filter(x=>x.status==="completed").length;
  const count=actions.length;
  const currentTask=n?pilotFriendlyActionTitle(n):"";
@@ -3673,8 +3735,9 @@ function home(){
  '<span>'+esc(label)+'</span></div>'+
  (count?'<p class="pilot-simple-count">'+done+' von '+count+' vorbereiteten Arbeitsschritten bearbeitet. Das tatsächliche Endziel wird gesondert geprüft.</p>':'')+
  (needsHuman?'<div id="pilotFlightAttention" class="pilot-flight-attention" role="status"><strong>Prüfung erforderlich.</strong> '+(activePilotFlight?.phase==="parked"?"✈ Pilot ist gelandet. ":"")+'Nach deiner Entscheidung arbeitet Pilot weiter.</div>':'')+
- (inProgress?'<div class="pilot-simple-activity">'+esc(pilotAutoSession.label||"Pilot bearbeitet die nächsten Aufgaben …")+
- '<button id="pausePilotAutopilot" class="pilot-simple-textbutton" type="button">Nach diesem Schritt stoppen</button></div>':
+ (inProgress?'<div class="pilot-simple-activity">'+esc(pilotAutoSession?.label||"Pilot bearbeitet sichere Schritte auch bei geschlossener App …")+
+ (pilotBackgroundWorking(g.id)?'<button id="pausePilotBackground" class="pilot-simple-textbutton" type="button">Hintergrund pausieren</button>':
+ '<button id="pausePilotAutopilot" class="pilot-simple-textbutton" type="button">Nach diesem Schritt stoppen</button>')+'</div>':
  approval?pilotReviewCard(approval):
  interrupt?'<div class="command-card pilot-simple-action"><p>Pilot wartet auf die nötige Prüfung oder Freigabe.</p>'+
  '<button type="button" data-jump="execution" class="btn">Prüfung öffnen</button></div>':
@@ -4314,6 +4377,7 @@ function bind(){
   document.getElementById("confirmPilotResult")?.addEventListener("click",confirmPilotResult);
   bindPilotDecisionEditor();
   bindPilotLegalFormDecision();
+  document.getElementById("pausePilotBackground")?.addEventListener("click",()=>void pilotBackgroundPause());
   document.getElementById("pausePilotAutopilot")?.addEventListener("click",()=>{if(pilotAutoSession?.active){pilotAutoSession.cancelRequested=true;pilotAutoRunPreference(goals[0]?.id,false);pilotAutoSession.label="Der laufende Schritt wird sicher beendet; danach hält Pilot an.";render()}});
   document.getElementById("uploadDoc")?.addEventListener("click",uploadDocument);
   document.getElementById("completeAction")?.addEventListener("click",()=>completeAction(false,false));
