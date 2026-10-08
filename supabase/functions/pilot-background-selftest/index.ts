@@ -108,7 +108,8 @@ const handler=async(req:Request)=>{
   const call=async(op:string)=>{
    const res=await fetch(base+"/functions/v1/pilot-background",{
     method:"POST",headers:{authorization:bearer,apikey:pub,"content-type":"application/json"},
-    body:JSON.stringify({operation:op,goal_id:gid}),signal:AbortSignal.timeout(18000)
+    body:JSON.stringify({operation:op,goal_id:gid,
+      ...(op==="start"?{defer_initial_dispatch:true}:{})}),signal:AbortSignal.timeout(18000)
    });
    return {ok:res.ok,data:await res.json().catch(()=>({}))};
   };
