@@ -56,7 +56,7 @@ class Query{
  }
  then(a,b){return Promise.resolve(this.execute()).then(a,b)}
  single(){const result=this.execute();return Promise.resolve(
-  result.data.length?{data:result.data[0],error:null}:{data:null,error:{code:"PGRST116"}}
+  result.error?result:result.data.length?{data:result.data[0],error:null}:{data:null,error:{code:"PGRST116"}}
  )}
 }
 const sb={auth:{getUser:async()=>({data:{user:{id:USER}},error:null})},
