@@ -122,7 +122,45 @@ try{
    }
    if(device.width<=760&&Math.abs(shell.navCenter-shell.w/2)>12)
     throw Error("Mobile dock not centered: "+JSON.stringify(shell));
-   console.log(`PASS ${browserName} | ${device.name} (${device.width}×${device.height}) | login + keyboard + layout`);
+
+   // Mock only the visual admin elements: ensure long statuses never collapse into 4-letter columns.
+   await page.evaluate(()=>{
+    const app=document.getElementById("app");
+    app.dataset.screen="alpha";
+    document.getElementById("view").innerHTML='<div class="pilot-screen pilot-admin-screen">'+
+     '<div class="grid pilot-admin-test-grid"><div class="card pilot-readiness-card">'+
+     '<h2>Bereitschaft der privaten Testphase</h2><div class="pilot-readiness-total">19 <span>/ 26</span></div>'+
+     '<div class="stat pilot-readiness-row"><span class="muted">GPT und Claude werden bei komplexen Aufgaben parallel geprüft und bei Bedarf zusammengeführt.</span>'+
+     '<strong class="pilot-readiness-status pilot-readiness-status--open">Prüfung offen</strong></div>'+
+     '<details class="pilot-readiness-passed"><summary>19 bestandene Checks anzeigen</summary></details></div></div></div>';
+   });
+   const qa=await page.evaluate(()=>{
+    const text=document.querySelector(".pilot-readiness-row>.muted");
+    const state=document.querySelector(".pilot-readiness-status");
+    const status=state.getBoundingClientRect(),label=text.getBoundingClientRect();
+    return {viewport:innerWidth,scroll:document.documentElement.scrollWidth,
+     statusWidth:status.width,statusRight:status.right,labelWidth:label.width,
+     statusWrap:getComputedStyle(state).whiteSpace,
+     summaryHeight:document.querySelector(".pilot-readiness-passed>summary").getBoundingClientRect().height};
+   });
+   if(qa.scroll>qa.viewport+2||qa.statusWidth<78||qa.statusRight>qa.viewport+2||qa.labelWidth<80||qa.summaryHeight<40)
+    throw Error("Mobile system readiness clipped or overflowed: "+JSON.stringify(qa));
+   await page.evaluate(()=>{
+    const app=document.getElementById("app");app.dataset.screen="admin";
+    document.getElementById("view").innerHTML='<div class="pilot-screen pilot-admin-screen pilot-admin-compact"><div class="admin-command-strip">'+
+    '<div class="admin-hero-heading"><h2>Admin-Cockpit</h2></div>'+
+    '<div class="admin-hero-actions"><button class="btn">Plan</button><button class="btn">Partnerprogramme</button>'+
+    '<button class="btn">Tests</button><button class="btn primary">Aktualisieren</button></div></div></div>';
+   });
+   const admin=await page.evaluate(()=>{
+    const buttons=[...document.querySelectorAll(".admin-hero-actions .btn")];
+    return {viewport:innerWidth,scroll:document.documentElement.scrollWidth,
+     widths:buttons.map(b=>Math.round(b.getBoundingClientRect().width)),
+     clipped:buttons.some(b=>{const r=b.getBoundingClientRect();return r.left< -2||r.right>innerWidth+2})};
+   });
+   if(admin.scroll>admin.viewport+2||admin.clipped||admin.widths.some(w=>w<40))
+    throw Error("Admin action grid clipped: "+JSON.stringify(admin));
+   console.log(`PASS ${browserName} | ${device.name} (${device.width}×${device.height}) | login + keyboard + admin + layout`);
   }catch(error){
    failures.push(`${browserName} ${device.name}: ${error.message||error}`);
    console.error("FAIL "+failures.at(-1));
