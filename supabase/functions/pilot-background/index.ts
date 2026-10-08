@@ -119,12 +119,25 @@ async function createDraft(key:string,goal:any,action:any,decisions:any[],priorW
  const response=await fetch("https://api.openai.com/v1/responses",{
   method:"POST",headers:{"authorization":"Bearer "+key,"content-type":"application/json"},
   body:JSON.stringify({model,instructions:instruction,
-   input:[{role:"user",content:[{type:"input_text",text:JSON.stringify(dataInput)}]}],
-   text:{format:{type:"json_object"}},max_output_tokens:1000,store:false}),
+   input:[{role:"user",content:[{type:"input_text",
+    text:"Erstelle ausschließlich das folgende JSON-Arbeitsergebnis. Projektdaten:\n"+
+      JSON.stringify(dataInput)}]}],
+   text:{format:{type:"json_schema",name:"pilot_background_deliverable",strict:true,
+    schema:{type:"object",properties:{
+     deliverable:{type:"string"},verification:{type:"string"},
+     next_recommendation:{type:"string"}
+    },required:["deliverable","verification","next_recommendation"],
+    additionalProperties:false}}},max_output_tokens:1000,store:false}),
   signal:AbortSignal.timeout(37000)
  });
  const raw=await response.json().catch(()=>null);
- if(!response.ok)throw Error("AI_PROVIDER_UNAVAILABLE_"+response.status);
+ if(!response.ok){
+  // Never log provider request data, prompt text, credentials or raw error bodies.
+  const safe=(v:any)=>String(v||"unknown").replace(/[^a-zA-Z0-9_.-]/g,"").slice(0,50);
+  console.error("PILOT_BACKGROUND_PROVIDER_REJECTED",response.status,
+    safe(raw?.error?.code),safe(raw?.error?.param),safe(raw?.error?.type));
+  throw Error("AI_PROVIDER_UNAVAILABLE_"+response.status);
+ }
  const text=extract(raw);
  let value:any;try{value=JSON.parse(text)}catch{throw Error("DELIVERABLE_FORMAT_INVALID")}
  const deliverable=String(value.deliverable||"").trim();
