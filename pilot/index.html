@@ -4750,13 +4750,13 @@ async function createGoal(){
     render();
     pilotEnsureContinuousFlight(targetGoal.id);
     void startGoalResearch(targetGoal.id);
-    // The initial start click must also execute the first actionable step.
-    // Never execute a step from a different goal when continuing prior work.
+    // One click starts a bounded, independently verified workflow – not just one task.
+    // Human decisions and external actions still require explicit authorization.
     if(goals[0]?.id===targetGoal.id && !pilotReviewContext() &&
-       !executions.some(x=>["running","waiting_approval","review_required","blocked"].includes(x.status)) &&
-       actions.some(a=>a.status==="ready"&&a.goal_id===targetGoal.id)){
-      PS.textContent="Pilot erstellt dein erstes Ergebnis …";
-      await executeAction();
+       !pilotRelevantInterruption() &&
+       actions.some(a=>["ready","pending"].includes(a.status)&&a.goal_id===targetGoal.id)){
+      PS.textContent="Pilot bearbeitet deinen Auftrag selbstständig …";
+      await pilotContinueSafely(targetGoal.id,32);
     }
   }catch(e){
     PS.textContent="Pilot bereit";
@@ -5323,10 +5323,17 @@ async function pilotContinueSafely(goalId,maxSteps=32){
     }finally{autoWatch?.stop()}
      if(response.error)throw await pilotApiError(response,"Autopilot konnte nicht fortfahren.");
      const data=response.data||{};
+     if(data.status==="queue_changed"){
+       // A second device has already advanced the queue. Recheck without a
+       // redundant expensive execution or a spurious human intervention.
+       await load();
+       if(i<maxSteps-1){await pilotWait(650);continue}
+     }
      if(data.status!=="completed"){
        const reasons={
-         collaboration_required:"Hier ist deine Handlung erforderlich. Nach deiner Entscheidung arbeitet Pilot weiter.",
-         attention_required:"Freigabe oder Prüfung erforderlich. Pilot hat angehalten.",
+         collaboration_required:"Pilot hat die sicheren Vorarbeiten erledigt. Jetzt ist deine Entscheidung erforderlich.",
+         attention_required:data.reason==="running"?"Dieser Arbeitsschritt läuft bereits in einer anderen Sitzung. Keine doppelte Ausführung.":"Freigabe oder Prüfung erforderlich. Pilot hat angehalten.",
+         queue_changed:"Eine zweite Sitzung hat den nächsten Schritt übernommen. Pilot führt keine doppelte Ausführung durch.",
          review_required:"Ergebnis benötigt eine Prüfung.",
          waiting_approval:"Eine externe Aktion benötigt deine Freigabe.",
          no_open_actions:"Alle geplanten Arbeitsschritte sind bearbeitet.",
@@ -5335,7 +5342,8 @@ async function pilotContinueSafely(goalId,maxSteps=32){
          pending_prerequisite:"Der nächste Arbeitsschritt wartet auf den Abschluss seiner Vorgängeraufgabe. Pilot überspringt diesen Schritt nicht.",
          failed:"Die Ergebnisprüfung ist fehlgeschlagen."
        };
-       stopKind=["collaboration_required","attention_required","review_required","waiting_approval"].includes(data.status)?"waiting":
+       stopKind=(data.status==="attention_required"&&data.reason==="running")||data.status==="queue_changed"?"working":
+         ["collaboration_required","attention_required","review_required","waiting_approval"].includes(data.status)?"waiting":
          ["failed","blocked"].includes(data.status)?"error":"completed";
        stopped=reasons[data.status]||"Pilot hält zur Prüfung an ("+String(data.status||"unbekannt")+").";
        break;
@@ -5351,10 +5359,13 @@ async function pilotContinueSafely(goalId,maxSteps=32){
    await telemetry("incident",{goal_id:goalId,source:"autopilot",severity:"error",error_code:"AUTOPILOT_STOPPED",message:String(e.message||e)});
  }finally{
    await load().catch(()=>{});
-   const launchCreated=await pilotEnsureJourney();
+   // Never expand the plan after a human stop, failed quality check or blocked action.
+   const launchCreated=!session.cancelRequested&&stopKind==="completed"&&
+     goals[0]?.id===goalId?await pilotEnsureJourney():false;
    if(launchCreated){stopped="Dein erster Arbeitsabschnitt ist erstellt. Die nächsten Aufgaben für die tatsächliche Umsetzung sind vorbereitet.";stopKind="completed"}
    session.active=false;
-   if(session.cancelRequested||stopKind!=="completed"||!launchCreated)pilotAutoRunPreference(goalId,false);
+   if(session.cancelRequested||stopKind!=="working"&&stopKind!=="completed"||
+      stopKind==="completed"&&!launchCreated)pilotAutoRunPreference(goalId,false);
    const doneNote=session.count===1?"Ein weiterer Schritt wurde automatisch bearbeitet. ":
      session.count>1?session.count+" weitere Schritte wurden automatisch bearbeitet. ":"";
    pilotAutoSummary={completed:session.count,kind:stopKind,text:doneNote+stopped};
