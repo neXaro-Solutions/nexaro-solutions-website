@@ -5,6 +5,9 @@ on:
       - 'pilot/index.html'
       - 'pilot/tests/market-contract.mjs'
       - 'pilot/tests/feed-normalizer-contract.mjs'
+      - 'pilot/tests/shopping-conversation.mjs'
+      - 'pilot/shopping-assistant.mjs'
+      - 'pilot/shopping-intent.mjs'
       - 'pilot/feed-normalizer.mjs'
       - 'supabase/functions/pilot-market/index.ts'
       - '.github/workflows/pilot-market-contract.yml'
@@ -13,6 +16,9 @@ on:
       - 'pilot/index.html'
       - 'pilot/tests/market-contract.mjs'
       - 'pilot/tests/feed-normalizer-contract.mjs'
+      - 'pilot/tests/shopping-conversation.mjs'
+      - 'pilot/shopping-assistant.mjs'
+      - 'pilot/shopping-intent.mjs'
       - 'pilot/feed-normalizer.mjs'
       - 'supabase/functions/pilot-market/index.ts'
 jobs:
@@ -25,3 +31,4 @@ jobs:
           node-version: '22'
       - run: node pilot/tests/market-contract.mjs
       - run: node pilot/tests/feed-normalizer-contract.mjs
+      - run: node pilot/tests/shopping-conversation.mjs
