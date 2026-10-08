@@ -2760,6 +2760,11 @@ body{background:radial-gradient(ellipse 72vw 60vw at 92% -10%,rgba(145,255,62,.1
 .pilot-worker-avatar[data-job="logistics"] .pilot-worker-body:before{content:"▣";color:#fff;position:absolute;right:7px;top:9px;font-size:12px}
 @media(max-width:420px){.pilot-worker-avatar{width:174px!important;height:112px;gap:3px}.pilot-worker-figure{transform:scale(.86);transform-origin:15% 10%;flex-basis:48px;width:48px}.pilot-worker-speech{max-width:119px;font-size:10px;padding:6px}.pilot-worker-speech strong{font-size:10px}}
 @media(prefers-reduced-motion:reduce){.pilot-worker--exit,.pilot-worker--boarding,.pilot-worker-arm--wave{animation:none!important}.pilot-worker--exit{opacity:1!important}.pilot-worker--boarding{opacity:0!important}}
+.nx-mask.nx-finishing .nx-actions{opacity:.65;pointer-events:none}
+.pilot-worker-avatar[data-context="dialog"]{width:174px!important;max-width:48vw;min-height:112px;pointer-events:none!important}
+.pilot-worker-avatar[data-context="dialog"] .pilot-worker-figure{transform:scale(.84);transform-origin:15% 8%;flex-basis:47px;width:47px}
+.pilot-worker-avatar[data-context="dialog"] .pilot-worker-speech{max-width:118px;font-size:10px;padding:5px 6px}
+.pilot-worker-avatar[data-context="dialog"] .pilot-worker-speech strong{font-size:10px}
 </style></head>
 <body>
 <section id="auth" class="auth"><div class="box">
@@ -3847,35 +3852,37 @@ function nxOpenNext(){
     '<p class="nx-foot">Deine Angaben werden nur im passenden Auftrag verwendet.</p></section>';
   document.body.appendChild(mask);document.body.style.overflow="hidden";
   const flightQuestion=!!config.pilotFlightHandoff&&!!activePilotFlight?.plane?.isConnected;
+  const flightGoalId=goals[0]?.id||"draft";
+  let attentionLanding=null;
   if(flightQuestion){
-    pilotSetFlightState(goals[0]?.id||null,"attention","Hier ist deine Handlung erforderlich");
-    const landingTarget=mask.querySelector(".nx-actions .nx-action.accent")||mask.querySelector(".nx-actions .nx-action");
-    if(landingTarget)void landPilotAtNextAction({scroll:false,minCruise:0,keepLanded:true,
-      targetElement:landingTarget,landingMessage:"✈ Gelandet · Deine Entscheidung wird benötigt"});
+    const message=config.pilotFlightMessage||"Hier ist deine Handlung erforderlich.";
+    pilotSetFlightState(flightGoalId,"dialog_attention",message);
+    const target=mask.querySelector(".nx-symbol")||mask.querySelector(".nx-modal");
+    if(target)attentionLanding=landPilotAtNextAction({
+      scroll:false,minCruise:0,keepLanded:true,targetElement:target,landingMessage:message
+    }).catch(e=>{console.warn("Frage-Landung konnte nicht abgeschlossen werden",String(e));return false});
   }
   let settled=false;
-  const finish=value=>{
+  const finish=async value=>{
     if(settled)return;settled=true;
-    mask.removeEventListener("keydown",keyHandler);mask.remove();
-    document.body.style.overflow=prevOverflow;
+    mask.removeEventListener("keydown",keyHandler);
+    mask.classList.add("nx-finishing");
+    mask.querySelectorAll("button,input,textarea").forEach(x=>x.disabled=true);
+    // If the user responds before touchdown, let the same aircraft land before boarding.
+    if(attentionLanding)try{await attentionLanding}catch{}
+    mask.remove();document.body.style.overflow=prevOverflow;
     try{prev?.focus?.({preventScroll:true})}catch{}
     nxDialogActive=false;
-    const complete=()=>{resolve(value);queueMicrotask(nxOpenNext)};
-    if(!flightQuestion){complete();return}
-    if(value===null){
-      pilotSetFlightState(goals[0]?.id||null,"finished","Auftrag pausiert");
-      finishPilotFlight();complete();return;
+    if(flightQuestion){
+      if(value===null){
+        pilotSetFlightState(null,"idle","Auftrag pausiert");
+        finishPilotFlight();
+      }else{
+        await pilotAvatarReboard(flightGoalId);
+        pilotSetFlightState(flightGoalId,"flying","Pilot arbeitet weiter");
+      }
     }
-    void (async()=>{
-      // Board only after the required input was supplied, not while the dialog is open.
-      const plane=activePilotFlight;
-      if(plane?.phase==="parked")await pilotAvatarReboard(pilotFlightState.goalId);
-      else if(plane?.phase==="landing")pilotDestroyFlight(plane);
-      const origin=document.getElementById("createGoal");
-      if(origin&&!activePilotFlight?.plane?.isConnected)startPilotFlight(origin);
-      pilotSetFlightState(goals[0]?.id||null,"flying","Pilot arbeitet weiter");
-      complete();
-    })().catch(()=>{finishPilotFlight();complete()});
+    resolve(value);queueMicrotask(nxOpenNext);
   };
   const keyHandler=e=>{if(e.key==="Escape"&&config.cancelable!==false){e.preventDefault();finish(null)}if(e.key==="Tab"){const items=[...mask.querySelectorAll("button,input,textarea")];if(e.shiftKey&&document.activeElement===items[0]){e.preventDefault();items.at(-1).focus()}else if(!e.shiftKey&&document.activeElement===items.at(-1)){e.preventDefault();items[0].focus()}}};
   mask.addEventListener("keydown",keyHandler);
@@ -4523,8 +4530,9 @@ function pilotEnsureContinuousFlight(goalId){
 
 /* Branchentypischer Avatar zur tatsächlich erforderlichen Nutzerentscheidung. */
 function pilotWorkerProfile(goalId,taskHint=""){
- const g=goals.find(x=>x.id===goalId)||goals[0]||{};
- const draft=String(taskHint||(!goalId?document.getElementById("goalText")?.value||"":""));
+ const isDraft=!goalId||goalId==="draft";
+ const g=goals.find(x=>x.id===goalId)||(isDraft?{}:goals[0]||{});
+ const draft=String(taskHint||(isDraft?document.getElementById("goalText")?.value||"":""));
  const t=[draft,g.title,g.description,g.desired_outcome,g.domain?.primary].filter(Boolean).join(" ").toLowerCase();
  if(/garten|landschaft|rasen|baum|pflanz|grünpflege|gruenpflege/.test(t))return {id:"garden",label:"Garten- und Landschaftsbau"};
  if(/bauunternehmen|baugewerbe|baustelle|handwerk|elektriker|sanitär|dachdecker|schreinerei|malerbetrieb/.test(t))return {id:"construction",label:"Bau & Handwerk"};
