@@ -9,9 +9,11 @@ import {webcrypto} from "node:crypto";
 import ts from "typescript";
 
 const root=resolve(dirname(fileURLToPath(import.meta.url)),"../..");
+const shared=readFileSync(resolve(root,"supabase/functions/_shared/pilot-artifacts.ts"),"utf8").replace(/^export /gm,"");
 const source=readFileSync(resolve(root,"supabase/functions/execution-engine/index.ts"),"utf8");
 const frontend=readFileSync(resolve(root,"pilot/index.html"),"utf8");
-const moduleBody=source
+const moduleBody=shared+"\n"+source
+  .replace(/^import \{artifactKind[^\n]+\n/m,"")
   .replace(/^import "jsr:[^"]+";\r?\n/m,"")
   .replace(/^import \{ createClient \} from "npm:[^"]+";\r?\n/m,"");
 assert(!/^import /m.test(moduleBody),"Unknown runtime import: update the test explicitly");

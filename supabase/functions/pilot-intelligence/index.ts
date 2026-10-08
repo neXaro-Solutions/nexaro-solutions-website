@@ -90,9 +90,15 @@ function firstAction(domain:string){
 /* Permanent execution scope: anticipate essential deliverables before work starts. */
 function buildExecutionContract(intent:Intent,goal:string){
  const startup=intent.domain.primary==="business"&&/gründ|gruend|selbstst|firma|unternehmen|startup/i.test(goal);
- const visual=/logo|marke|branding|website|webseite|design|flyer/i.test(goal);
+ const flight=/\b(?:flug|flüge|fluege|flight|hinflug|rückflug)\b/i.test(goal);
+ const visual=/logo|marke|branding|homepage|website|webseite|design|flyer|präsentation|praesentation|powerpoint/i.test(goal);
  const m=(key:string,title:string,proof:string,kind="draft")=>({key,title,proof,kind});
- const deliverables=startup?[
+ const deliverables=flight?[
+ m("flight_request","Reisedaten","Start, Ziel, Hin- und Rückreisedatum sowie Reisendenzahl aus dem Auftrag übernommen; fehlende Angaben ausdrücklich offen"),
+ m("flight_comparison","Belegter Flugvergleich","Nur tatsächlich verfügbare Angebote mit Anbieter, Quelle, Abrufzeit, Gesamtpreis für alle Reisenden, Flughäfen, Zeiten, Gepäck und Tarifbedingungen; günstigster nur innerhalb der geprüften Angebote"),
+ m("flight_proposal","Kurzer Buchungsvorschlag","Konkretes Angebot und noch fehlende Angaben; keine erfundenen Flugdaten, Preise oder Verfügbarkeit"),
+ m("flight_booking","Tatsächlich bestätigte Buchung","Buchungsnummer und Anbieterbeleg vorhanden; vorher konkrete Zustimmung zum aktuellen Gesamtpreis und Angebot. Ohne angebundene Buchungsfunktion bleibt dieser Punkt offen","external_proof")
+ ]:startup?[
  m("model","Geschäftsmodell und Zielgruppe","Konkretes Konzept mit klarer Zielgruppe"),
  m("market","Marktanalyse","Echte Belege vorhanden oder Unsicherheiten offengelegt"),
  m("plan","Businessplan","Nutzbares, zusammenhängendes Dokument erstellt"),
@@ -122,11 +128,11 @@ function buildExecutionContract(intent:Intent,goal:string){
  m("deliver","Ergebnis erstellen","Konkretes nutzbares Ergebnis statt Ratschlägen"),
  m("verify","Ergebnis prüfen","Qualität, Abhängigkeiten und offene Punkte erkannt")
  ];
- return {version:2,goal:goal.slice(0,1200),scope:startup?"business_startup":visual?"visual_asset":intent.domain.primary,
+ return {version:2,goal:goal.slice(0,1200),scope:flight?"flight_booking":startup?"business_startup":visual?"visual_asset":intent.domain.primary,
    deliverables,industry:industryOf(goal)?.key||null,
    missing_but_nonblocking:startup&&!intent.budget?["Startbudget unbekannt: Rechenfelder statt erfundener Beträge nutzen."]:[],
    instruction:"Erkenne sämtliche elementaren Teilziele selbstständig und ordne sie diesem Auftrag zu. Nutze vorherige bestätigte Entscheidungen. Fehlende nichtkritische Angaben als Platzhalter kennzeichnen. Reale externe Handlungen und rechtlich/finanziell wichtige Entscheidungen brauchen Zustimmung und Belege.",
-   done_rule:"100 Prozent Arbeitsplan ist nicht gleich Ziel erreicht. Echtes Ergebnis muss nutzbar sein und externe Gründungsnachweise erfordern überprüfbare Registrierung.",
+   done_rule:flight?"Recherche und Vorschlag sind KEINE Buchung. Keine Buchung behaupten, keine persönlichen Reise- oder Zahlungsdaten erfinden, keine ausgefüllte Buchungsseite behaupten. Ohne Buchungsanbindung keine Ausführung zusichern. Das Gesamtziel bleibt offen, bis ein echter Anbieterbeleg und eine Buchungsnummer vorliegen.":"100 Prozent Arbeitsplan ist nicht gleich Ziel erreicht. Echtes Ergebnis muss nutzbar sein und externe Gründungsnachweise erfordern überprüfbare Registrierung.",
    view:"Eingabe, knapper Stand, klares Ergebnis."
  };
 }
@@ -753,7 +759,7 @@ const pilotCorsHandler=async(req:Request)=>{
   const ps=await sb.from("pilot_states").upsert({organization_id:orgId,user_id:user.id,goal_id:goal.id,domain_key:intent.domain.primary,work_state:"planning",attention_required:false,risk_level:profile?.safety_rules?.sensitivity==="sensitive"?"moderate":"low",avatar_variant:profile.avatar_variant||"general",message:"Pilot hat die Domain erkannt und plant den nächsten Schritt.",updated_at:new Date().toISOString()},{onConflict:"user_id,goal_id"}).select("*").single();
   if(ps.error) return Response.json({error:"pilot_state_failed",detail:ps.error.message},{status:500,headers:cors});
 
-  const researchCue=/\b(aktuell|current|latest|markt|market|wettbewerb|competitor|preis|pricing|gesetz|law|regulation|trend|quelle|source|research|recherch|news|statistik|statistics|benchmark|anbieter|vergleich|compare)\b/i.test(input);
+  const researchCue=executionContract.scope==="flight_booking"||/\b(aktuell|current|latest|markt|market|wettbewerb|competitor|preis|pricing|gesetz|law|regulation|trend|quelle|source|research|recherch|news|statistik|statistics|benchmark|anbieter|vergleich|compare)\b/i.test(input);
   const researchAllowed=(profile?.safety_rules?.sensitivity||"standard")!=="sensitive";
   let researchContext:any=null;
   if(researchCue&&researchAllowed){
@@ -772,7 +778,12 @@ const pilotCorsHandler=async(req:Request)=>{
     }catch{}
   }
 
-  const defaultPhaseNames=plans[intent.domain.primary]||plans.general;
+  const isFlight=executionContract.scope==="flight_booking";
+  const defaultPhaseNames=isFlight?[
+    "Aktuelle Flugangebote für die angegebenen Reisedaten recherchieren und vergleichen. Nur belegte Gesamtpreise für alle Reisenden, Quellen und Abrufzeit verwenden. Fehlende Gepäckangaben offenhalten; keine Live-Verfügbarkeit aus Suchtreffern ableiten.",
+    "Die recherchierten Flugangebote auf Route, Reisedaten, Reisendenzahl, Gesamtpreis, Gepäck und Tarifbedingungen prüfen. Fehlende Angebotsdaten ausdrücklich nennen; nur innerhalb der tatsächlich geprüften Angebote vergleichen.",
+    "Einen kurzen Buchungsvorschlag aus den belegten Angeboten vorbereiten. Fehlende Anbindung für automatisches Ausfüllen und Buchen ausdrücklich nennen. Keine ausgefüllte Buchungsseite und keine erfolgreiche Buchung behaupten. Keine Zahlung oder Reservierung auslösen."
+  ]:plans[intent.domain.primary]||plans.general;
   const complexPlan=check.feasibility==="high_risk"||(intent.domain.secondary||[]).length>0||(intent.unknowns||[]).length>=2||input.length>500;
   const planningSensitivity=profile?.safety_rules?.sensitivity||"standard";
   const planningQuality=profile?.quality_rules?.minimum_quality==="high"||complexPlan?"high":"standard";
@@ -788,7 +799,7 @@ const pilotCorsHandler=async(req:Request)=>{
   }catch{}
   const strategy=planGateway?.output?.strategy||(check.feasibility==="high_risk"?"Mit kleiner Validierungsstufe starten":"Schrittweise und outcome-orientiert vorgehen");
   const modelPhases=Array.isArray(planGateway?.output?.phases)?planGateway.output.phases.map((x:any)=>String(x).trim()).filter(Boolean).slice(0,6):[];
-  const phaseNames=modelPhases.length>=3?modelPhases:defaultPhaseNames;
+  const phaseNames=isFlight?defaultPhaseNames:modelPhases.length>=3?modelPhases:defaultPhaseNames;
   const planIns=await sb.from("plans").insert({goal_id:goal.id,version:1,status:"active",strategy,assumptions:[],dependencies:[]}).select("*").single();
   if(planIns.error) return Response.json({error:"plan_create_failed",detail:planIns.error.message},{status:500,headers:cors});
   const plan=planIns.data;
@@ -796,7 +807,7 @@ const pilotCorsHandler=async(req:Request)=>{
   // Never label a milestone with an unrelated firstAction() title.
   // Preserve each source plan phase as its own step and create a separate foundation
   // task if the first domain decision is different from the plan's first phase.
-  const firstTask=executionContract.scope==="business_startup"?"Geschäftsmodell und Zielgruppe ausarbeiten":firstAction(intent.domain.primary);
+  const firstTask=isFlight?defaultPhaseNames[0]:executionContract.scope==="business_startup"?"Geschäftsmodell und Zielgruppe ausarbeiten":firstAction(intent.domain.primary);
   const needsFoundation=phaseNames.length>0&&overlapScore(firstTask,phaseNames[0])<0.32;
   const workingPhases=[
     ...(needsFoundation?[{name:firstTask,phase_key:"foundation",foundation:true}]:[]),
@@ -813,7 +824,7 @@ const pilotCorsHandler=async(req:Request)=>{
 
   const actionPayload=workingPhases.map((item,i)=>({
     goal_id:goal.id,plan_id:plan.id,milestone_id:miles.data[i].id,
-    title:item.foundation?firstTask:"Nächsten Schritt für „"+item.name+"“ ausführen",
+    title:isFlight?["Aktuelle Flugangebote recherchieren und vergleichen","Flugangebote und Gesamtpreis prüfen","Belegten Buchungsvorschlag vorbereiten"][i]:item.foundation?firstTask:"Nächsten Schritt für „"+item.name+"“ ausführen",
     objective:item.foundation
       ?(needsFoundation
         ?firstTask+". Erstelle eine konkrete, nachvollziehbare Arbeitsfassung, kennzeichne Annahmen und lege das Ergebnis dem Nutzer zur Bestätigung vor."

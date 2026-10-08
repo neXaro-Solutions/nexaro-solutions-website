@@ -6,9 +6,10 @@ import {resolve,dirname} from "node:path";
 import {fileURLToPath} from "node:url";
 import ts from "typescript";
 const root=resolve(dirname(fileURLToPath(import.meta.url)),"../..");
+const shared=readFileSync(resolve(root,"supabase/functions/_shared/pilot-artifacts.ts"),"utf8").replace(/^export /gm,"");
 const source=readFileSync(resolve(root,"supabase/functions/pilot-background/index.ts"),"utf8");
 const ui=readFileSync(resolve(root,"pilot/index.html"),"utf8");
-const js=ts.transpileModule(source.replace(/^import "jsr:[^"]+";\r?\n/gm,"").replace(/^import \{createClient\} from "npm:[^"]+";\r?\n/gm,""),{
+const js=ts.transpileModule(shared+"\n"+source.replace(/^import \{artifactKind[^\n]+\n/m,"").replace(/^import "jsr:[^"]+";\r?\n/gm,"").replace(/^import \{createClient\} from "npm:[^"]+";\r?\n/gm,""),{
  compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.None},
  fileName:"pilot-background.ts",reportDiagnostics:true
 });
