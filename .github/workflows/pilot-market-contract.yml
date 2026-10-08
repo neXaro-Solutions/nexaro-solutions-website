@@ -1,0 +1,22 @@
+name: Pilot Market Contract
+on:
+  push:
+    paths:
+      - 'pilot/index.html'
+      - 'pilot/tests/market-contract.mjs'
+      - 'supabase/functions/pilot-market/index.ts'
+      - '.github/workflows/pilot-market-contract.yml'
+  pull_request:
+    paths:
+      - 'pilot/index.html'
+      - 'pilot/tests/market-contract.mjs'
+      - 'supabase/functions/pilot-market/index.ts'
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node pilot/tests/market-contract.mjs
