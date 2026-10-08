@@ -197,6 +197,12 @@ function walk(scope){
   document.documentElement.lang=language;
  }finally{busy=false;}
 }
+function closeLanguageOptions(){
+ const toggle=document.getElementById("pilotLanguageToggle");
+ const menu=document.getElementById("pilotLanguageOptions");
+ if(menu)menu.hidden=true;
+ if(toggle)toggle.setAttribute("aria-expanded","false");
+}
 function setLanguage(value){
  language=value==="en"?"en":"de";
  try{localStorage.setItem(STORE,language)}catch{}
@@ -205,7 +211,12 @@ function setLanguage(value){
   button.setAttribute("aria-pressed",String(selected));
   button.classList.toggle("is-active",selected);
  });
+ const current=document.getElementById("pilotLanguageCurrent");
+ if(current)current.textContent=language.toUpperCase();
+ const selector=document.getElementById("pilotLanguageSwitcher");
+ if(selector)selector.setAttribute("aria-label",language==="en"?"Language selection":"Sprachauswahl");
  walk(document);
+ closeLanguageOptions();
 }
 const observer=new MutationObserver(mutations=>{
  if(busy)return;
@@ -214,7 +225,32 @@ const observer=new MutationObserver(mutations=>{
  }
 });
 function init(){
- document.querySelectorAll("[data-pilot-locale]").forEach(button=>button.addEventListener("click",()=>setLanguage(button.dataset.pilotLocale)));
+ const selector=document.getElementById("pilotLanguageSwitcher");
+ const toggle=document.getElementById("pilotLanguageToggle");
+ const menu=document.getElementById("pilotLanguageOptions");
+ // The picker is intentionally always accessible at the top right.
+ // Both the visible DE/EN state and the dropdown must reflect the same value.
+ if(selector&&toggle&&menu){
+  toggle.addEventListener("click",event=>{
+   event.stopPropagation();
+   const next=menu.hidden;
+   menu.hidden=!next;
+   toggle.setAttribute("aria-expanded",String(next));
+  });
+  selector.addEventListener("click",event=>event.stopPropagation());
+  document.addEventListener("click",event=>{
+   if(!selector.contains(event.target))closeLanguageOptions();
+  });
+  document.addEventListener("keydown",event=>{
+   if(event.key==="Escape"&&!menu.hidden){
+    closeLanguageOptions();toggle.focus();
+   }
+  });
+ }
+ document.querySelectorAll("[data-pilot-locale]").forEach(button=>button.addEventListener("click",()=>{
+  setLanguage(button.dataset.pilotLocale);
+  toggle?.focus({preventScroll:true});
+ }));
  setLanguage(language);
  observer.observe(document.body,{childList:true,subtree:true});
 }
