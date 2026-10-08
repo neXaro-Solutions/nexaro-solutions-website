@@ -72,3 +72,16 @@ Dieser Zusatz ist verbindlich für alle mobilen und Desktop-Oberflächen.
 - **Barrierefreiheit:** `prefers-reduced-motion` respektieren; mobile Berührung darf keinen Hover-Zwang voraussetzen; Navigation hat `aria-label`, die aktive Ebene `aria-current="page"`; ausreichender Farbkontrast und große Touchflächen.
 - **Performance:** `transform`/GPU-kompatible Änderungen statt teurer Layout-Updates; maximal begrenzte Anzahl von Interaktionsflächen je Ansicht. Mobile Safari und ältere Geräte schonen.
 - **Regression:** Nach UI-Änderungen Startauftrag, Anhänge, Fortsetzen, Ausführung, Landeanimation, alle fünf Tabs, Dialoge und Kundenvorschau erneut testen. Quellcode-/Simulationstests und realer iPhone-Livetest sind separat abzunehmen.
+
+
+## Fluganimation V5 – iPhone-Flüssigkeit (2026-10-08)
+
+- Native `Element.animate()` / Web Animations API mit vorberechneten `translate3d()`-Keyframes verwenden, um die Transformation dem Browser-Compositor zu überlassen. `requestAnimationFrame` dient nur als Fallback.
+- Die reale Mitte des Startbuttons und die reale Mitte des nächsten Aktionsbuttons bleiben Start-/Landebahn. Nur **eine** Flugzeuginstanz pro Auftrag.
+- Startflug verbindet seine Endposition und Endrichtung mit der Anfangsposition und Tangente der endlos wiederholbaren Orbit-Flugbahn (keine abrupten Zustandswechsel).
+- Rundflug nutzt eine stetige, geschlossene elliptische Kurve mit keiner vollständig stehenden Flugphase.
+- Der Landeanflug startet von der tatsächlichen animierten Position, orientiert sich an der aktuellen Bahntangente, verlangsamt sich stetig und endet mit verschwindender Endgeschwindigkeit exakt auf dem Zielbutton.
+- Scrollen findet während des Rundflugs statt. Der Anflug beginnt erst nach Stabilisierung der Zielkoordinaten.
+- Erst die abgeschlossene Landung löst das Einblenden und Freigeben der operativen Aktion aus. Danach erfolgt ein weiches Ausblenden.
+- Teure Blur-/Filtereffekte auf bewegten Elementen minimieren. Kein `opacity:...!important` oder `transform:...!important` auf dem animierten Flugzeug, wenn native Keyframes diese Werte steuern.
+- Die Flugfunktion bleibt im Entwicklungsplan `alpha`, solange die neue Version nicht in einer realen iPhone-Bildschirmaufnahme als flüssig bestätigt wurde.
