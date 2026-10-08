@@ -1904,8 +1904,8 @@ async function pilotAskQuestions(questions){
   const qs=(questions||[]).slice(0,3);
   const business=qs[0]?.key==="business_idea";
   const answer=await nxDialog({
-    title:business?"Welche Geschäftsidee hast du?":"Pilot hat noch eine Frage",
-    description:business?"Zuerst klären wir, welches Unternehmen du aufbauen möchtest. Das Budget besprechen wir erst, wenn es gebraucht wird.":"Pilot fragt nur das ab, was für den nächsten sinnvollen Schritt fehlt.",
+    title:qs[0]?.dialog_title_de||(business?"Welche Geschäftsidee hast du?":"Pilot hat noch eine Frage"),
+    description:qs[0]?.dialog_intro_de||(business?"Zuerst klären wir, welches Unternehmen du aufbauen möchtest. Das Budget besprechen wir erst, wenn es gebraucht wird.":"Pilot fragt nur das ab, was für den nächsten sinnvollen Schritt fehlt."),
     fields:qs.map(q=>({key:q.key,label:q.question_de||q.question_en||"Deine Antwort",hint:q.hint_de||"",placeholder:q.placeholder_de||"",required:q.required!==false})),
     buttons:[{value:"submit",label:"Weiter zum Plan",primary:true},...(business?[{value:"develop",label:"Geschäftsidee gemeinsam entwickeln",orange:true}]:[])]
   });
