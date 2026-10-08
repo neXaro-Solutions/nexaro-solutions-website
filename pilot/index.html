@@ -6876,18 +6876,21 @@ function pilotAvatarDisembark(f,message="Hier ist deine Handlung erforderlich.")
    if(activePilotFlight===f&&f.phase==="parked")void pilotAttentionRecall(f);
  },3200);
 }
-let pilotWorkerLayoutFrame=null;
+let pilotWorkerLayoutTimer=null;
 function pilotRefreshParkedAvatar(){
  const f=activePilotFlight;
  if(f?.phase==="parked"&&f.worker?.isConnected&&f.plane?.isConnected)
    pilotPositionWorker(f.worker,f.plane);
 }
 function pilotScheduleWorkerLayout(){
- if(pilotWorkerLayoutFrame!==null)return;
- pilotWorkerLayoutFrame=requestAnimationFrame(()=>{
-   pilotWorkerLayoutFrame=null;
+ if(!activePilotFlight?.worker?.isConnected||activePilotFlight.phase!=="parked")return;
+ // Layout reads wait for scrolling to settle. The walk itself never reads
+ // layout on animation frames, so phones stay smooth.
+ if(pilotWorkerLayoutTimer!==null)clearTimeout(pilotWorkerLayoutTimer);
+ pilotWorkerLayoutTimer=setTimeout(()=>{
+   pilotWorkerLayoutTimer=null;
    pilotRefreshParkedAvatar();
- });
+ },90);
 }
 window.addEventListener("resize",pilotScheduleWorkerLayout,{passive:true});
 window.visualViewport?.addEventListener?.("resize",pilotScheduleWorkerLayout,{passive:true});
