@@ -6711,7 +6711,8 @@ function pilotWorkerObstacleRects(worker){
   ".nx-modal",".auth-modal-card",".pilot-project-card details[open]"
  ];
  const nodes=new Set(document.querySelectorAll(selectors.join(",")));
- const w=window.innerWidth,h=window.visualViewport?.height||window.innerHeight;
+ const w=window.innerWidth,visual=window.visualViewport;
+ const top=visual?.offsetTop||0,h=top+(visual?.height||window.innerHeight);
  return [...nodes].filter(n=>n!==worker&&!worker.contains(n)&&!n.closest("#pilotFlightLayer"))
   .flatMap(n=>{
     const style=getComputedStyle(n);
@@ -6725,7 +6726,8 @@ function pilotWorkerOverlaps(a,b,margin=8){
 }
 function pilotPositionWorker(worker,plane){
  if(!worker?.isConnected)return false;
- const w=window.innerWidth,h=window.visualViewport?.height||window.innerHeight;
+ const w=window.innerWidth,visual=window.visualViewport;
+ const visibleTop=visual?.offsetTop||0,h=visibleTop+(visual?.height||window.innerHeight);
  const nav=document.querySelector(".side nav.pilot-minimal-nav");
  const navRect=nav?.getClientRects()?.[0];
  const dockTop=navRect&&navRect.top>h*.45&&navRect.top<h?navRect.top:h;
@@ -6740,11 +6742,11 @@ function pilotPositionWorker(worker,plane){
   .map(x=>Math.max(8,Math.min(w-workerWidth-8,x)));
  const uniqueX=[...new Set(xCandidates)];
  const floors=Array.from({length:9},(_,i)=>baseFloor-i*14)
-  .filter(y=>y>Math.max(110,h*.54));
+  .filter(y=>y>Math.max(visibleTop+100,visibleTop+(h-visibleTop)*.54));
  let best=null;
  for(const floor of floors){
    const top=floor-56;
-   if(top<70)continue;
+   if(top<visibleTop+54)continue;
    for(const left of uniqueX){
      // 14 px are reserved for lateral pacing, so walking cannot reach a button.
      const figure={left:left-3,right:left+48+14,top:top-4,bottom:floor+4};
