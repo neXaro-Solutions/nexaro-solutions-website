@@ -2431,17 +2431,19 @@ function pilotOpenDecisionFocus(index=0){
    pilotCloseDecisionFocus();
    confirmPilotResult();
  });
- // Let the overlay exist in the DOM before iOS opens its software keyboard.
- requestAnimationFrame(()=>{if(pilotDecisionModal?.root===root){
-    const field=inputs[Math.min(index,inputs.length-1)]||inputs[0];
-    field?.focus({preventScroll:true});
-    field?.setSelectionRange(field.value.length,field.value.length);
- }});
+ // iOS requires focus synchronously in the initiating tap/click to open the keyboard.
+ // Deferring focus to requestAnimationFrame would silently skip the soft keyboard.
+ const field=inputs[Math.min(index,inputs.length-1)]||inputs[0];
+ if(field){
+   try{field.focus({preventScroll:true})}catch{field.focus()}
+   try{field.setSelectionRange(field.value.length,field.value.length)}catch{}
+ }
 }
 function bindPilotDecisionEditor(){
  const shell=document.getElementById("pilotDecisionShell");
  if(!shell)return;
  shell.querySelectorAll(".pilot-preview-text").forEach(field=>{
+   pilotDecisionAutoSize(field);
    field.addEventListener("click",()=>pilotOpenDecisionFocus(Number(field.dataset.decisionPart)));
    field.addEventListener("keydown",event=>{
      if(event.key==="Enter"||event.key===" "){event.preventDefault();pilotOpenDecisionFocus(Number(field.dataset.decisionPart))}
