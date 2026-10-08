@@ -44,3 +44,17 @@ Bereits simuliert: Start-/Review-/Stop-Zustände in Zentrale und Ausführung, dr
 - **KI-Stabilität:** `best-of-ai v14` verarbeitet nicht-jsonförmige Modell-Gateway-Antworten kontrolliert und verlangt die erforderlichen Ergebnisfelder.
 - **Frontend:** `LUMEN 2026.10.08.22` zeigt nur Fehler der *aktuell auszuführenden* Aktion als Retry-Hinweis und vermeidet, dass alte Fehlversuche den Status des gesamten Unternehmensziels als „fehlgeschlagen“ anzeigen.
 - **Verifikation:** Produktionsfunktionen sind installiert und Code/DB-Konsistenz geprüft. Erneuter authentifizierter iPhone-Live-Test ist **noch offen**. Der Entwicklungsblock darf erst nach einer real gespeicherten und bestätigten Lieferung grün werden.
+
+
+## Direkte Bearbeitung & Freigabe – LUMEN 2026.10.08.23 / execution-engine v22
+
+Verbindliche UX-/Backend-Regel: Bei **gemeinsamen Entscheidungen** muss Pilot die entscheidungsrelevante Information in *verständlichem, direkt bearbeitbarem Text* anbieten. Keine langen Markdown-Exzerpte, kein zusätzlicher „Vollständiges Ergebnis ansehen“-Pfad als Pflichtschritt.
+
+- **UI:** Vorschlag als übersichtlicher Klartext im editierbaren Textfeld (mobile Safari, Schriftgröße mindestens 16px für iOS), mit Zeichenanzeige und jederzeit sichtbarer Hauptaktion.
+- **Kundensprache:** „So könnte dein Ergebnis aussehen. Du entscheidest ...“; Fachjargon und unerläuterte Annahmen zurücknehmen. Nicht bestätigte Fakten bleiben als Annahmen gekennzeichnet.
+- **Aktionssprache:** `⚡ Entscheidung steht. Pilot übernimmt.` vermittelt klar, dass der Nutzer über das Ergebnis entscheidet und Pilot anschließend wieder arbeitet.
+- **Echte Datenübergabe:** `operation=confirm` erhält den nutzerseitig editierten Text. Längenvalidierung 35–2500 Zeichen, explizites `approved:true`, Authentifizierung/Goal Ownership, Low-Risk- und Verified-Result-Grenze.
+- **Sicherheitsgrenze:** Geänderte Inhalte müssen erneut durch das Safety Gate; Nutzeränderungen sind **nicht automatisch unabhängig fachlich verifiziert**, daher Ergebnis-Metadaten `verification_scope:original_ai_draft_only`, `edited_by_user`, `original_ai_content`, eindeutige user-decision. Keine falsche Faktensicherheit.
+- **Persistenz:** Resultat und `goal_memories` speichern die letztendlich freigegebene Fassung; die originale KI-Fassung bleibt zur Historie/Prüfung erhalten. Danach Progress Engine und begrenzte Folgeautonomie.
+- **Fehlerbehebung v22:** Ein ursprünglich bestandener KI-Quality-Gate wurde bei gemeinsamer Entscheidung fälschlich als `quality_status=failed` gespeichert. Künftig wird daraus `review_required`; die konkret bereits verifizierte Live-Entscheidung vom 2026-10-08 09:40 wurde anhand ihrer sechs bestandenen Prüfkriterien gezielt korrigiert, ohne neue Aussagen zu erfinden.
+- **Abnahme:** Formular/Parser/Backend-Sicherheitszweig geprüft; tatsächliche Benutzerbearbeitung mit Freigabe und Zielgedächtnis-/Fortschrittskontrolle auf dem iPhone noch offen. Erst nach bestandenem Praxistest den Entwicklungsplan auf Grün setzen.
