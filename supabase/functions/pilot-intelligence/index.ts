@@ -242,6 +242,31 @@ async function resolveGoalContinuity(sb:any,base:string,pub:string,auth:string,u
     return {decision:"existing",confidence:"high",goal_id:goal.id,goal,
       reason:"explicit_project_name",matching_terms:names[0].matching.length};
   }
+  // Also recognize an explicitly confirmed company name, even if the project title
+  // was originally a generic prompt. Never rely on an unconfirmed AI brand name.
+  const companyRows=await sb.from("pilot_decision_journal")
+    .select("goal_id,decision_value,event_type,id").eq("owner_id",userId)
+    .eq("decision_key","company_name").in("goal_id",candidates.map((g:any)=>g.id))
+    .order("id",{ascending:false}).limit(120);
+  if(companyRows.error)return {decision:"unavailable",confidence:"low",reason:"decision_journal_unavailable"};
+  const companyByGoal=new Map<string,any>();
+  for(const entry of companyRows.data||[])if(!companyByGoal.has(entry.goal_id))companyByGoal.set(entry.goal_id,entry);
+  const normalizedInput=input.normalize("NFKC").toLowerCase();
+  const explicitCompanies=candidates.filter((g:any)=>{
+    const company=companyByGoal.get(g.id);
+    if(!company||company.event_type!=="set")return false;
+    const value=String(company.decision_value||"").normalize("NFKC").toLowerCase().trim();
+    return value.length>=4&&normalizedInput.includes(value);
+  });
+  if(explicitCompanies.length===1){
+    const goal=explicitCompanies[0];
+    return {decision:"existing",confidence:"high",goal_id:goal.id,goal,reason:"confirmed_company_name"};
+  }
+  if(explicitCompanies.length>1){
+    return {decision:"ask",confidence:"medium",goal_id:explicitCompanies[0].id,
+      goal:explicitCompanies[0],candidates:goalChoices(explicitCompanies),
+      reason:"multiple_confirmed_company_names"};
+  }
   const followup=/\b(logo|logos|branding|brand|website|webseite|landingpage|visitenkarte|flyer|anzeige|kampagne|rechnung|angebot|präsentation|praesentation|design|entwurf|broschüre|broschuere|texte|grafik|farbschema|social.media)\b/i.test(input);
   const branding=/\b(logo|logos|branding|brand|website|webseite|landingpage|visitenkarte|flyer|anzeige|kampagne|design|grafik|farbschema|social.media)\b/i.test(input);
   const matchingIndustry=industryOf(input);
@@ -427,11 +452,26 @@ const pilotCorsHandler=async(req:Request)=>{
     const memoryRes=await sb.from("goal_memories").select("memory_key,memory_type,content,importance,confidence,source_type,source_ref,updated_at")
       .eq("goal_id",existingGoal.id).eq("owner_id",user.id).eq("active",true)
       .order("importance",{ascending:false}).order("updated_at",{ascending:false}).limit(80);
+    // Project decisions override unconfirmed assumptions; revocations stay revoked.
+    const decisionsRead=await sb.from("pilot_decision_journal")
+      .select("id,decision_key,decision_value,event_type,source_type,created_at")
+      .eq("goal_id",existingGoal.id).eq("owner_id",user.id)
+      .order("id",{ascending:false}).limit(150);
+    if(decisionsRead.error)return Response.json({error:"decision_journal_unavailable",retryable:true},
+      {status:503,headers:cors});
+    const latestDecisions=new Map<string,any>();
+    for(const entry of decisionsRead.data||[])
+      if(!latestDecisions.has(entry.decision_key))latestDecisions.set(entry.decision_key,entry);
+    const confirmedDecisions=[...latestDecisions.values()]
+      .filter((entry:any)=>entry.event_type==="set")
+      .map((entry:any)=>({key:entry.decision_key,value:entry.decision_value,
+        source:entry.source_type,confirmed_at:entry.created_at}));
     const docRes=await sb.from("documents").select("id,title,filename,mime_type,processing_status,metadata,created_at").eq("owner_id",user.id).order("created_at",{ascending:false}).limit(30);
     const inheritedContext={
       goal:{id:existingGoal.id,title:existingGoal.title,description:existingGoal.description,desired_outcome:existingGoal.desired_outcome,domain:existingGoal.domain},
       context:ctxRes.data||[],
       memories:memoryRes.data||[],
+      decisions:confirmedDecisions,
       results:resultRes.data||[],
       documents:(docRes.data||[]).filter((d:any)=>d.metadata?.goal_id===existingGoal.id)
     };
@@ -498,6 +538,7 @@ const pilotCorsHandler=async(req:Request)=>{
       goal:existingGoal,
       inherited_context:inheritedContext,
       memory_status:{followup_saved:!followupMemory.error,updates:userMemories,warning:followupMemory.error||null},
+      decision_journal:{reused:confirmedDecisions.length,keys:confirmedDecisions.map((d:any)=>d.key)},
       actions:[ar.data],
       next_action:{...(predecessor||ar.data),
         reason:predecessor?"Der Folgeauftrag ist vorgemerkt. Pilot beendet zuerst den bereits offenen Schritt.":
