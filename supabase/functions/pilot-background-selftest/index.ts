@@ -72,7 +72,14 @@ const handler=async(req:Request)=>{
  const old=await s.from("goals").select("id,created_at").eq("pilot_request_id",receipt)
   .eq("owner_id",owner).maybeSingle();
  if(old.error)return answer({error:"existing_test_unavailable"},503);
- if(old.data)return check(s,old.data.id,owner,old.data.created_at);
+ if(old.data){
+  const previous=await check(s,old.data.id,owner,old.data.created_at);
+  if(body.operation!=="start"||![200,422].includes(previous.status))return previous;
+  // A newly authorized "start" may recover a terminal prior test in ONE tap.
+  // A still-running or uncleaned goal is never duplicated or restarted.
+  const remains=await s.from("goals").select("id").eq("id",old.data.id).maybeSingle();
+  if(remains.error||remains.data)return previous;
+ }
  if(body.operation==="status")return answer({status:"not_running"});
  const member=await s.from("organization_members").select("organization_id")
   .eq("user_id",owner).eq("active",true).limit(1).single();
