@@ -5,16 +5,20 @@ on:
     paths:
       - "supabase/functions/execution-engine/**"
       - "supabase/functions/pilot-intelligence/**"
+      - "supabase/functions/pilot-decision-journal/**"
       - "pilot/tests/engine-contract.mjs"
       - "pilot/tests/continuity-contract.mjs"
+      - "pilot/tests/journal-contract.mjs"
       - "pilot/index.html"
       - ".github/workflows/pilot-engine-guards.yml"
   pull_request:
     paths:
       - "supabase/functions/execution-engine/**"
       - "supabase/functions/pilot-intelligence/**"
+      - "supabase/functions/pilot-decision-journal/**"
       - "pilot/tests/engine-contract.mjs"
       - "pilot/tests/continuity-contract.mjs"
+      - "pilot/tests/journal-contract.mjs"
       - "pilot/index.html"
       - ".github/workflows/pilot-engine-guards.yml"
   workflow_dispatch:
@@ -38,3 +42,5 @@ jobs:
         run: node pilot/tests/engine-contract.mjs
       - name: Run isolated goal-continuity regression tests
         run: node pilot/tests/continuity-contract.mjs
+      - name: Run decision journal safety and revision tests
+        run: node pilot/tests/journal-contract.mjs
