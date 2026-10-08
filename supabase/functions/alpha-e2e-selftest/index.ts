@@ -153,7 +153,26 @@ const pilotCorsHandler=async(req:Request)=>{
       updated_at:new Date().toISOString()
     },{onConflict:"check_key"});
 
-    if(passed){
+    // An earlier execution-only E2E pass must not certify the newly added
+    // continuity and duplicate-submission guarantees before a new live run.
+    const continuityKeys=new Set([
+      "user_choice_saved","existing_goal_continued","confirmed_choice_inherited",
+      "network_retry_returns_original_action","conflicting_decision_requires_confirmation",
+      "no_duplicate_or_conflicting_actions","isolated_test_goal_removed"
+    ]);
+    const continuityChecks=checks.filter(x=>continuityKeys.has(x.check));
+    const continuityPassed=continuityChecks.length===7&&continuityChecks.every(x=>x.passed);
+    const continuityRecord=await admin.from("alpha_readiness_checks").upsert({
+      check_key:"private_alpha_continuity_e2e",category:"execution",
+      description:"Live-E2E: bestätigte Entscheidungen, Projektfortsetzung, Retry, Konflikt und sauberes Aufräumen",
+      required:true,status:continuityPassed?"passed":"failed",
+      evidence:{run_id:runId,verified_at:new Date().toISOString(),
+        checks:continuityChecks.map(x=>({check:x.check,passed:x.passed}))},
+      updated_at:new Date().toISOString()
+    },{onConflict:"check_key"});
+    if(continuityRecord.error)checks.push({check:"continuity_evidence_persisted",passed:false});
+
+    if(passed&&continuityPassed&&!continuityRecord.error){
       await admin.from("alpha_readiness_checks").update({
         status:"passed",
         evidence:{
@@ -178,6 +197,13 @@ const pilotCorsHandler=async(req:Request)=>{
       description:"Isolierter Live-Test für Execution, Verifikation, Projektkontinuität, Wiederholungsschutz und Entscheidungsschutz",
       required:true,status:"failed",
       evidence:{run_id:runId,failed_at:new Date().toISOString(),error:msg,checks},
+      updated_at:new Date().toISOString()
+    },{onConflict:"check_key"});
+    await admin.from("alpha_readiness_checks").upsert({
+      check_key:"private_alpha_continuity_e2e",category:"execution",
+      description:"Live-E2E: bestätigte Entscheidungen, Projektfortsetzung, Retry, Konflikt und sauberes Aufräumen",
+      required:true,status:"failed",
+      evidence:{run_id:runId,failed_at:new Date().toISOString(),error:msg},
       updated_at:new Date().toISOString()
     },{onConflict:"check_key"});
     return Response.json({status:"failed",run_id:runId,error:msg,checks},{status:500,headers:H});
