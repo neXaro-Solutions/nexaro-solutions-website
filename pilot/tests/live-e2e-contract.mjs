@@ -29,6 +29,8 @@ for(const s of [
  'checks.every(c=>c.passed)'
 ])assert(code.includes(s),"Missing live E2E guard: "+s);
 assert(ui.includes("Live-Auftragskette prüfen"));
+assert(ui.includes("pilotE2ELastReportHTML"),
+ "The live test result must remain visible after the admin view reloads");
 console.log("PASS Admin live E2E contract: TypeScript, continuity, decisions, retry and teardown");
 
 let handler=null,networkCalls=0;
