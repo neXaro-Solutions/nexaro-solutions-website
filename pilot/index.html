@@ -3168,6 +3168,12 @@ body{max-width:100%;overflow-x:clip}
 .pilot-e2e-feedback details{margin-top:8px}
 .pilot-e2e-feedback summary{cursor:pointer;font-weight:750;min-height:30px}
 @media(prefers-reduced-motion:reduce){.pilot-e2e-flight span{animation:none}}
+
+.pilot-bg-live-check{margin:12px 0;padding:14px;border:1px solid rgba(159,204,150,.65);
+ border-radius:16px;background:linear-gradient(115deg,#fbfff8,#fff)}
+.pilot-bg-live-check .btn{min-height:44px}
+.pilot-bg-live-check .pilot-e2e-feedback{margin-bottom:7px}
+@media(max-width:420px){.pilot-bg-live-check .btns .btn{flex:1 1 100%;width:100%}}
 </style></head>
 <body>
 <section id="auth" class="auth"><div class="box">
@@ -4194,8 +4200,72 @@ function pilotE2EUpdateDisplay(){
  const slot=document.getElementById("e2eStatus");
  if(slot)slot.innerHTML=pilotE2EStatusHTML();
 }
+let pilotBackgroundLiveBusy=false;
+let pilotBackgroundLiveState=null;
+let pilotBackgroundLiveTimer=null;
+function pilotBackgroundLiveHTML(){
+ const record=readiness.find(x=>x.check_key==="private_alpha_background_e2e");
+ const state=pilotBackgroundLiveState;
+ if(pilotBackgroundLiveBusy&&state?.status!=="running")
+  return '<strong>✈ Hintergrundprüfung wird verbunden …</strong><p>Pilot überprüft den isolierten Testauftrag.</p>';
+ if(state?.status==="running")
+  return '<strong><span class="pilot-e2e-pulse" aria-hidden="true"></span> Pilot arbeitet auf dem Server</strong>'+
+   '<p>Phase: '+esc(state.stage||"Warteschlange")+'. Der Test läuft unabhängig von diesem Fenster. Du kannst Pilot schließen und später zurückkommen.</p>';
+ if(state?.status==="failed"||record?.status==="failed")
+  return '<strong>✕ Hintergrundprüfung nicht bestanden</strong><p>'+
+   esc(state?.error||record?.evidence?.last_error||"Eine Prüfung ist fehlgeschlagen. Details lassen sich beim nächsten Test erneut kontrollieren.")+'</p>';
+ if(state?.status==="passed"||record?.status==="passed"){
+  const checks=state?.checks||record?.evidence?.checks||[];
+  return '<strong>✓ Echter Hintergrundlauf bestanden</strong><p>'+
+   checks.filter(x=>x.passed===true).length+' / '+checks.length+
+   ' Prüfungen · Ergebnis und Verifikation gespeichert, isolierte Testdaten entfernt.</p>';
+ }
+ return '<strong>Hintergrundlauf noch nicht live verifiziert</strong>'+
+  '<p>Ein isolierter Testauftrag prüft die tatsächliche Serverbearbeitung bis zum fertigen Projektergebnis – auch bei geschlossener App.</p>';
+}
+function pilotBackgroundLiveDisplay(){
+ const panel=document.getElementById("pilotBackgroundLiveStatus");
+ if(panel)panel.innerHTML=pilotBackgroundLiveHTML();
+ for(const id of ["runBackgroundLive","checkBackgroundLive"]){
+  const btn=document.getElementById(id);if(btn)btn.disabled=pilotBackgroundLiveBusy;
+ }
+}
+async function pilotBackgroundLiveCall(operation){
+ if(pilotBackgroundLiveBusy||!user||!isAdmin)return;
+ pilotBackgroundLiveBusy=true;
+ if(operation==="start")pilotBackgroundLiveState={status:"starting"};
+ pilotBackgroundLiveDisplay();
+ if(pilotBackgroundLiveTimer){clearTimeout(pilotBackgroundLiveTimer);pilotBackgroundLiveTimer=null}
+ try{
+  const response=await sb.functions.invoke("pilot-background-selftest",{body:{operation}});
+  const data=response.data||{};
+  if(response.error&&!["failed","running"].includes(data.status))
+   throw new Error(data.error||response.error.message||"Live-Hintergrundprüfung nicht erreichbar.");
+  pilotBackgroundLiveState=data.status==="not_running"?null:data;
+  if(["passed","failed","not_running"].includes(data.status)){
+   try{await load()}catch(e){console.warn("Hintergrund-E2E: Readiness nicht geladen",e)}
+  }
+  if(data.status==="running"&&current==="alpha"&&!document.hidden)
+   pilotBackgroundLiveTimer=setTimeout(()=>void pilotBackgroundLiveCall("status"),12000);
+  if(data.status==="failed")PS.textContent="Hintergrundprüfung erfordert Kontrolle";
+ }catch(e){
+  pilotBackgroundLiveState={status:"failed",error:String(e?.message||e)};
+  PS.textContent="Hintergrundprüfung konnte nicht bestätigt werden";
+ }finally{
+  pilotBackgroundLiveBusy=false;
+  if(current==="alpha")render();
+  else pilotBackgroundLiveDisplay();
+ }
+}
 function alphaViewLegacy(){if(!effectiveAdmin())return home();const passed=readiness.filter(x=>x.status==="passed").length,total=readiness.length,last=evalRuns[0],aiCost=aiRequests.reduce((s,x)=>s+Number(x.actual_cost||0),0);return '<div class="grid"><div class="card"><h2>Bereitschaft der privaten Testphase</h2><div style="font-size:42px;font-weight:900">'+passed+' / '+total+'</div><p class="muted">Pflichtchecks bestanden</p>'+readiness.map(x=>'<div class="stat"><span class="muted">'+esc(x.description)+'</span><strong>'+esc(deStatus(x.status))+'</strong></div>').join("")+'<div class="btns"><button id="runEvals" class="btn primary">Prüfsuite ausführen</button><button id="runAlphaE2E" class="btn ai"'+(pilotE2EInFlight?' disabled':'')+'>'+(pilotE2EInFlight?'✈ Live-Prüfung läuft …':'✦ Live-Auftragskette prüfen')+'</button></div>'+
 '<div id="e2eStatus" role="status" aria-live="polite" aria-atomic="true">'+pilotE2EStatusHTML()+'</div>'+
+'<section class="pilot-bg-live-check" aria-label="Echter Hintergrundauftrag">'+
+ '<div class="pilot-admin-quicktest-title">✈ HINTERGRUNDLAUF · ECHTER SERVERTEST</div>'+
+ '<div class="btns"><button id="runBackgroundLive" class="btn ai" type="button"'+(pilotBackgroundLiveBusy?' disabled':'')+'>✈ Hintergrundlauf testen</button>'+
+ '<button id="checkBackgroundLive" class="btn" type="button"'+(pilotBackgroundLiveBusy?' disabled':'')+'>↻ Ergebnis prüfen</button></div>'+
+ '<div id="pilotBackgroundLiveStatus" class="pilot-e2e-feedback" aria-live="polite" role="status">'+pilotBackgroundLiveHTML()+'</div>'+
+ '<small class="muted">Ein isolierter Kreativauftrag; kann geringe KI-Kosten verursachen. Keine Änderung an deinen anderen Aufträgen.</small>'+
+ '</section>'+
 '<section class="pilot-admin-quicktest" aria-label="Technische Einzeltests"><div class="pilot-admin-quicktest-title"><span aria-hidden="true">✦</span> VERBINDUNGEN &amp; FUNKTIONEN</div>'+
 '<div class="pilot-admin-quicktest-grid">'+
 '<button id="diagnosePilotAI" class="btn pilot-admin-ai-test" type="button">✦ KI-Ausführung testen</button>'+
@@ -4495,8 +4565,8 @@ async function processPendingAttachments(goalId,taskText){
 }
 
 function bind(){
-  document.querySelectorAll("[data-view]").forEach(b=>b.onclick=async()=>{current=b.dataset.view;const menu=b.closest(".pilot-nav-more");if(menu)menu.open=false;if(current==="admin"&&isAdmin){try{await loadAdminConsole()}catch(e){pilotNotice(e.message||String(e))}}render()});
-  document.querySelectorAll("[data-jump]").forEach(b=>b.onclick=()=>{current=b.dataset.jump;render()});
+  document.querySelectorAll("[data-view]").forEach(b=>b.onclick=async()=>{current=b.dataset.view;const menu=b.closest(".pilot-nav-more");if(menu)menu.open=false;if(current==="admin"&&isAdmin){try{await loadAdminConsole()}catch(e){pilotNotice(e.message||String(e))}}render();if(current==="alpha")void pilotBackgroundLiveCall("status")});
+  document.querySelectorAll("[data-jump]").forEach(b=>b.onclick=()=>{current=b.dataset.jump;render();if(current==="alpha")void pilotBackgroundLiveCall("status")});
    document.querySelectorAll("[data-open-goal]").forEach(b=>b.onclick=async()=>{if(activePilotFlight&&pilotFlightState.goalId&&pilotFlightState.goalId!==b.dataset.openGoal){pilotDestroyFlight(activePilotFlight);pilotSetFlightState(null,"idle","")}activeGoalId=b.dataset.openGoal;pilotPinnedGoalId=activeGoalId;pilotForceNewGoal=false;try{localStorage.setItem("nexaro_pilot_goal_"+user.id,activeGoalId)}catch{}await load();current="home";render()});
   document.getElementById("pilotNewProject")?.addEventListener("click",()=>{
     const draft=document.getElementById("goalText")?.value||"";
@@ -4555,6 +4625,8 @@ function bind(){
   document.querySelectorAll("[data-feedback]").forEach(b=>b.onclick=()=>sendFeedback(b.dataset.feedback));
   document.getElementById("runEvals")?.addEventListener("click",runEvals);
   document.getElementById("runAlphaE2E")?.addEventListener("click",runAlphaE2E);
+  document.getElementById("runBackgroundLive")?.addEventListener("click",()=>pilotBackgroundLiveCall("start"));
+  document.getElementById("checkBackgroundLive")?.addEventListener("click",()=>pilotBackgroundLiveCall("status"));
   document.getElementById("connectCanva")?.addEventListener("click",connectCanva);
   document.querySelectorAll("[data-canva]").forEach(b=>b.onclick=()=>designWithCanva(b.dataset.canva));
   document.querySelectorAll("[data-canva-poll]").forEach(b=>b.onclick=()=>pollCanva(b.dataset.canvaPoll));
