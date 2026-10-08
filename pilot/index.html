@@ -6384,9 +6384,13 @@ function startPilotFlight(button){
  const layer=document.getElementById("pilotFlightLayer");
  if(!layer||!button||!button.isConnected)return false;
  if(activePilotFlight?.plane?.isConnected){
-   if(["parked","landing","touchdown","exit"].includes(activePilotFlight.phase)){
-     pilotDestroyFlight(activePilotFlight);
-   }else return true;
+   if(["parked","boarding","returning"].includes(activePilotFlight.phase)&&pilotFlightState.mode==="attention"){
+     void pilotAvatarReboard(pilotFlightState.goalId);
+     return true;
+   }
+   if(activePilotFlight.phase==="landing")return true;
+   if(["parked","touchdown","exit"].includes(activePilotFlight.phase))pilotDestroyFlight(activePilotFlight);
+   else return true;
  }
  layer.replaceChildren();
  const size=76; // Matches the single approved LUMEN aircraft sprite and its compositor layer.
@@ -6395,7 +6399,7 @@ function startPilotFlight(button){
  label.className="pilot-flight-status";label.textContent="Pilot hebt vom Startbutton ab …";
  const from=pilotMotion.center(button.getBoundingClientRect(),size);
  layer.append(plane,label);
- const f={plane,label,size,from,startedAt:performance.now(),phase:"takeoff",animation:null,frameVersion:0,fallbackFrame:null,resolveLanding:null,worker:null,boardingPromise:null};
+ const f={plane,label,size,from,startedAt:performance.now(),phase:"takeoff",animation:null,frameVersion:0,fallbackFrame:null,resolveLanding:null,worker:null,boardingPromise:null,attentionTimer:null};
  activePilotFlight=f;
  plane.style.transform=pilotMotion.transform({x:from.x,y:from.y,angle:-12,scale:.77});
  if(window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches){
@@ -6409,6 +6413,7 @@ function setPilotFlightPhase(message){
  if(activePilotFlight?.label?.isConnected)activePilotFlight.label.textContent=message;
 }
 function pilotDestroyFlight(f){
+ if(f.attentionTimer!==null){clearTimeout(f.attentionTimer);f.attentionTimer=null}
  if(f.animation)try{f.animation.cancel()}catch{}
  if(f.fallbackFrame!==null&&f.fallbackFrame!==undefined)cancelAnimationFrame(f.fallbackFrame);
  f.worker?.remove();f.worker=null;f.boardingPromise=null;f.plane?.remove();f.label?.remove();
@@ -6669,7 +6674,7 @@ function pilotFlyingFromCurrentWork(){
 }
 function pilotEnsureContinuousFlight(goalId){
  if(!goalId||goals[0]?.id!==goalId||pilotFlightPreviewRunning)return;
- if(activePilotFlight?.phase==="parked"||activePilotFlight?.phase==="boarding")void pilotAvatarReboard(goalId);
+ if(["parked","boarding","returning"].includes(activePilotFlight?.phase))void pilotAvatarReboard(goalId);
  if(!activePilotFlight?.plane?.isConnected){
    const origin=pilotFlyingFromCurrentWork();
    if(origin)startPilotFlight(origin);
@@ -6718,6 +6723,53 @@ function pilotPositionWorker(worker,plane){
  worker.style.setProperty("--worker-to-plane-y",Math.round(r.top+r.height*.5-top-45)+"px");
  worker.classList.toggle("pilot-worker--left",!fitsRight&&fitsLeft);
 }
+/* Once the short, visible avatar cue has been delivered, return the one aircraft
+   to its original station. The review stays pending; this is NOT an approval. */
+function pilotAttentionStation(f){
+ const core=[...document.querySelectorAll(".pilot-focus-entry .pilot-machine-core")]
+   .find(el=>{const r=el.getBoundingClientRect();return r.width>0&&r.height>0&&r.top>=0&&r.bottom<window.innerHeight});
+ if(core){
+   const r=core.getBoundingClientRect();
+   return {x:r.left+r.width/2-f.size/2,y:r.top+r.height/2-f.size/2,hasHero:true};
+ }
+ return {x:window.innerWidth/2-f.size/2,
+   y:Math.min(150,Math.max(86,window.innerHeight*.145)),hasHero:false};
+}
+async function pilotAttentionRecall(f){
+ if(activePilotFlight!==f||f.phase!=="parked"||!f.plane?.isConnected)return;
+ if(f.attentionTimer!==null){clearTimeout(f.attentionTimer);f.attentionTimer=null}
+ f.phase="returning";
+ const reduced=!!window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+ if(f.worker?.isConnected){
+   f.worker.classList.remove("pilot-worker--patrol","pilot-worker--exit");
+   f.worker.classList.add("pilot-worker--boarding");
+ }
+ if(!reduced)await pilotWait(460);
+ if(activePilotFlight!==f||f.phase!=="returning"||!f.plane?.isConnected)return;
+ f.worker?.remove();f.worker=null;
+ const station=pilotAttentionStation(f),origin=pilotRenderedPosition(f);
+ const place={x:station.x,y:station.y,angle:0,scale:1,opacity:station.hasHero?0:1};
+ const settle=()=>{
+   if(activePilotFlight!==f||f.phase!=="returning")return;
+   f.phase="parked";
+   f.from={x:station.x,y:station.y};
+   setPilotFlightPhase("✈ Pilot wartet auf deine Handlung");
+ };
+ if(reduced){
+   f.animation?.cancel?.();
+   f.plane.style.transform=pilotMotion.transform(place);
+   f.plane.style.opacity=String(place.opacity);
+   settle();
+   return;
+ }
+ const frames=pilotMotion.curveFrames(t=>{
+   const p=pilotMotion.ease(t);
+   return {x:origin.x+(station.x-origin.x)*p,y:origin.y+(station.y-origin.y)*p,
+     angle:-7*(1-p),scale:.77+.23*p,
+     opacity:station.hasHero?1-p:1};
+ },72);
+ pilotTrack(f,frames,1050,1,settle);
+}
 function pilotAvatarDisembark(f,message="Hier ist deine Handlung erforderlich."){
  if(!f||activePilotFlight!==f||f.phase!=="parked"||!f.plane?.isConnected)return;
  if(f.worker?.isConnected){
@@ -6756,6 +6808,12 @@ function pilotAvatarDisembark(f,message="Hier ist deine Handlung erforderlich.")
    };
    worker.addEventListener("animationend",arrived);
  }
+ // The user sees the instruction before the avatar exits. Only one timer per flight.
+ if(f.attentionTimer!==null)clearTimeout(f.attentionTimer);
+ f.attentionTimer=setTimeout(()=>{
+   f.attentionTimer=null;
+   if(activePilotFlight===f&&f.phase==="parked")void pilotAttentionRecall(f);
+ },3200);
 }
 function pilotRefreshParkedAvatar(){
  const f=activePilotFlight;
@@ -6766,9 +6824,10 @@ window.addEventListener("resize",pilotRefreshParkedAvatar,{passive:true});
 window.visualViewport?.addEventListener?.("resize",pilotRefreshParkedAvatar,{passive:true});
 async function pilotAvatarReboard(goalId){
  const f=activePilotFlight;
- if(!f?.plane?.isConnected||(f.phase!=="parked"&&f.phase!=="boarding")||
+ if(!f?.plane?.isConnected||!["parked","boarding","returning"].includes(f.phase)||
    (goalId&&pilotFlightState.goalId&&pilotFlightState.goalId!==goalId))return;
  if(f.boardingPromise)return f.boardingPromise;
+ if(f.attentionTimer!==null){clearTimeout(f.attentionTimer);f.attentionTimer=null}
  f.phase="boarding"; // Only one boarding sequence for this flight.
  f.boardingPromise=(async()=>{
    const reduced=!!window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
@@ -6814,7 +6873,7 @@ async function pilotLandAtAttention(goalId,message){
    pilotAvatarDisembark(activePilotFlight,message||"Hier ist deine Handlung erforderlich.");
    return;
  }
- if(activePilotFlight?.phase==="landing"||activePilotFlight?.phase==="boarding")return;
+ if(["landing","boarding","returning"].includes(activePilotFlight?.phase))return;
  if(activePilotFlight?.plane?.isConnected&&target)
    await landPilotAtNextAction({scroll:false,minCruise:350,keepLanded:true,targetElement:target,
      landingMessage:message||"Hier ist deine Handlung erforderlich."});
