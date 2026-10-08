@@ -18,6 +18,7 @@ assert.equal(productShoppingIntent("Welches Notebook soll ich kaufen?")?.key,"la
 assert.equal(productShoppingIntent("Erstelle ein Logo für meine Smartphone-Firma"),null);
 assert.equal(productShoppingIntent("Erstelle mir einen Businessplan für Smartphonehandel"),null);
 assert.equal(shoppingPreferences("Bis 700 €, Android, gute Kamera").budget,700,"German EUR sign budget");
+assert.equal(shoppingPreferences("800, Android, Akku").budget,800,"Budget understood without repeating Euro unit");
 assert.equal(shoppingPreferences("Maximal 900 Euro für iOS").platform,"iOS");
 assert(needsShoppingClarification("Was ist das beste Smartphone?"));
 assert(!needsShoppingClarification("Das beste Smartphone bis 850 €"));
