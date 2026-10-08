@@ -24,7 +24,7 @@ api.set({...common,offers:[{name:"<img src=x onerror=alert(1)>",merchant:"Test &
 const affiliate=api.view();
 assert(!affiliate.includes('id="pilotMarketFeedForm"'),"Customer page does not expose partner management");
 const adminApi=new Function("URL","esc","sb","render","effectiveAdmin",script.slice(i,j)+
- '\\nreturn {view:pilotMarketView};')(URL,esc,{},()=>{},()=>true);
+ '\nreturn {view:pilotMarketView};')(URL,esc,{},()=>{},()=>true);
 assert(adminApi.view().includes('id="pilotMarketFeedForm"'),"Only admins receive the file-import UI");
 assert(affiliate.includes("103,00"),"Known total displayed");
 assert(affiliate.includes('rel="sponsored noopener noreferrer"'),"Affiliate disclosure in link");
