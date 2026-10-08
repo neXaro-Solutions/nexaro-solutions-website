@@ -4067,11 +4067,7 @@ async function createGoal(){
       }
     });
     render();
-    const arrival=document.getElementById("pilotNextActionPanel");
-    if(arrival&&arrival.querySelector(".command-card")&&activePilotFlight){
-      arrival.classList.add("pilot-arrival-pending");
-      await landPilotAtNextAction({scroll:true,minCruise:1800});
-    }
+    pilotEnsureContinuousFlight(targetGoal.id);
     void startGoalResearch(targetGoal.id);
     // The initial start click must also execute the first actionable step.
     // Never execute a step from a different goal when continuing prior work.
@@ -4093,7 +4089,8 @@ async function createGoal(){
     btn.textContent="✈ Pilot jetzt starten";
     btn.classList.remove("launching");
   }finally{
-    finishPilotFlight();
+    if(!pilotAutoSession?.active && pilotFlightState.mode!=="attention" &&
+       pilotFlightState.mode!=="flying")finishPilotFlight();
     if(btn.isConnected){btn.classList.remove("launching");btn.disabled=false;if(btn.textContent==="✈ Pilot startet …")btn.textContent="✈ Pilot jetzt starten →";}
   }
 }
@@ -4448,8 +4445,12 @@ async function pilotLandAtAttention(goalId,message){
 function pilotEndContinuousFlight(goalId,message){
  if(pilotFlightState.goalId&&goalId!==pilotFlightState.goalId)return;
  pilotSetFlightState(goalId,"finished",message||"Der sichere Arbeitsabschnitt ist beendet");
- setPilotFlightPhase("✈ Pilot hat diesen Arbeitsabschnitt beendet");
- finishPilotFlight();
+ setPilotFlightPhase("✈ "+(message||"Arbeitsabschnitt abgeschlossen"));
+ const panel=document.getElementById("pilotNextActionPanel");
+ if(activePilotFlight?.plane?.isConnected&&panel)
+   void landPilotAtNextAction({scroll:false,minCruise:0,keepLanded:false,
+     targetElement:panel,landingMessage:"✈ "+(message||"Arbeitsabschnitt abgeschlossen")});
+ else finishPilotFlight();
 }
 async function pilotContinueSafely(goalId,maxSteps=32){
  if(!goalId||pilotAutoSession?.active)return;
@@ -4552,11 +4553,7 @@ async function confirmPilotResult(){
    if(response.data?.status!=="completed")throw new Error("Die Bestätigung ist noch nicht abgeschlossen.");
    await load();
    render();
-   const target=document.getElementById("pilotNextActionPanel");
-   if(target?.querySelector(".command-card")&&activePilotFlight)
-     await landPilotAtNextAction({scroll:true,minCruise:1700});
-   // Land the aircraft for the completed user decision; continue follow-up jobs independently.
-   finishPilotFlight();
+   pilotEnsureContinuousFlight(ctx.ex.goal_id);
    PS.textContent="Pilot startet die nächsten sicheren Schritte …";
    void pilotContinueSafely(ctx.ex.goal_id,32);
  }catch(e){
@@ -4565,7 +4562,11 @@ async function confirmPilotResult(){
    render();
    await telemetry("incident",{goal_id:ctx.ex.goal_id,source:"execution_confirmation",severity:"error",error_code:"CONFIRMATION_FAILED",message:String(e.message||e)});
    pilotNotice(String(e.message||e),"error");
- }finally{finishPilotFlight();if(btn?.isConnected)btn.disabled=false}
+ }finally{
+   if(!pilotAutoSession?.active && pilotFlightState.mode!=="flying"&&
+     pilotFlightState.mode!=="attention")finishPilotFlight();
+   if(btn?.isConnected)btn.disabled=false
+ }
 }
 /* LUMEN LIVE EXECUTION — real execution_steps, not artificial percent animations. */
 let pilotExecutionRequestActive=false;
@@ -4751,19 +4752,18 @@ async function executeAction(){
    await load();render();
    const shouldAutoContinue=r.data?.status==="completed";
    watcher?.stop();
-   const target=document.getElementById("pilotNextActionPanel");
-   if(target?.querySelector(".command-card")&&activePilotFlight)await landPilotAtNextAction({scroll:true,minCruise:1700});
    const status=r.data?.status;
-   PS.textContent=status==="waiting_approval"?"Freigabe erforderlich":status==="review_required"?"Pilot wartet auf deine Prüfung":"Pilot bereit";
-   if(status==="review_required"&&r.data?.execution_id){
-     if(pilotReviewContext())PS.textContent="Bitte prüfe den Vorschlag in der Zentrale";
-     else pilotNotice("Pilot hat ein Ergebnis erstellt, das vor der weiteren Bearbeitung geprüft werden muss.");
-   }
-   if(status==="waiting_approval")pilotNotice("Pilot hat die externe Aktion vorbereitet. Sie wartet auf deine ausdrückliche Freigabe.");
+   const goalId=n.goal_id||goals[0]?.id;
    if(shouldAutoContinue){
-     finishPilotFlight();
+     pilotEnsureContinuousFlight(goalId);
      PS.textContent="Pilot führt die nächsten sicheren Schritte selbstständig aus …";
-     void pilotContinueSafely(n.goal_id||goals[0]?.id,32);
+     void pilotContinueSafely(goalId,32);
+   }else if(status==="review_required"||status==="waiting_approval"){
+     PS.textContent="Hier ist deine Handlung erforderlich";
+     void pilotLandAtAttention(goalId,"Hier ist deine Handlung erforderlich");
+   }else{
+     pilotEndContinuousFlight(goalId,"Der sichere Arbeitsabschnitt wurde angehalten.");
+     PS.textContent="Pilot wartet auf den nächsten Schritt";
    }
  }catch(e){
    PS.textContent="Pilot benötigt eine Prüfung";
@@ -4773,7 +4773,7 @@ async function executeAction(){
  }finally{
    watcher?.stop();
    pilotExecutionRequestActive=false;
-   finishPilotFlight();
+   if(!pilotAutoSession?.active&&pilotFlightState.mode!=="flying"&&pilotFlightState.mode!=="attention")finishPilotFlight();
    setTimeout(()=>{
      btn?.classList.remove("launching");
      if(btn?.isConnected)btn.disabled=false;
@@ -4782,7 +4782,13 @@ async function executeAction(){
  }
 }
 async function decideExecution(v,approved){const [execution_id,step_id]=v.split(":");const reason=approved?null:await pilotAskText("Warum möchtest du diese Aktion ablehnen?",{title:"Freigabe ablehnen",placeholder:"Optionaler Grund …"});if(!approved&&reason===null)return;PS.textContent=approved?"Freigabe wird verarbeitet …":"Aktion wird abgebrochen …";try{const r=await sb.functions.invoke("execution-engine",{body:{operation:"approve",execution_id,step_id,approved,reason}});if(r.error&&r.data?.status!=="blocked")throw r.error;await load();render();PS.textContent="Pilot bereit";if(r.data?.status==="blocked")pilotNotice("Freigabe wurde erfasst. Die externe Capability ist noch nicht verbunden; Pilot hat deshalb nicht ausgeführt.")}catch(e){PS.textContent="Pilot bereit";pilotNotice(e.message||String(e))}}
-async function enter(session){user=session.user;try{activeGoalId=localStorage.getItem("nexaro_pilot_goal_"+user.id)||null}catch{}A.classList.add("hidden");APP.classList.remove("hidden");try{await load();await pilotEnsureJourney();render();if(goals[0]){void startGoalResearch(goals[0].id);void pilotResumeApprovedWork()}telemetry("event",{event_name:"session_entered",event_category:"activation",properties:{has_goal:!!goals[0]}})}catch(e){telemetry("incident",{source:"app_load",severity:"error",error_code:"LOAD_FAILED",message:e.message||String(e)});pilotNotice(e.message)}}
+async function enter(session){user=session.user;try{activeGoalId=localStorage.getItem("nexaro_pilot_goal_"+user.id)||null}catch{}A.classList.add("hidden");APP.classList.remove("hidden");try{await load();await pilotEnsureJourney();render();if(goals[0]){
+   void startGoalResearch(goals[0].id);
+   void pilotResumeApprovedWork();
+   if(!pilotAutoRunKey(goals[0].id)||!(pilotReviewContext()||
+     actions.find(a=>a.status==="ready"&&(a.owner_type==="joint"||a.recommended_mode==="together")))){}
+   else void pilotLandAtAttention(goals[0].id,"Hier ist deine Handlung erforderlich");
+  }telemetry("event",{event_name:"session_entered",event_category:"activation",properties:{has_goal:!!goals[0]}})}catch(e){telemetry("incident",{source:"app_load",severity:"error",error_code:"LOAD_FAILED",message:e.message||String(e)});pilotNotice(e.message)}}
 async function leave(){user=null;org=null;isAdmin=false;customerPreview=false;adminData=null;pendingAttachments=[];goalSuccessMap={};goals=[];features=[];plans=[];actions=[];contexts=[];milestones=[];documents=[];results=[];claims=[];evidence=[];completeness=[];progressEvents=[];outcomes=[];adaptations=[];pilotState=null;aiRequests=[];qualityContracts=[];consensusRuns=[];executions=[];executionSteps=[];designJobs=[];canvaStatus=null;researchBusy=false;researchAttempted.clear();notifications=[];readiness=[];evalRuns=[];APP.classList.add("hidden");A.classList.remove("hidden")}
 let authMode="login";
 const AUTHM=document.getElementById("authModal"),ME=document.getElementById("modalEmail"),MP=document.getElementById("modalPassword"),MP2=document.getElementById("modalPassword2"),MW=document.getElementById("repeatPasswordWrap"),PW=document.getElementById("privacyWrap"),AP=document.getElementById("acceptPrivacy"),SM=document.getElementById("submitAuth"),SW=document.getElementById("switchAuthMode"),RC=document.getElementById("resendConfirmation"),MM=document.getElementById("modalMessage"),CS=document.getElementById("confirmationState"),CE=document.getElementById("confirmationEmail"),CR=document.getElementById("confirmationResend"),CL=document.getElementById("confirmationLogin");
