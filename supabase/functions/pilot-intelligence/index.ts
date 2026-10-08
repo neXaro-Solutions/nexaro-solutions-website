@@ -1,0 +1,562 @@
+
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "npm:@supabase/supabase-js@2";
+
+type Intent = {
+  objective:string; desiredOutcome:string; constraints:string[]; budget:string|null; timeframe:string|null;
+  domain:{primary:string;secondary:string[];confidence:"low"|"medium"|"high"};
+  unknowns:string[]; confidence:"low"|"medium"|"high";
+};
+
+const cors={"content-type":"application/json","cache-control":"no-store"};
+
+function domainOf(input:string){
+  const t=input.toLowerCase();
+  const rules:[string,string[]][]=[
+    ["medical_documentation",["medizin","patient","gutachten","befund","arzt","medical","clinical"]],
+    ["marketing",["marketing","kampagne","seo","content","leads","ads","social media"]],
+    ["business",["business","unternehmen","kunden","kunde","startup","saas","angebot","umsatz","consulting","firma","betrieb","gründen","gruenden","gründung","selbstständig","gewerbe"]],
+    ["career",["bewerbung","karriere","lebenslauf","job","career","cv"]],
+    ["document_work",["dokument","bericht","vertrag","pdf","document","report","contract"]]
+  ];
+  const hits=rules.filter(([,words])=>words.some(w=>t.includes(w))).map(([d])=>d);
+  const primary=hits[0]||"general";
+  const secondary=hits.filter(x=>x!==primary);
+  return {primary,secondary,confidence:(hits.length?"high":"medium") as "high"|"medium"};
+}
+function intentOf(input:string):Intent{
+  const money=input.match(/(\d[\d., ]*)\s?(€|eur|euro|\$|usd|£|gbp)/i)?.[0]||null;
+  const timeframe=input.match(/(\d+)\s*(tag|tage|woche|wochen|monat|monate|jahr|jahre|day|days|week|weeks|month|months|year|years)/i)?.[0]||null;
+  const constraints:string[]=[];
+  if(/wenig geld|wenig budget|kleines budget|low budget|limited budget/i.test(input)) constraints.push("low_budget");
+  if(/nebenberuf|nebenbei|part.?time/i.test(input)) constraints.push("limited_time");
+  const domain=domainOf(input);
+  const unknowns:string[]=[];
+  if(input.trim().length<28) unknowns.push("desired_outcome_detail");
+  if(!money && /business|unternehmen|marketing|produkt|startup|saas|angebot|kampagne/i.test(input)) unknowns.push("budget_nonblocking");
+  return {objective:input.trim().slice(0,400),desiredOutcome:input.trim(),constraints,budget:money,timeframe,domain,unknowns,confidence:input.length>70?"high":input.length>25?"medium":"low"};
+}
+// Branchenerkennung bleibt in der gemeinsamen Auftragsintelligenz; kein separater Spezialmodus.
+function industryOf(input:string){
+  const t=String(input||"").normalize("NFKC").toLowerCase();
+  if(/garten.{0,35}landschaft|landschaft.{0,35}garten|(?:^|[^a-z])(?:gartenbau|landschaftsbau|galabau|gala[-\s]?bau|gartenpflege)(?:$|[^a-z])/i.test(t)){
+    return {key:"garden_landscaping",label:"Garten- und Landschaftsbau"};
+  }
+  return null;
+}
+function clarification(intent:Intent){
+  const qs:any[]=[];
+  const request=String(intent.objective||"");
+  const industry=industryOf(request);
+  const genericBusiness=/\b(unternehmen|business|firma|startup|geschäft|selbstständig|selbststaendig)\b/i.test(request);
+  const specificIdea=/\b(agentur|onlineshop|online.shop|restaurant|gastronomie|handel|software|saas|app|beratung|handwerk|reinigung|marketing|pflege|dienstleistung|produkt|service|shop|verkaufen|verkauf|für|im bereich|als|garten|landschaft|galabau|bauunternehmen|friseur|elektro|immobilien)\b/i.test(request);
+  if(intent.domain.primary==="business" && industry?.key==="garden_landscaping"){
+    // Recognized industry is sufficient to start; unknown details are nonblocking.
+  }else if(intent.domain.primary==="business" && genericBusiness && !specificIdea){
+    qs.push({key:"business_idea",priority:"critical",required:true,
+      question_de:"Was für ein Unternehmen möchtest du aufbauen?",
+      question_en:"What kind of business do you want to build?",
+      hint_de:"Beschreibe die Geschäftsidee oder Branche kurz. Zielgruppe und Details kannst du später ergänzen.",
+      placeholder_de:"z. B. Eine Agentur, die kleinen Unternehmen beim Online-Auftritt hilft."});
+  }else if(intent.unknowns.includes("desired_outcome_detail")){
+    qs.push({key:"outcome",priority:"critical",required:true,
+      question_de:"Was möchtest du konkret erreichen?",
+      question_en:"What outcome would you like to achieve?",
+      hint_de:"Eine kurze Beschreibung reicht. Pilot präzisiert den Rest mit dir.",
+      placeholder_de:"Beschreibe das gewünschte Ergebnis …"});
+  }
+  // Kein Budget vor der Branchen-/Leistungsklärung. Nur die tatsächlich relevanten Rückfragen.
+  return qs.filter(q=>q.required===true).slice(0,1);
+}
+function reality(intent:Intent, outcome:string){
+  const t=(intent.objective+" "+outcome).toLowerCase(); const risks:string[]=[]; let feasibility="realistic";
+  if(/1\s*mio|million|millionen|global/.test(t)&&/(30 tag|2 woch|ohne kapital|ohne budget|without capital)/.test(t)){feasibility="high_risk";risks.push("Ziel und verfügbare Zeit/Ressourcen stehen wahrscheinlich nicht im realistischen Verhältnis.");}
+  if(intent.constraints.includes("low_budget")) risks.push("Budget ist ein zentraler Constraint; frühe Validierung hat Vorrang vor größerem Entwicklungsaufwand.");
+  return {feasibility,main_risks:risks,main_bottleneck:risks[0]||null,recommended_adjustments:feasibility==="high_risk"?["Ziel zunächst auf eine validierbare erste Stufe reduzieren."]:[]};
+}
+const plans:Record<string,string[]>={
+  business:["Ziel und Markt schärfen","Angebot und Zielgruppe validieren","Ersten Vertriebskanal testen","Ergebnisse messen und optimieren"],
+  marketing:["Zielgruppe und Botschaft festlegen","Kanal und Kampagne vorbereiten","Kleine Testkampagne durchführen","Performance auswerten und optimieren"],
+  medical_documentation:["Unterlagen erfassen und strukturieren","Quellen und Konflikte prüfen","Entwurf erstellen","Fachliche Prüfung und Freigabe"],
+  document_work:["Unterlagen erfassen","Relevante Fakten und Quellen extrahieren","Konflikte und Vollständigkeit prüfen","Ergebnis erstellen und validieren"],
+  career:["Zielrolle definieren","Profil und Unterlagen schärfen","Bewerbungsstrategie erstellen","Feedback auswerten und verbessern"],
+  general:["Ziel präzisieren","Grundlage erstellen","Ergebnis testen","Auswertung und Optimierung"]
+};
+function firstAction(domain:string){
+  return ({business:"Zielgruppe und konkreten Kundennutzen in einem Satz festlegen",marketing:"Zielgruppe, gewünschte Handlung und Kernbotschaft festlegen",medical_documentation:"Vorliegende Unterlagen vollständig erfassen und Quellenstatus prüfen",document_work:"Unterlagen nach Relevanz, Version und Quelle strukturieren",career:"Zielrolle und wichtigste Auswahlkriterien festlegen",general:"Gewünschtes Ergebnis in ein überprüfbares Erfolgskriterium übersetzen"} as Record<string,string>)[domain]||"Nächstes Erfolgskriterium festlegen";
+}
+
+
+/* Permanent execution scope: anticipate essential deliverables before work starts. */
+function buildExecutionContract(intent:Intent,goal:string){
+ const startup=intent.domain.primary==="business"&&/gründ|gruend|selbstst|firma|unternehmen|startup/i.test(goal);
+ const visual=/logo|marke|branding|website|webseite|design|flyer/i.test(goal);
+ const m=(key:string,title:string,proof:string,kind="draft")=>({key,title,proof,kind});
+ const deliverables=startup?[
+ m("model","Geschäftsmodell und Zielgruppe","Konkretes Konzept mit klarer Zielgruppe"),
+ m("market","Marktanalyse","Echte Belege vorhanden oder Unsicherheiten offengelegt"),
+ m("plan","Businessplan","Nutzbares, zusammenhängendes Dokument erstellt"),
+ m("finance","Finanzplanung","Startkapital und Liquidität berechnet; offene Preise gekennzeichnet"),
+ m("branding","Logo und Markenauftritt","Nutzbare Grafik wirklich erstellt; Konzept allein genügt nicht","asset"),
+ m("website","Onlineauftritt und Kundengewinnung","Konkrete einsatzfähige Materialien"),
+ m("registration","Rechtsform und amtliche Anmeldungen","Wahl bestätigt, offizielle Registrierung belegbar","external_proof"),
+ m("ready","Betriebsbereitschaft","Pflichten und Voraussetzungen tatsächlich nachgewiesen","external_proof")
+ ]:visual?[
+ m("brief","Gestaltungsziel und Spezifikation","Zweck und Einsatzformat erkannt"),
+ m("file","Fertige Design-Datei","Eine nutzbare Datei liegt wirklich vor","asset"),
+ m("quality","Qualität und Übergabe","Ergebnis geprüft und übergeben")
+ ]:intent.domain.primary==="document_work"?[
+ m("source","Grundlagen","Vorhandene Unterlagen erfasst"),
+ m("deliver","Dokument","Vollständiges verwendbares Dokument"),
+ m("validate","Prüfung","Wesentliche Aussagen verifiziert oder offen")
+ ]:intent.domain.primary==="career"?[
+ m("role","Zielrolle","Stellenanforderungen und Profil erfasst"),
+ m("application","Bewerbung","Nutzbare Unterlagen fertiggestellt"),
+ m("review","Freigabe","Aussagen geprüft, Versand getrennt freigegeben")
+ ]:intent.domain.primary==="marketing"?[
+ m("target","Marketingziel","Zielgruppe und Metrik definiert"),
+ m("assets","Werbemittel","Nutzbare Texte oder Grafiken erstellt"),
+ m("approval","Veröffentlichung und Wirkung","Externe Maßnahmen nur mit Freigabe; Messung vorbereitet")
+ ]:[
+ m("goal","Ergebnis verstehen","Lieferobjekt und Erfolgskriterien definiert"),
+ m("deliver","Ergebnis erstellen","Konkretes nutzbares Ergebnis statt Ratschlägen"),
+ m("verify","Ergebnis prüfen","Qualität, Abhängigkeiten und offene Punkte erkannt")
+ ];
+ return {version:2,goal:goal.slice(0,1200),scope:startup?"business_startup":visual?"visual_asset":intent.domain.primary,
+   deliverables,industry:industryOf(goal)?.key||null,
+   missing_but_nonblocking:startup&&!intent.budget?["Startbudget unbekannt: Rechenfelder statt erfundener Beträge nutzen."]:[],
+   instruction:"Erkenne sämtliche elementaren Teilziele selbstständig und ordne sie diesem Auftrag zu. Nutze vorherige bestätigte Entscheidungen. Fehlende nichtkritische Angaben als Platzhalter kennzeichnen. Reale externe Handlungen und rechtlich/finanziell wichtige Entscheidungen brauchen Zustimmung und Belege.",
+   done_rule:"100 Prozent Arbeitsplan ist nicht gleich Ziel erreicht. Echtes Ergebnis muss nutzbar sein und externe Gründungsnachweise erfordern überprüfbare Registrierung.",
+   view:"Eingabe, knapper Stand, klares Ergebnis."
+ };
+}
+
+/* Give every new order a readable persistent name. The database stores its created_at time. */
+function projectNameFromRequest(input:string,businessIdea:string,intent:Intent){
+ const original=String(input||"").trim();
+ const garden=industryOf(original);
+ if(garden?.key==="garden_landscaping"&&/gründ|gruend|selbstst|aufbau|aufbauen|start/i.test(original))
+   return "Garten- und Landschaftsbau gründen";
+ if(businessIdea&&intent.domain.primary==="business"){
+   const idea=businessIdea.replace(/\s+/g," ").trim();
+   return ("Unternehmen gründen: "+idea).slice(0,95);
+ }
+ let name=original.split(/[\n.!?]/)[0].trim()
+   .replace(/^(bitte\s+)?(ich möchte|ich will|ich würde gerne|ich brauche|hilf mir dabei[,]?\s*|kannst du mir|erstelle mir|mach mir|bitte erstelle|erstelle)\s+/i,"")
+   .replace(/^(gerne|mir|dabei[,]?\s*)\s+/i,"")
+   .replace(/^(ein|eine|einen)\s+(?=unternehmen|firma|business|logo|website|webseite)/i,"")
+   .replace(/\s+/g," ").trim();
+ if(!name)name=intent.domain.primary==="business"?"Neuer Unternehmensauftrag":"Neuer Auftrag";
+ return name.charAt(0).toLocaleUpperCase("de-DE")+name.slice(1,95);
+}
+
+function tokenSet(s:string){
+  return new Set(String(s||"").toLowerCase().replace(/[^a-z0-9äöüß ]/g," ").split(/\s+/).filter(x=>x.length>3));
+}
+function overlapScore(a:string,b:string){
+  const A=tokenSet(a),B=tokenSet(b); if(!A.size||!B.size)return 0;
+  let hit=0; for(const x of A) if(B.has(x)) hit++;
+  return hit/Math.max(1,Math.min(A.size,B.size));
+}
+
+async function saveGoalMemory(sb:any,goal:any,ownerId:string,item:any){
+  const type=String(item?.type||"note");
+  if(!["goal_brief","decision","preference","constraint","fact","followup","result","note"].includes(type)) return {error:"unsupported_memory_type"};
+  const key=String(item?.key||"").trim().slice(0,120);
+  if(!key) return {error:"memory_key_required"};
+  let content=item?.content;
+  if(typeof content==="string")content={text:content.slice(0,5000)};
+  if(!content || typeof content!=="object" || JSON.stringify(content).length>12000) return {error:"invalid_memory_content"};
+  const payload={
+    goal_id:goal.id,organization_id:goal.organization_id,owner_id:ownerId,
+    memory_key:key,memory_type:type,content,
+    source_type:String(item?.source||"pilot").slice(0,60),
+    source_ref:item?.source_ref?String(item.source_ref).slice(0,180):null,
+    confidence:["low","medium","high"].includes(item?.confidence)?item.confidence:"high",
+    importance:Math.max(1,Math.min(5,Number(item?.importance)||3)),
+    active:true,updated_at:new Date().toISOString()
+  };
+  const {error}=await sb.from("goal_memories").upsert(payload,{onConflict:"goal_id,memory_key"});
+  return error?{error:error.message}:{saved:true};
+}
+async function saveMemoryUpdates(sb:any,goal:any,ownerId:string,updates:any){
+  if(!Array.isArray(updates))return {saved:0,errors:[]};
+  const errors:string[]=[];let saved=0;
+  for(const [i,item] of updates.slice(0,12).entries()){
+    const r=await saveGoalMemory(sb,goal,ownerId,{...item,key:item?.key||"user_note_"+i,source:"user_input"});
+    if(r.error)errors.push(r.error);else saved++;
+  }
+  return {saved,errors};
+}
+async function resolveGoalContinuity(sb:any,base:string,pub:string,auth:string,userId:string,input:string,intent:Intent,body:any){
+  if(body.force_new_goal===true) return {decision:"new",confidence:"high",reason:"user_forced_new_goal"};
+  if(/\b(neues? (unternehmen|business|projekt|ziel)|andere firma|neue firma|unabhängiges projekt)\b/i.test(input))
+    return {decision:"new",confidence:"high",reason:"explicit_new_project"};
+  if(body.existing_goal_id) return {decision:"existing",confidence:"high",goal_id:String(body.existing_goal_id),reason:"user_selected_existing_goal"};
+
+  const gr=await sb.from("goals").select("id,title,description,desired_outcome,domain,status,created_at,updated_at").eq("owner_id",userId).in("status",["active","achieved"]).order("updated_at",{ascending:false}).limit(8);
+  if(gr.error||!gr.data?.length) return {decision:"new",confidence:"high",reason:"no_existing_goals"};
+  const candidates=gr.data;
+  const requestedIndustry=industryOf(input);
+  const isFoundingRequest=/\b(gründen|gruenden|gründe|gründe|gründung|aufbauen|eröffnen)\b/i.test(input);
+  if(requestedIndustry && isFoundingRequest){
+    const candidate=candidates.find((g:any)=>{
+      const previous=[g.title,g.description,g.desired_outcome].filter(Boolean).join(" ");
+      return ["business","marketing"].includes(g.domain?.primary) && !industryOf(previous);
+    });
+    if(candidate){
+      return {decision:"ask",confidence:"medium",goal_id:candidate.id,goal:candidate,
+        reason:"specific_industry_vs_existing_general_business_goal"};
+    }
+  }
+  const memoryRes=await sb.from("goal_memories")
+    .select("goal_id,memory_key,memory_type,content,importance")
+    .eq("owner_id",userId).in("goal_id",candidates.map((g:any)=>g.id))
+    .eq("active",true).order("importance",{ascending:false}).limit(120);
+  const candidateMemories=memoryRes.data||[];
+  const taskFollowup=/\b(logo|branding|webseite|website|landingpage|visitenkarte|flyer|anzeige|kampagne|rechnung|angebot|präsentation|design)\b/i.test(input);
+
+  const heuristic=candidates.map((g:any)=>{
+    const memoryText=candidateMemories.filter((m:any)=>m.goal_id===g.id)
+      .map((m:any)=>JSON.stringify(m.content).slice(0,600)).join(" ");
+    let score=overlapScore(input,[g.title,g.description,g.desired_outcome,memoryText].filter(Boolean).join(" "));
+    // Nur bei genau einem aktiven Unternehmensziel dürfen typische Folgeaufträge ohne Namensnennung automatisch zugeordnet werden.
+    if(candidates.length===1 && g.status==="active" && ["business","marketing"].includes(g.domain?.primary)
+       && taskFollowup && candidateMemories.some((m:any)=>m.goal_id===g.id && m.memory_type==="goal_brief"))
+      score=Math.max(score,0.66);
+    if(g.domain?.primary&&g.domain.primary===intent.domain.primary) score+=0.18;
+    if(g.status==="active") score+=0.12;
+    if(/logo|website|webseite|visitenkarte|branding|marke|flyer|angebot|vertrieb|marketing|kampagne|rechnung|landingpage|landing page/i.test(input)
+      && g.domain?.primary==="business") score+=0.24;
+    return {goal_id:g.id,score:Math.min(1,score),title:g.title};
+  }).sort((a:any,b:any)=>b.score-a.score);
+
+  let aiMatch:any=null;
+  try{
+    const rr=await fetch(base+"/functions/v1/ai-gateway",{method:"POST",headers:{"content-type":"application/json","apikey":pub,"authorization":auth},body:JSON.stringify({
+      task_type:"goal_match",
+      input:{
+        new_request:input,
+        interpreted_domain:intent.domain,
+        candidates:candidates.map((g:any)=>({id:g.id,title:g.title,description:g.description,desired_outcome:g.desired_outcome,domain:g.domain,status:g.status}))
+      },
+      quality_level:"high",sensitivity:"standard",
+      required_fields:["goal_id","confidence","relationship","reason"]
+    })});
+    if(rr.ok){const x=await rr.json();aiMatch=x.output||null}
+  }catch{}
+
+  const aiGoal=candidates.find((g:any)=>g.id===aiMatch?.goal_id);
+  const aiConfidence=String(aiMatch?.confidence||"").toLowerCase();
+  if(aiGoal && ["high","very_high"].includes(aiConfidence)){
+    return {decision:"existing",confidence:"high",goal_id:aiGoal.id,goal:aiGoal,reason:aiMatch?.reason||"semantic_match"};
+  }
+  if(aiGoal && ["medium","moderate"].includes(aiConfidence)){
+    return {decision:"ask",confidence:"medium",goal_id:aiGoal.id,goal:aiGoal,reason:aiMatch?.reason||"semantic_ambiguous"};
+  }
+
+  const top=heuristic[0];
+  const second=heuristic[1];
+  if(top?.score>=0.58 && (!second || top.score-second.score>=0.16)){
+    const goal=candidates.find((g:any)=>g.id===top.goal_id);
+    return {decision:"existing",confidence:"high",goal_id:top.goal_id,goal,reason:"heuristic_high_confidence",score:top.score};
+  }
+  if(top?.score>=0.30){
+    const goal=candidates.find((g:any)=>g.id===top.goal_id);
+    return {decision:"ask",confidence:"medium",goal_id:top.goal_id,goal,reason:"heuristic_ambiguous",score:top.score};
+  }
+  return {decision:"new",confidence:"high",reason:"no_meaningful_match"};
+}
+
+const pilotCorsHandler=async(req:Request)=>{
+  if(req.method==="OPTIONS") return new Response("ok",{headers:{...cors,"access-control-allow-origin":"*","access-control-allow-headers":"authorization, apikey, content-type"}});
+  if(req.method!=="POST") return Response.json({error:"method_not_allowed"},{status:405,headers:cors});
+  const auth=req.headers.get("Authorization")||"";
+  if(!auth.startsWith("Bearer ")) return Response.json({error:"auth_required"},{status:401,headers:cors});
+  const pubs=JSON.parse(Deno.env.get("SUPABASE_PUBLISHABLE_KEYS")||"{}");
+  const sb=createClient(Deno.env.get("SUPABASE_URL")!,pubs.default,{global:{headers:{Authorization:auth}},auth:{persistSession:false,autoRefreshToken:false}});
+  const token=auth.slice(7);
+  const u=await sb.auth.getUser(token);
+  if(u.error||!u.data.user) return Response.json({error:"invalid_session"},{status:401,headers:cors});
+  const user=u.data.user;
+  let body:any={}; try{body=await req.json()}catch{return Response.json({error:"invalid_json"},{status:400,headers:cors})}
+  const input=String(body.input||"").trim();
+  if(!input) return Response.json({error:"input_required"},{status:400,headers:cors});
+
+  const guardBase=Deno.env.get("SUPABASE_URL")!;
+  const guardPub=JSON.parse(Deno.env.get("SUPABASE_PUBLISHABLE_KEYS")||"{}").default;
+  const guard=await fetch(guardBase+"/functions/v1/safety-gate",{
+    method:"POST",headers:{"content-type":"application/json","apikey":guardPub,"authorization":auth},
+    body:JSON.stringify({phase:"input",text:JSON.stringify({input,intent:body.intent||null,answers:body.answers||null,memory_updates:body.memory_updates||null})})
+  }).catch(()=>null);
+  const verdict=await guard?.json().catch(()=>({allowed:false,reason_code:"safety_check_unavailable"}));
+  if(!guard?.ok||verdict?.allowed!==true)
+    return Response.json({error:guard?.status===403?"request_blocked_by_policy":"safety_check_unavailable",diagnostic_code:verdict?.diagnostic_code||null,reason_code:verdict?.reason_code||"safety_check_unavailable"},
+      {status:guard?.status===403?403:503,headers:cors});
+  let intent:Intent=body.intent||intentOf(input);
+  const base=Deno.env.get("SUPABASE_URL")!;
+  const pub=JSON.parse(Deno.env.get("SUPABASE_PUBLISHABLE_KEYS")||"{}").default;
+  let classifyTelemetry:any=null;
+  if(!body.intent){
+    try{
+      const rr=await fetch(base+"/functions/v1/ai-gateway",{method:"POST",headers:{"content-type":"application/json","apikey":pub,"authorization":auth},body:JSON.stringify({task_type:"classify",input:{text:input},quality_level:"fast",sensitivity:"standard",required_fields:["objective","domain","confidence"]})});
+      if(rr.ok){classifyTelemetry=await rr.json();const o=classifyTelemetry.output;if(intent.domain.primary==="general"&&["business","marketing","medical_documentation","career","document_work","general"].includes(o?.domain)){intent={...intent,domain:{...intent.domain,primary:o.domain,confidence:o.confidence||intent.domain.confidence}}}}
+    }catch{}
+  }
+
+  const continuity=await resolveGoalContinuity(sb,base,pub,auth,user.id,input,intent,body);
+  if(continuity.decision==="ask"){
+    return Response.json({
+      stage:"goal_resolution",
+      intent,
+      candidate_goal:{
+        id:continuity.goal_id,
+        title:continuity.goal?.title||"Bestehendes Ziel",
+        description:continuity.goal?.description||null,
+        desired_outcome:continuity.goal?.desired_outcome||null
+      },
+      question:"Geht es bei diesem Auftrag um dein bestehendes Ziel „"+(continuity.goal?.title||"Bestehendes Ziel")+"“ oder soll ein neues Ziel erstellt werden?"
+    },{headers:cors});
+  }
+  const foundingIndustry=industryOf(input)&&/\b(gründen|gruenden|gründe|gründung|aufbauen|eröffnen)\b/i.test(input);
+  // The existing goal already carries its brief and choices; never restart initial
+  // qualification solely because the follow-up also discusses founding.
+  const questions=continuity.decision==="existing"?[]:clarification(intent);
+  if(questions.length && !body.answers && !body.skip_clarification){
+    return Response.json({stage:"clarification",intent,questions},{headers:cors});
+  }
+  const answers=body.answers||{};
+  const businessIdea=String(answers.business_idea||"").trim().slice(0,1200);
+  const industry=industryOf(input);
+  const serviceOffer=industry?String(answers.services||"").trim().slice(0,1200):"";
+  const serviceArea=industry?String(answers.service_area||"").trim().slice(0,300):"";
+  const qualification=[businessIdea?"Geschäftsidee: "+businessIdea:null,serviceOffer?"Geplantes Leistungsangebot: "+serviceOffer:null,serviceArea?"Einsatzgebiet: "+serviceArea:null].filter(Boolean).join("\n");
+  const desiredOutcome=String(answers.outcome||(qualification?intent.desiredOutcome+"\n"+qualification:intent.desiredOutcome)).trim();
+  const budget=String(answers.budget||intent.budget||"").trim()||null;
+  const check=reality(intent,desiredOutcome);
+  const executionContract=buildExecutionContract(intent,desiredOutcome);
+
+  const membership=await sb.from("organization_members").select("organization_id").eq("user_id",user.id).eq("active",true).limit(1).single();
+  if(membership.error) return Response.json({error:"workspace_not_found",detail:membership.error.message},{status:409,headers:cors});
+  const orgId=membership.data.organization_id;
+  const title=projectNameFromRequest(input,businessIdea,intent);
+
+
+  if(continuity.decision==="existing" && continuity.goal_id){
+    const existingRes=await sb.from("goals").select("*").eq("id",continuity.goal_id).eq("owner_id",user.id).single();
+    if(existingRes.error) return Response.json({error:"existing_goal_not_found"},{status:404,headers:cors});
+    const existingGoal=existingRes.data;
+
+    const ctxRes=await sb.from("context_items").select("context_type,key,value,source_type,confidence,created_at").eq("goal_id",existingGoal.id).eq("active",true).order("created_at",{ascending:false}).limit(50);
+    const resultRes=await sb.from("results").select("id,title,result_type,content,structured_content,quality_status,created_at").eq("goal_id",existingGoal.id).order("created_at",{ascending:false}).limit(20);
+    const memoryRes=await sb.from("goal_memories").select("memory_key,memory_type,content,importance,confidence,source_type,source_ref,updated_at")
+      .eq("goal_id",existingGoal.id).eq("owner_id",user.id).eq("active",true)
+      .order("importance",{ascending:false}).order("updated_at",{ascending:false}).limit(80);
+    const docRes=await sb.from("documents").select("id,title,filename,mime_type,processing_status,metadata,created_at").eq("owner_id",user.id).order("created_at",{ascending:false}).limit(30);
+    const inheritedContext={
+      goal:{id:existingGoal.id,title:existingGoal.title,description:existingGoal.description,desired_outcome:existingGoal.desired_outcome,domain:existingGoal.domain},
+      context:ctxRes.data||[],
+      memories:memoryRes.data||[],
+      results:resultRes.data||[],
+      documents:(docRes.data||[]).filter((d:any)=>d.metadata?.goal_id===existingGoal.id)
+    };
+
+    const nextPlan=await sb.from("plans").select("*").eq("goal_id",existingGoal.id).order("version",{ascending:false}).limit(1);
+    const currentPlan=nextPlan.data?.[0]||null;
+    // Enqueue follow-ups after the existing work. A ready predecessor has priority,
+    // even if this follow-up could otherwise begin immediately.
+    const queue=await sb.from("actions").select("id,status,created_at")
+      .eq("goal_id",existingGoal.id).in("status",["ready","pending"])
+      .order("created_at",{ascending:true}).limit(1);
+    if(queue.error)return Response.json({error:"existing_work_queue_unavailable"},
+      {status:503,headers:cors});
+    const predecessor=queue.data?.[0]||null;
+    const followupStatus=predecessor?"pending":"ready";
+    let milestone:any=null;
+    if(currentPlan){
+      const mr=await sb.from("milestones").insert({
+        goal_id:existingGoal.id,plan_id:currentPlan.id,phase_key:"followup_"+Date.now(),
+        title:"Folgeauftrag abgeschlossen",desired_state:input,
+        success_condition:"Der Folgeauftrag ist überprüfbar abgeschlossen.",
+        status:"active",weight:1
+      }).select("*").single();
+      if(!mr.error) milestone=mr.data;
+    }
+
+    const ar=await sb.from("actions").insert({
+      goal_id:existingGoal.id,
+      plan_id:currentPlan?.id||null,
+      milestone_id:milestone?.id||null,
+      title:(input.split(/[.!?\n]/)[0]||"Folgeauftrag").slice(0,120),
+      objective:input,
+      status:followupStatus,
+      priority:"high",
+      owner_type:"pilot",
+      recommended_mode:"do_it",
+      blocking:false
+    }).select("*").single();
+    if(ar.error) return Response.json({error:"followup_action_create_failed",detail:ar.error.message},{status:500,headers:cors});
+
+    await sb.from("context_items").insert({
+      organization_id:orgId,goal_id:existingGoal.id,context_type:"followup_request",key:"followup_"+Date.now(),
+      value:{input,intent,qualification:industry?{industry_key:industry.key,industry_label:industry.label,services:serviceOffer||null,service_area:serviceArea||null}:null,inherited_context_summary:{context_items:inheritedContext.context.length,results:inheritedContext.results.length,documents:inheritedContext.documents.length}},
+      source_type:"user_input",scope:"goal",confidence:continuity.confidence||"high",active:true
+    });
+    const followupMemory=await saveGoalMemory(sb,existingGoal,user.id,{
+      key:"followup_"+ar.data.id,type:"followup",
+      content:{request:input,action_id:ar.data.id,linked_goal_id:existingGoal.id,industry:industry?.key||null,services:serviceOffer||null,service_area:serviceArea||null,related_scope:executionContract.scope},
+      source:"user_input",source_ref:ar.data.id,importance:4
+    });
+    const qualificationMemory=industry && serviceOffer ? await saveGoalMemory(sb,existingGoal,user.id,{
+      key:"industry_and_services",type:"fact",
+      content:{industry_key:industry.key,industry_label:industry.label,services:serviceOffer,service_area:serviceArea||null},
+      source:"user_input",source_ref:ar.data.id,importance:5
+    }):null;
+    const userMemories=await saveMemoryUpdates(sb,existingGoal,user.id,body.memory_updates);
+    // Keep the active Pilot state untouched: do not discard an ongoing review,
+    // change the existing industry avatar, or lower the stored risk assessment.
+    return Response.json({
+      stage:"ready",execution_contract:executionContract,
+      continuity:{mode:"existing_goal",goal_id:existingGoal.id,confidence:continuity.confidence,
+        reason:continuity.reason,queued_after_action_id:predecessor?.id||null},
+      intent,
+      goal:existingGoal,
+      inherited_context:inheritedContext,
+      memory_status:{followup_saved:!followupMemory.error,updates:userMemories,warning:followupMemory.error||null},
+      actions:[ar.data],
+      next_action:{...(predecessor||ar.data),
+        reason:predecessor?"Der Folgeauftrag ist vorgemerkt. Pilot beendet zuerst den bereits offenen Schritt.":
+          "Dieser Folgeauftrag gehört zum bestehenden Ziel und nutzt dessen bisherigen Kontext."}
+    },{headers:cors});
+  }
+
+  const profileRes=await sb.from("domain_profiles").select("*").eq("domain_key",intent.domain.primary).eq("active",true).single();
+  const profile=profileRes.data||{domain_key:intent.domain.primary,avatar_variant:"general",quality_rules:{},evidence_rules:{},safety_rules:{}};
+
+  const goalIns=await sb.from("goals").insert({
+    organization_id:orgId,owner_id:user.id,title,description:intent.objective,desired_outcome:desiredOutcome,
+    success_criteria:executionContract.deliverables.map(x=>({key:x.key,required:true,definition:x.proof,kind:x.kind})),constraints:intent.constraints,resources:[],domain:intent.domain,timeframe:intent.timeframe,budget,
+    status:"active",readiness:"ready_with_assumptions"
+  }).select("*").single();
+  if(goalIns.error) return Response.json({error:"goal_create_failed",detail:goalIns.error.message},{status:500,headers:cors});
+  const goal=goalIns.data;
+
+  const contextRows:any[]=[
+    {organization_id:orgId,goal_id:goal.id,context_type:"intent",key:"execution_brief",value:intent,source_type:"user_input",scope:"goal",confidence:intent.confidence,active:true},
+    {organization_id:orgId,goal_id:goal.id,context_type:"reality_check",key:"feasibility",value:check,source_type:"pilot",scope:"goal",confidence:"medium",active:true},
+     {organization_id:orgId,goal_id:goal.id,context_type:"execution_contract",key:"deliverables",value:executionContract,source_type:"pilot",scope:"goal",confidence:"medium",active:true},
+    {organization_id:orgId,goal_id:goal.id,context_type:"domain_profile",key:"active_profile",value:{domain_key:profile.domain_key,quality_rules:profile.quality_rules,evidence_rules:profile.evidence_rules,safety_rules:profile.safety_rules,avatar_variant:profile.avatar_variant,secondary_domains:intent.domain.secondary},source_type:"domain_intelligence",scope:"goal",confidence:intent.domain.confidence,active:true}
+  ];
+  if(industry){
+    contextRows.push({organization_id:orgId,goal_id:goal.id,context_type:"business_qualification",key:"industry_and_services",
+      value:{industry_key:industry.key,industry_label:industry.label,service_offer:serviceOffer||null,service_area:serviceArea||null},
+      source_type:"user_input",scope:"goal",confidence:"high",active:true});
+  }
+  const ctx=await sb.from("context_items").insert(contextRows);
+  if(ctx.error) return Response.json({error:"context_create_failed",detail:ctx.error.message},{status:500,headers:cors});
+  const initialMemory=await saveGoalMemory(sb,goal,user.id,{
+    key:"goal_brief",type:"goal_brief",
+    content:{objective:intent.objective,desired_outcome:desiredOutcome,domain:intent.domain,
+      industry:industry?.key||null,services:serviceOffer||null,service_area:serviceArea||null,
+      constraints:intent.constraints,budget,timeframe:intent.timeframe},
+    source:"user_input",source_ref:goal.id,importance:5
+  });
+  const contractMemory=await saveGoalMemory(sb,goal,user.id,{key:"execution_contract",type:"goal_brief",content:executionContract,source:"pilot",source_ref:goal.id,confidence:"medium",importance:5});
+   const initialUserMemories=await saveMemoryUpdates(sb,goal,user.id,body.memory_updates);
+
+  const ps=await sb.from("pilot_states").upsert({organization_id:orgId,user_id:user.id,goal_id:goal.id,domain_key:intent.domain.primary,work_state:"planning",attention_required:false,risk_level:profile?.safety_rules?.sensitivity==="sensitive"?"moderate":"low",avatar_variant:profile.avatar_variant||"general",message:"Pilot hat die Domain erkannt und plant den nächsten Schritt.",updated_at:new Date().toISOString()},{onConflict:"user_id,goal_id"}).select("*").single();
+  if(ps.error) return Response.json({error:"pilot_state_failed",detail:ps.error.message},{status:500,headers:cors});
+
+  const researchCue=/\b(aktuell|current|latest|markt|market|wettbewerb|competitor|preis|pricing|gesetz|law|regulation|trend|quelle|source|research|recherch|news|statistik|statistics|benchmark|anbieter|vergleich|compare)\b/i.test(input);
+  const researchAllowed=(profile?.safety_rules?.sensitivity||"standard")!=="sensitive";
+  let researchContext:any=null;
+  if(researchCue&&researchAllowed){
+    try{
+      const rq=await fetch(base+"/functions/v1/research-intelligence",{method:"POST",headers:{"content-type":"application/json","apikey":pub,"authorization":auth},body:JSON.stringify({
+        query:input,goal_id:goal.id,language:/\b(the|and|with|for|market|business|current)\b/i.test(input)?"en":"de",sources:["wikipedia","google_legacy"],limit:6
+      })});
+      if(rq.ok){
+        researchContext=await rq.json();
+        await sb.from("context_items").insert({
+          organization_id:orgId,goal_id:goal.id,context_type:"research",key:"public_evidence",
+          value:{answer:researchContext.answer,sources:researchContext.sources,uncertainties:researchContext.uncertainties,quality:researchContext.quality,result_id:researchContext.result?.id||null},
+          source_type:"research_intelligence",scope:"goal",confidence:researchContext.quality?.evidence_gate==="passed"?"high":"medium",active:true
+        });
+      }
+    }catch{}
+  }
+
+  const defaultPhaseNames=plans[intent.domain.primary]||plans.general;
+  const complexPlan=check.feasibility==="high_risk"||(intent.domain.secondary||[]).length>0||(intent.unknowns||[]).length>=2||input.length>500;
+  const planningSensitivity=profile?.safety_rules?.sensitivity||"standard";
+  const planningQuality=profile?.quality_rules?.minimum_quality==="high"||complexPlan?"high":"standard";
+  const planningTask=complexPlan?"complex_plan":"plan";
+  let planGateway:any=null;
+  try{
+    const endpoint=(planningQuality==="high"&&planningSensitivity!=="sensitive")?"best-of-ai":"ai-gateway";
+    const payload=endpoint==="best-of-ai"
+      ? {task_type:planningTask,goal_id:goal.id,input:{goal:desiredOutcome,execution_contract:executionContract,domain:intent.domain,reality_check:check,constraints:intent.constraints,unknowns:intent.unknowns,research:researchContext?{answer:researchContext.answer,sources:researchContext.sources,uncertainties:researchContext.uncertainties}:null},mode:"best",sensitivity:planningSensitivity,required_fields:["strategy","phases","next_action"],evidence_required:profile?.evidence_rules?.required_for_critical_claims===true||!!researchContext,human_review_required:profile?.safety_rules?.human_review===true}
+      : {task_type:planningTask,goal_id:goal.id,input:{goal:desiredOutcome,execution_contract:executionContract,domain:intent.domain,reality_check:check,constraints:intent.constraints,unknowns:intent.unknowns,research:researchContext?{answer:researchContext.answer,sources:researchContext.sources,uncertainties:researchContext.uncertainties}:null},quality_level:planningQuality,sensitivity:planningSensitivity,required_fields:["strategy","phases","next_action"],evidence_required:profile?.evidence_rules?.required_for_critical_claims===true||!!researchContext,human_review_required:profile?.safety_rules?.human_review===true};
+    const rr=await fetch(base+"/functions/v1/"+endpoint,{method:"POST",headers:{"content-type":"application/json","apikey":pub,"authorization":auth},body:JSON.stringify(payload)});
+    if(rr.ok){const data=await rr.json();planGateway=endpoint==="best-of-ai"?{...data,output:data.final_output,route:{route_key:"best_of_ai",provider:"multi",model_name:"gpt-6-sol+claude-sonnet-5"},quality_contract:{status:"passed"},attempts:1}:data}
+  }catch{}
+  const strategy=planGateway?.output?.strategy||(check.feasibility==="high_risk"?"Mit kleiner Validierungsstufe starten":"Schrittweise und outcome-orientiert vorgehen");
+  const modelPhases=Array.isArray(planGateway?.output?.phases)?planGateway.output.phases.map((x:any)=>String(x).trim()).filter(Boolean).slice(0,6):[];
+  const phaseNames=modelPhases.length>=3?modelPhases:defaultPhaseNames;
+  const planIns=await sb.from("plans").insert({goal_id:goal.id,version:1,status:"active",strategy,assumptions:[],dependencies:[]}).select("*").single();
+  if(planIns.error) return Response.json({error:"plan_create_failed",detail:planIns.error.message},{status:500,headers:cors});
+  const plan=planIns.data;
+
+  // Never label a milestone with an unrelated firstAction() title.
+  // Preserve each source plan phase as its own step and create a separate foundation
+  // task if the first domain decision is different from the plan's first phase.
+  const firstTask=executionContract.scope==="business_startup"?"Geschäftsmodell und Zielgruppe ausarbeiten":firstAction(intent.domain.primary);
+  const needsFoundation=phaseNames.length>0&&overlapScore(firstTask,phaseNames[0])<0.32;
+  const workingPhases=[
+    ...(needsFoundation?[{name:firstTask,phase_key:"foundation",foundation:true}]:[]),
+    ...phaseNames.map((name,i)=>({name,phase_key:"phase_"+(i+1),foundation:!needsFoundation&&i===0}))
+  ];
+  const milestonePayload=workingPhases.map((item,i)=>({
+    goal_id:goal.id,plan_id:plan.id,phase_key:item.phase_key,
+    title:item.name+" abgeschlossen",desired_state:item.name,
+    success_condition:item.foundation?"Das erste Ergebnis ist überprüft und ausdrücklich bestätigt.":"Ergebnis der Phase ist überprüfbar vorhanden.",
+    status:i===0?"active":"pending",weight:1
+  }));
+  const miles=await sb.from("milestones").insert(milestonePayload).select("*");
+  if(miles.error) return Response.json({error:"milestones_create_failed",detail:miles.error.message},{status:500,headers:cors});
+
+  const actionPayload=workingPhases.map((item,i)=>({
+    goal_id:goal.id,plan_id:plan.id,milestone_id:miles.data[i].id,
+    title:item.foundation?firstTask:"Nächsten Schritt für „"+item.name+"“ ausführen",
+    objective:item.foundation
+      ?(needsFoundation
+        ?firstTask+". Erstelle eine konkrete, nachvollziehbare Arbeitsfassung, kennzeichne Annahmen und lege das Ergebnis dem Nutzer zur Bestätigung vor."
+        :item.name)
+      :item.name,
+    status:i===0?"ready":"pending",priority:i===0?"high":"normal",
+    owner_type:intent.domain.primary==="medical_documentation"&&i===0?"joint":"pilot",recommended_mode:intent.domain.primary==="medical_documentation"&&i===0?"together":"do_it",blocking:false
+  }));
+  const acts=await sb.from("actions").insert(actionPayload).select("*");
+  if(acts.error) return Response.json({error:"actions_create_failed",detail:acts.error.message},{status:500,headers:cors});
+  const nextAction=acts.data.find((a:any)=>a.status==="ready")||acts.data[0];
+
+  await sb.from("pilot_states").update({work_state:"waiting",message:"Plan ist bereit. Pilot wartet auf den nächsten Schritt.",updated_at:new Date().toISOString()}).eq("user_id",user.id).eq("goal_id",goal.id);
+
+  return Response.json({
+    stage:"ready",intent,goal,execution_contract:executionContract,industry_context:industry?{industry,services:serviceOffer||null,service_area:serviceArea||null}:null,reality_check:check,plan,
+    memory_status:{goal_brief_saved:!initialMemory.error,updates:initialUserMemories,warning:initialMemory.error||null},
+    ai:{classification:classifyTelemetry?{route:classifyTelemetry.route,quality_contract:classifyTelemetry.quality_contract,attempts:classifyTelemetry.attempts}:null,research:researchContext?{result_id:researchContext.result?.id||null,source_count:researchContext.sources?.length||0,evidence_gate:researchContext.quality?.evidence_gate||null,consensus:researchContext.consensus||null}:null,planning:planGateway?{route:planGateway.route,quality_contract:planGateway.quality_contract,attempts:planGateway.attempts,cost:planGateway.cost,usage:planGateway.usage,complex:complexPlan}:null},domain_profile:{domain_key:profile.domain_key,avatar_variant:profile.avatar_variant,quality_rules:profile.quality_rules,evidence_rules:profile.evidence_rules,safety_rules:profile.safety_rules},
+    pilot_state:{domain_key:intent.domain.primary,work_state:"waiting",avatar_variant:profile.avatar_variant||"general",risk_level:profile?.safety_rules?.sensitivity==="sensitive"?"moderate":"low"},
+    milestones:miles.data,actions:acts.data,
+    next_action:{...nextAction,reason:"Dieser Schritt reduziert die größte aktuelle Unsicherheit und schafft die Grundlage für die nächsten Phasen."}
+  },{headers:cors});
+};
+const PILOT_CORS_HEADERS={"access-control-allow-origin":"*","access-control-allow-methods":"GET, POST, OPTIONS","access-control-allow-headers":"authorization, x-client-info, apikey, content-type, x-supabase-api-version","access-control-max-age":"86400"};
+
+Deno.serve(async (req:Request)=>{
+  if(req.method==="OPTIONS")return new Response(null,{status:204,headers:PILOT_CORS_HEADERS});
+  const response=await pilotCorsHandler(req);
+  const responseHeaders=new Headers(response.headers);
+  for(const [name,value] of Object.entries(PILOT_CORS_HEADERS))responseHeaders.set(name,value);
+  return new Response(response.body,{status:response.status,statusText:response.statusText,headers:responseHeaders});
+});
