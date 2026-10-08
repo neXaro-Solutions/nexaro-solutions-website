@@ -16,6 +16,7 @@ const errors=(js.diagnostics||[]).filter(d=>d.category===ts.DiagnosticCategory.E
 assert.equal(errors.length,0,errors.map(d=>ts.flattenDiagnosticMessageText(d.messageText," ")).join("; "));
 assert(source.includes("pilot_background_verify_token"),"Worker wake-up token is required");
 assert(source.includes("pilot_background_claim"),"Atomic lease claim is required");
+assert(source.includes("if(body.defer_initial_dispatch!==true)"),"Cron-only test must skip initial worker wake");
 assert(source.includes('MAX_STEPS=6,MAX_USD=0.25'),"Bounded background budget is required");
 assert(source.includes("CONTENT_SAFETY_REVIEW_REQUIRED"),"Input and output moderation is mandatory");
 assert(source.includes('verification_scope:"creative_format_and_content_safety_only"'),"Creative review is not external fact verification");
