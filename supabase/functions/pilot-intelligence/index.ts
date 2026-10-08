@@ -258,12 +258,14 @@ function goalChoices(items:any[]){
 }
 async function resolveGoalContinuity(sb:any,base:string,pub:string,auth:string,userId:string,input:string,intent:Intent,body:any){
   if(body.force_new_goal===true)return {decision:"new",confidence:"high",reason:"user_forced_new_goal"};
-  if(/\b(neues? (unternehmen|business|projekt|ziel)|andere firma|neue firma|unabhängiges projekt)\b/i.test(input))
-    return {decision:"new",confidence:"high",reason:"explicit_new_project"};
+  // An explicitly selected current goal overrides ambiguous phrases such as
+  // "Neue Firma" inside a requested name change.
   if(body.existing_goal_id)return {
     decision:"existing",confidence:"high",goal_id:String(body.existing_goal_id),
     reason:"user_selected_existing_goal"
   };
+  const explicitlyNew=/(?:\b(?:erstelle|starte|beginne|gründe|gruende|lege|eröffne|eroeffne)\b.{0,35}\b(?:neues? (?:unternehmen|business|projekt|ziel)|neue firma|andere firma)\b|\b(?:neues? (?:unternehmen|business|projekt|ziel)|neue firma|andere firma)\b.{0,35}\b(?:anlegen|starten|beginnen|gründen|gruenden|erstellen|aufbauen)\b|^\s*(?:ein(?:e|en)?\s+)?(?:neues? (?:unternehmen|business|projekt|ziel)|neue firma)\s*[.!?]?\s*$)/i.test(input);
+  if(explicitlyNew)return {decision:"new",confidence:"high",reason:"explicit_new_project"};
 
   const gr=await sb.from("goals")
     .select("id,title,description,desired_outcome,domain,status,created_at,updated_at")
@@ -314,7 +316,7 @@ async function resolveGoalContinuity(sb:any,base:string,pub:string,auth:string,u
       goal:explicitCompanies[0],candidates:goalChoices(explicitCompanies),
       reason:"multiple_confirmed_company_names"};
   }
-  const followup=/\b(logo|logos|branding|brand|website|webseite|landingpage|visitenkarte|flyer|anzeige|kampagne|rechnung|angebot|präsentation|praesentation|design|entwurf|broschüre|broschuere|texte|grafik|farbschema|social.media)\b/i.test(input);
+  const followup=/\b(logo|logos|branding|brand|website|webseite|landingpage|visitenkarte|flyer|anzeige|kampagne|rechnung|angebot|präsentation|praesentation|design|entwurf|broschüre|broschuere|texte|grafik|farbschema|social.media|rechtsform|firmennamen?|unternehmensnamen?|budget|startkapital|branche|geschäftsfeld|gestaltungsstil|designstil)\b/i.test(input);
   const branding=/\b(logo|logos|branding|brand|website|webseite|landingpage|visitenkarte|flyer|anzeige|kampagne|design|grafik|farbschema|social.media)\b/i.test(input);
   const matchingIndustry=industryOf(input);
   const isFounding=/\b(gründen|gruenden|gründe|gründung|aufbauen|eröffnen)\b/i.test(input);
