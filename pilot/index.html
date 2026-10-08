@@ -5030,19 +5030,47 @@ async function createGoal(){
     if(goals[0]?.id===targetGoal.id && !pilotReviewContext() &&
        !pilotRelevantInterruption() &&
        actions.some(a=>["ready","pending"].includes(a.status)&&a.goal_id===targetGoal.id)){
-      PS.textContent="Pilot übergibt sichere Schritte an den Server …";
+      PS.textContent="Pilot prüft den passenden Ausführungsweg …";
       try{
-        await pilotBackgroundStart(targetGoal.id);
-        PS.textContent="Pilot arbeitet auch bei geschlossener App weiter.";
+        // A prior authorized server job remains the source of truth. Do not
+        // launch the same mission on a second tab or in a second engine.
+        const existingJob=await pilotBackgroundRead(targetGoal.id).catch(()=>null);
+        if(existingJob&&["queued","running"].includes(existingJob.status)){
+          void pilotBackgroundObserve(targetGoal.id);
+          PS.textContent="Pilot arbeitet im Hintergrund weiter.";
+        }else{
+          const route=await pilotBackgroundCall("preflight",targetGoal.id);
+          if(route.status!=="ok")throw Error("Die sichere Ausführung konnte nicht ermittelt werden.");
+          if(route.mode==="background"){
+            PS.textContent="Pilot startet sichere Arbeitsschritte auf dem Server …";
+            await pilotBackgroundStart(targetGoal.id);
+            PS.textContent=pilotBackgroundWorking(targetGoal.id)?
+              "Pilot arbeitet auch bei geschlossener App weiter.":
+              "Pilot benötigt deine Prüfung, bevor er weiterarbeitet.";
+          }else if(route.mode==="interactive"){
+            // The server has positively rejected a background-only capability.
+            // Continue with the existing supervised, capability-gated engine
+            // while the app is open; never imply closed-app automation.
+            PS.textContent="Pilot bearbeitet den nächsten Schritt mit Prüfung …";
+            void pilotContinueSafely(targetGoal.id,32);
+          }else if(route.mode==="attention"){
+            PS.textContent="Pilot benötigt deine Entscheidung oder Prüfung.";
+            void pilotLandAtAttention(targetGoal.id,"Hier ist deine Prüfung erforderlich");
+          }else if(route.mode==="finished"){
+            PS.textContent="Alle geplanten Schritte sind bearbeitet.";
+            pilotEndContinuousFlight(targetGoal.id,"Arbeitsabschnitt abgeschlossen");
+          }else throw Error("Unbekannter Ausführungsweg – Pilot hat sicher angehalten.");
+        }
       }catch(error){
-        // An interrupted response may conceal a successfully accepted job.
+        // An interrupted start response may conceal a successfully accepted
+        // server job. Read its durable state before reporting an error.
         const persisted=await pilotBackgroundRead(targetGoal.id).catch(()=>null);
         if(persisted&&["queued","running"].includes(persisted.status)){
           void pilotBackgroundObserve(targetGoal.id);
-          PS.textContent="Pilot läuft im Hintergrund.";
+          PS.textContent="Pilot arbeitet im Hintergrund.";
         }else{
-          pilotEndContinuousFlight(targetGoal.id,"Hintergrundstart konnte nicht bestätigt werden");
-          throw new Error("Kein bestätigter Hintergrundstart. "+String(error?.message||error));
+          pilotEndContinuousFlight(targetGoal.id,"Ausführung noch nicht bestätigt");
+          throw new Error("Pilot hat keinen Hintergrundstart bestätigt. "+String(error?.message||error));
         }
       }
     }
