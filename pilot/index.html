@@ -3721,7 +3721,7 @@ function bind(){
   document.getElementById("confirmPilotResult")?.addEventListener("click",confirmPilotResult);
   bindPilotDecisionEditor();
   bindPilotLegalFormDecision();
-  document.getElementById("pausePilotAutopilot")?.addEventListener("click",()=>{if(pilotAutoSession?.active){pilotAutoSession.cancelRequested=true;pilotAutoSession.label="Der laufende Schritt wird sicher beendet; danach hält Pilot an.";render()}});
+  document.getElementById("pausePilotAutopilot")?.addEventListener("click",()=>{if(pilotAutoSession?.active){pilotAutoSession.cancelRequested=true;pilotAutoRunPreference(goals[0]?.id,false);pilotAutoSession.label="Der laufende Schritt wird sicher beendet; danach hält Pilot an.";render()}});
   document.getElementById("uploadDoc")?.addEventListener("click",uploadDocument);
   document.getElementById("completeAction")?.addEventListener("click",()=>completeAction(false,false));
   document.getElementById("completeWithOutcome")?.addEventListener("click",()=>completeAction(true,false));
@@ -4324,10 +4324,32 @@ async function previewPilotFlight(){
 }
 /* A client-initiated, bounded Autopilot batch. Every iteration is separately authorized by the
    backend; it can never override a joint decision, external approval, or quality review. */
+
+function pilotAutoRunKey(id){
+ return user?.id&&id?"pilot_safe_work_"+user.id+"_"+id:null;
+}
+function pilotAutoRunPreference(id,active){
+ const key=pilotAutoRunKey(id);if(!key)return;
+ try{if(active)localStorage.setItem(key,"1");else localStorage.removeItem(key)}catch{}
+}
+async function pilotResumeApprovedWork(){
+ const goalId=goals[0]?.id,key=pilotAutoRunKey(goalId);
+ if(!key||pilotAutoSession?.active||pilotExecutionRequestActive)return;
+ try{
+  if(localStorage.getItem(key)!=="1")return;
+  const r=await sb.functions.invoke("execution-engine",{body:{operation:"status",goal_id:goalId}});
+  if(r.error)return;
+  const data=r.data||{},next=data.next_action;
+  if(data.status==="attention_required"&&data.reason==="running")return;
+  if(data.status==="ready"&&next?.status==="ready"&&next.owner_type==="pilot"&&next.recommended_mode==="do_it"&&next.blocking!==true){
+   void pilotContinueSafely(goalId,32);
+  }else pilotAutoRunPreference(goalId,false);
+ }catch{}
+}
 async function pilotContinueSafely(goalId,maxSteps=32){
  if(!goalId||pilotAutoSession?.active)return;
  const session={active:true,cancelRequested:false,count:0,max:maxSteps,label:"Pilot prüft den nächsten sicheren Schritt …"};
- pilotAutoSession=session;pilotAutoSummary=null;render();
+ pilotAutoSession=session;pilotAutoSummary=null;pilotAutoRunPreference(goalId,true);render();
  let stopped="Sicherer Arbeitsabschnitt beendet.";
  let stopKind="completed";
  try{
@@ -4372,6 +4394,7 @@ async function pilotContinueSafely(goalId,maxSteps=32){
    const launchCreated=await pilotEnsureJourney();
    if(launchCreated){stopped="Dein erster Arbeitsabschnitt ist erstellt. Die nächsten Aufgaben für die tatsächliche Umsetzung sind vorbereitet.";stopKind="completed"}
    session.active=false;
+   if(session.cancelRequested||stopKind!=="completed"||!launchCreated)pilotAutoRunPreference(goalId,false);
    const doneNote=session.count===1?"Ein weiterer Schritt wurde automatisch bearbeitet. ":
      session.count>1?session.count+" weitere Schritte wurden automatisch bearbeitet. ":"";
    pilotAutoSummary={completed:session.count,kind:stopKind,text:doneNote+stopped};
@@ -4642,7 +4665,7 @@ async function executeAction(){
  }
 }
 async function decideExecution(v,approved){const [execution_id,step_id]=v.split(":");const reason=approved?null:await pilotAskText("Warum möchtest du diese Aktion ablehnen?",{title:"Freigabe ablehnen",placeholder:"Optionaler Grund …"});if(!approved&&reason===null)return;PS.textContent=approved?"Freigabe wird verarbeitet …":"Aktion wird abgebrochen …";try{const r=await sb.functions.invoke("execution-engine",{body:{operation:"approve",execution_id,step_id,approved,reason}});if(r.error&&r.data?.status!=="blocked")throw r.error;await load();render();PS.textContent="Pilot bereit";if(r.data?.status==="blocked")pilotNotice("Freigabe wurde erfasst. Die externe Capability ist noch nicht verbunden; Pilot hat deshalb nicht ausgeführt.")}catch(e){PS.textContent="Pilot bereit";pilotNotice(e.message||String(e))}}
-async function enter(session){user=session.user;try{activeGoalId=localStorage.getItem("nexaro_pilot_goal_"+user.id)||null}catch{}A.classList.add("hidden");APP.classList.remove("hidden");try{await load();await pilotEnsureJourney();render();if(goals[0])void startGoalResearch(goals[0].id);telemetry("event",{event_name:"session_entered",event_category:"activation",properties:{has_goal:!!goals[0]}})}catch(e){telemetry("incident",{source:"app_load",severity:"error",error_code:"LOAD_FAILED",message:e.message||String(e)});pilotNotice(e.message)}}
+async function enter(session){user=session.user;try{activeGoalId=localStorage.getItem("nexaro_pilot_goal_"+user.id)||null}catch{}A.classList.add("hidden");APP.classList.remove("hidden");try{await load();await pilotEnsureJourney();render();if(goals[0]){void startGoalResearch(goals[0].id);void pilotResumeApprovedWork()}telemetry("event",{event_name:"session_entered",event_category:"activation",properties:{has_goal:!!goals[0]}})}catch(e){telemetry("incident",{source:"app_load",severity:"error",error_code:"LOAD_FAILED",message:e.message||String(e)});pilotNotice(e.message)}}
 async function leave(){user=null;org=null;isAdmin=false;customerPreview=false;adminData=null;pendingAttachments=[];goalSuccessMap={};goals=[];features=[];plans=[];actions=[];contexts=[];milestones=[];documents=[];results=[];claims=[];evidence=[];completeness=[];progressEvents=[];outcomes=[];adaptations=[];pilotState=null;aiRequests=[];qualityContracts=[];consensusRuns=[];executions=[];executionSteps=[];designJobs=[];canvaStatus=null;researchBusy=false;researchAttempted.clear();notifications=[];readiness=[];evalRuns=[];APP.classList.add("hidden");A.classList.remove("hidden")}
 let authMode="login";
 const AUTHM=document.getElementById("authModal"),ME=document.getElementById("modalEmail"),MP=document.getElementById("modalPassword"),MP2=document.getElementById("modalPassword2"),MW=document.getElementById("repeatPasswordWrap"),PW=document.getElementById("privacyWrap"),AP=document.getElementById("acceptPrivacy"),SM=document.getElementById("submitAuth"),SW=document.getElementById("switchAuthMode"),RC=document.getElementById("resendConfirmation"),MM=document.getElementById("modalMessage"),CS=document.getElementById("confirmationState"),CE=document.getElementById("confirmationEmail"),CR=document.getElementById("confirmationResend"),CL=document.getElementById("confirmationLogin");
