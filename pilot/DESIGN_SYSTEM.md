@@ -58,3 +58,17 @@ neXaro Pilot ist **ein intelligenter operativer Mitarbeiter**, nicht ein CRM, ER
 ## Qualitätsziel
 
 **Pilot darf intern komplex sein, soll nach außen aber einfach, lebendig, intelligent, intuitiv, vertrauenswürdig und klar futuristisch wirken.**
+
+
+## LUMEN Depth & Interaction (ab 2026-10-08, Version .18)
+
+Dieser Zusatz ist verbindlich für alle mobilen und Desktop-Oberflächen.
+
+- **Tiefe statt weiterer Informationskästen:** Mehrschichtige Lichtflächen, natürliche Schlagschatten, reflektierte Akzente und unterschiedliche räumliche Ebenen – stets subtile Intensität und hohe Lesbarkeit.
+- **Interaktion als wahrnehmbares Feedback:** Systemflächen reagieren auf Berührung mit einer sichtbaren, kurzen Rückmeldung. Auf Desktop darf ein dezenter 3D-Neigungs- und Spotlight-Effekt der Maus folgen, aber maximal wenige Grad und ohne störende Sprünge.
+- **Mobile Navigation:** Zentrale, Ziele, Dokumente, Ergebnisse und Ausführung verwenden einheitliche 24×24 SVG-Vektorsymbole mit klarer Kontur. Auf iPhone ungefähr 29px sichtbare Icon-Größe in mindestens 43px großer visueller Icon-Fläche und circa 79px großen Navigationstasten. Aktivstatus ist eindeutig durch grünen Leuchtring, hinterlegtes Symbol und Unterstrich erkennbar.
+- **Keine Schriftzeichen als Hauptnavigation:** Unicode-Piktogramme wie `⌂`, `◎`, `⌑`, `▣`, `↗` sind für die unteren Symbole nicht zulässig; echte SVG-Pfade sind Pflicht.
+- **Animation bleibt funktional:** Nur echte Arbeitsphasen animieren. Karten-/Ansichtswechsel kurz und weich; dauerhafte Animation nur dezent. Die durchgängige Flugzeuganimation vom Startbutton zum Zielbutton darf nicht von der neuen räumlichen Oberfläche unterbrochen werden.
+- **Barrierefreiheit:** `prefers-reduced-motion` respektieren; mobile Berührung darf keinen Hover-Zwang voraussetzen; Navigation hat `aria-label`, die aktive Ebene `aria-current="page"`; ausreichender Farbkontrast und große Touchflächen.
+- **Performance:** `transform`/GPU-kompatible Änderungen statt teurer Layout-Updates; maximal begrenzte Anzahl von Interaktionsflächen je Ansicht. Mobile Safari und ältere Geräte schonen.
+- **Regression:** Nach UI-Änderungen Startauftrag, Anhänge, Fortsetzen, Ausführung, Landeanimation, alle fünf Tabs, Dialoge und Kundenvorschau erneut testen. Quellcode-/Simulationstests und realer iPhone-Livetest sind separat abzunehmen.
