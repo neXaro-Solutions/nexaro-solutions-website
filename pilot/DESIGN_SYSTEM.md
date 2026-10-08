@@ -119,3 +119,19 @@ Aus dem iPhone-Praxistest (10:55) folgt eine neue verbindliche Designregel für 
 - Erst nach realem iPhone-Test visuell als abgenommen markieren. Syntax- und Strukturtests sind technische Teilabnahme, ersetzen aber keine Prüfung des tatsächlichen mobilen Renderings.
 
 **Umgesetzt** in `pilot/index.html`, LUMEN `2026.10.08.31`; GitHub-Commit `e5b4bdaecbf0fd9731ed6e9da1b867edf7258bc3`. Kompakte Darstellung, Admin-Berechtigungsprüfung, offene/geschlossene `details` und ursprüngliche Aktions-IDs wurden mit Mockdaten strukturell getestet.
+
+
+## Feinschliff LUMEN 2026.10.08.32 – weniger visuelle Last, gleiche Fähigkeiten
+
+Auf ausdrücklichen Nutzerwunsch wurde die bereits kompakte Admin-Oberfläche **noch einmal reduziert**: Nicht nur Kartenüberschriften und Abstände, sondern auch die Navigation müssen ruhig und zugänglich wirken.
+
+- Administrationskopf nur noch etwa 20px statt 23px Titelgröße, kürzere Beschreibung und geringere Innenabstände.
+- Fünf Kennzahlen auf dem iPhone in **zwei** niedrigen Reihen (3 + 2), nicht in drei großen Reihen. CSS `repeat(6,minmax(0,1fr))`, erste drei Werte je 2 Grid-Spalten, letzte zwei je 3.
+- Verwaltungs-/System-Details bleiben aufklappbar; geschlossene Zeilen auf etwa 50px verdichtet. Freigabe- und Bedienfunktionen müssen erhalten bleiben.
+- Admin-Schnellaktionen behalten **mindestens 44px Antippfläche**.
+- Mobile Bottom-Dock wird schmaler (Navigationsziele etwa 66px hoch, Symbolflächen etwa 38px, SVG-Icons weiter deutlich erkennbar bei 26px). Schrift und Symboltrennbarkeit dürfen durch die Verkleinerung nicht verloren gehen.
+- Administrationsunterseiten (Entwicklungsplan, Systemtest) bekommen geringere Kopfkartenhöhe; **keine Veränderung an eigentlichen Inhalten oder Berechtigungen**.
+- Weiterhin hell, strukturiert, leichte LUMEN-Energie: reduzierte Schatten und ruhigere Flächen statt großer Office-Karten.
+- **Test:** Quellcode-Syntax und 12 Mock-/DOM-Struktur-/Berechtigungsprüfungen bestanden. Echte iPhone-Abnahme bleibt offen und ist Voraussetzung für grünen Status.
+
+Umgesetzt in `pilot/index.html`, LUMEN `2026.10.08.32`, Commit `ef0b9ae26fcea9acdfb823f5123b0860a7a58aa6`.
