@@ -354,7 +354,7 @@ console.log("PASS Explicit goal continuation is one tap, visible, and session-sa
 assert(frontend.includes("pilotPinnedGoalId=null;pilotForceNewGoal=true;render()"),
   "New-project button must explicitly switch to new-goal mode");
 assert(frontend.includes("let pilotForceNewGoal=false;"));
-assert(frontend.includes("body:{input:text,...(forceNewGoal?{force_new_goal:true}:"),
+assert(frontend.includes("body:{input:text,request_id:requestId,...(forceNewGoal?{force_new_goal:true}:"),
   "New-goal intention must reach the backend on the first request");
 assert(frontend.includes("pilotForceNewGoal=false;\n    PS.textContent=continued?"),
   "After a successful command the new-goal scope must reset");
