@@ -2396,6 +2396,20 @@ body{background:radial-gradient(ellipse 72vw 60vw at 92% -10%,rgba(145,255,62,.1
  .pilot-admin-quicktest-grid .btn{font-size:10px!important;padding:8px 4px!important}
 }
 
+
+/* Non-interactive landing target for administrator flight preview — never starts an action. */
+.pilot-admin-runway{
+ display:flex;align-items:center;justify-content:space-between;gap:8px;
+ border:1px dashed #b6e4a4;background:linear-gradient(90deg,#f6fff1,#fff);
+ border-radius:12px;padding:7px 9px;margin-top:8px;
+}
+.pilot-admin-runway-label{font-size:10px;font-weight:900;color:#588850}
+.pilot-admin-runway #executeAction{
+ min-height:44px;padding:8px 12px;border-radius:11px;
+ border:1px solid #d4f2c6;background:#e8ffd8;color:#417736;
+ font-weight:850;font-size:11px;
+}
+
 </style></head>
 <body>
 <section id="auth" class="auth"><div class="box">
@@ -3699,15 +3713,35 @@ async function landPilotAtNextAction({scroll=true,minCruise=1700}={}){
 }
 async function previewPilotFlight(){
  const button=document.getElementById("pilotLandingPreview");
- const target=document.getElementById("executeAction");
- const panel=document.getElementById("pilotNextActionPanel");
- if(!button||!target||!panel||activePilotFlight)return;
+ if(!button||activePilotFlight)return;
+ let panel=document.getElementById("pilotNextActionPanel");
+ let target=document.getElementById("executeAction");
+ let testRunway=null;
+ // In Admin/Systemtests there is deliberately no live user action.
+ // Create a disabled, temporary landing marker rather than invoking an actual task.
+ if((!panel||!target)&&current==="alpha"){
+   const host=button.closest(".pilot-admin-quicktest");
+   if(host){
+     testRunway=document.createElement("div");
+     testRunway.className="pilot-admin-runway";
+     testRunway.id="pilotNextActionPanel";
+     testRunway.innerHTML='<span class="pilot-admin-runway-label">✦ Test-Landezone</span>'+
+       '<button id="executeAction" type="button" disabled aria-label="Nur Flugtest – keine Auftragsausführung">✈ Landepunkt</button>';
+     host.appendChild(testRunway);
+     panel=testRunway;target=testRunway.querySelector("#executeAction");
+   }
+ }
+ if(!target||!panel){testRunway?.remove();return}
  button.disabled=true;
  panel.classList.remove("pilot-action-landed");
- if(!startPilotFlight(button)){button.disabled=false;return}
+ if(!startPilotFlight(button)){button.disabled=false;testRunway?.remove();return}
  try{await landPilotAtNextAction({scroll:true,minCruise:2850})}
  catch(err){console.warn("Pilot Flugtest beendet:",String(err?.message||"Fehler"))}
- finally{finishPilotFlight();if(button.isConnected)button.disabled=false}
+ finally{
+   finishPilotFlight();
+   testRunway?.remove();
+   if(button.isConnected)button.disabled=false;
+ }
 }
 /* A client-initiated, bounded Autopilot batch. Every iteration is separately authorized by the
    backend; it can never override a joint decision, external approval, or quality review. */
