@@ -4895,6 +4895,13 @@ async function createGoal(){
       }
     });
     render();
+    // Keep the continuation effortless but transparent: a small one-time note
+    // confirms that verified user decisions were reused, not requested again.
+    const reusedDecisions=Number(data.decision_journal?.reused||0);
+    if(continued&&reusedDecisions>0){
+      pilotNotice("Pilot übernimmt "+reusedDecisions+" bestätigte Projektentscheidung"+
+        (reusedDecisions===1?"":"en")+". Eine erneute Auswahl ist nicht nötig.");
+    }
     pilotEnsureContinuousFlight(targetGoal.id);
     void startGoalResearch(targetGoal.id);
     // One click starts a bounded, independently verified workflow – not just one task.

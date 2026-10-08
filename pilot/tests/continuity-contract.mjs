@@ -210,6 +210,53 @@ assert.deepEqual(Array.from(unchanged.body.decision_journal.keys),["legal_form"]
 assert.equal(routine.data.pilot_decision_journal.length,1);
 console.log("PASS Routine follow-up silently reuses a confirmed decision");
 
+// A historical, human-confirmed review imported into the journal is authoritative.
+// The user must not repeat a legal-form question when requesting a later logo.
+const importedChoice={...legalEntry,id:23,decision_value:"gmbh",
+  source_type:"user_confirmed_review",
+  source_ref:"legacy_memory:33333333-3333-4333-8333-333333333333"};
+const afterMigration=scenario([],OWNER,[],[importedChoice]);
+const logoAfterMigration=await afterMigration.invoke({
+  input:"Erstelle ein Logo für mein bestehendes Unternehmen",
+  existing_goal_id:undefined
+});
+assert.equal(logoAfterMigration.http,200);
+assert.equal(logoAfterMigration.body.stage,"ready");
+assert.equal(logoAfterMigration.body.continuity.mode,"existing_goal");
+assert.equal(logoAfterMigration.body.decision_journal.reused,1);
+assert.equal(afterMigration.data.goals.length,1);
+assert.equal(afterMigration.data.actions.length,1);
+assert.equal(afterMigration.data.pilot_decision_journal.length,1,
+  "A follow-up must never create a duplicate legal-form decision");
+console.log("PASS Imported confirmed legal choice survives next-day follow-up without questions");
+
+const revisingImported=scenario([],OWNER,[],[importedChoice]);
+const importedConflict=await revisingImported.invoke({
+  input:"Ändere die Rechtsform auf Einzelunternehmen"
+});
+assert.equal(importedConflict.body.stage,"decision_conflict");
+assert.equal(importedConflict.body.decision.old_value,"gmbh");
+assert.equal(importedConflict.body.decision.revision_id,23);
+assert.equal(revisingImported.data.actions.length,0);
+console.log("PASS A migrated choice cannot be silently overwritten by a later request");
+
+const migrationSQL=readFileSync(resolve(root,
+  "supabase/migrations/20261008160729_backfill_confirmed_legacy_legal_choices.sql"),"utf8");
+for(const safetyGuard of [
+  "m.source_type='user_decision'",
+  "m.content->>'confirmed_by_user'='true'",
+  "m.content->>'edited_by_user'='true'",
+  "m.content->>'verification_scope'='explicit_choice_only'",
+  "HAVING count(DISTINCT chosen_form)=1",
+  "WHERE NOT EXISTS (",
+  "AND j.decision_key='legal_form'",
+  "'user_confirmed_review'",
+  "expected_revision_id"
+])assert(migrationSQL.includes(safetyGuard),"Migration safeguard missing: "+safetyGuard);
+assert(frontend.includes("Pilot übernimmt "+reusedDecisions+" bestätigte Projektentscheidung"),
+  "Users must see that an earlier confirmed choice is being reused");
+console.log("PASS Verified-only migration, revocation protection and human-readable UI notice");
+
 const alternatives=scenario([],OWNER,[],[legalEntry]);
 const comparison=await alternatives.invoke({input:"Bitte Rechtsform GmbH oder Einzelunternehmen vergleichen"});
 assert.equal(comparison.http,200);
