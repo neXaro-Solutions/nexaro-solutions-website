@@ -2428,7 +2428,8 @@ function home(){
       '<button class="attach-btn pilot-home-upload" type="button" data-attach-kind="file">＋ Foto / Dokument</button>'+
       '<span class="attachment-note">Optional</span></div>'+attachmentInputs+'<div id="attachmentTray" class="attachment-tray" aria-live="polite"></div></div>'+
       '<button id="createGoal" type="button" class="btn ai launch-primary pilot-home-primary">✈ Pilot jetzt starten →</button></div>'+
-      (effectiveAdmin()?'<div class="pilot-home-admin"><button id="diagnoseSafety" type="button" class="btn">🛡 Verbindung prüfen</button></div>':'')+
+      (effectiveAdmin()?'<div class="pilot-home-admin"><button id="diagnoseSafety" type="button" class="btn">🛡 Verbindung prüfen</button>'+
+      '<button id="diagnosePilotAI" type="button" class="btn">✦ KI-Ausführung testen</button></div>':'')+
     '</section>';
   const active=g?'<section class="pilot-home-card pilot-home-active" aria-labelledby="homeActiveTitle">'+
       '<div class="pilot-home-active-header"><div class="pilot-home-active-title"><span class="pilot-home-icon-orange" aria-hidden="true">◎</span><div>'+
@@ -2866,6 +2867,7 @@ function bind(){
   });
   document.getElementById("pilotLandingPreview")?.addEventListener("click",previewPilotFlight);
   document.getElementById("diagnoseSafety")?.addEventListener("click",()=>pilotSafetyDiagnostic({show:true}));
+  document.getElementById("diagnosePilotAI")?.addEventListener("click",pilotExecutionProviderDiagnostic);
   document.getElementById("executeAction")?.addEventListener("click",executeAction);
   document.getElementById("confirmPilotResult")?.addEventListener("click",confirmPilotResult);
   bindPilotDecisionEditor();
@@ -2903,7 +2905,7 @@ function nxOpenNext(){
   const mask=document.createElement("div");mask.className="nx-mask";
   const safe=esc;
   mask.innerHTML='<section class="nx-modal" role="dialog" aria-modal="true" aria-labelledby="nxTitle" aria-describedby="nxDesc">'+
-    '<div class="nx-top"><div class="nx-symbol" aria-hidden="true">✦</div><span class="nx-kicker">neXaro · PILOT · LUMEN 2026.10.08.29</span><button type="button" class="nx-close" aria-label="Schließen">×</button></div>'+
+    '<div class="nx-top"><div class="nx-symbol" aria-hidden="true">✦</div><span class="nx-kicker">neXaro · PILOT · LUMEN 2026.10.08.30</span><button type="button" class="nx-close" aria-label="Schließen">×</button></div>'+
     '<h2 id="nxTitle">'+safe(config.title||"Pilot fragt nach")+'</h2><p class="nx-description" id="nxDesc">'+safe(config.description||"Bitte ergänze die noch fehlenden Angaben.")+'</p>'+
     '<form novalidate><div class="nx-fields">'+fields.map((f,i)=>'<div class="nx-field"><label for="nxInput'+i+'">'+safe(f.label)+'</label>'+
       (f.short?'<input id="nxInput'+i+'" type="text" name="'+safe(f.key)+'" maxlength="500" placeholder="'+safe(f.placeholder||"")+'" data-required="'+(f.required?"1":"0")+'">':
@@ -3588,6 +3590,42 @@ function pilotWatchExecution({actionId=null,goalId=null}={}){
  return watcher;
 }
 
+/* Admin-only smoke check: isolated, authenticated AI generation; no action progress changes. */
+let pilotAiDiagnosticBusy=false;
+async function pilotExecutionProviderDiagnostic(){
+  if(!effectiveAdmin()||pilotAiDiagnosticBusy)return;
+  const goalId=goals[0]?.id;
+  if(!goalId){pilotNotice("Lege zuerst ein Ziel an, um die KI-Verbindung zu prüfen.");return}
+  const btn=document.getElementById("diagnosePilotAI");
+  pilotAiDiagnosticBusy=true;
+  if(btn){btn.disabled=true;btn.textContent="✦ KI-Verbindung wird geprüft …"}
+  PS.textContent="Pilot prüft den KI-Ausführungsweg …";
+  try{
+    const response=await sb.functions.invoke("best-of-ai",{body:{
+      task_type:"execution_artifact",goal_id:goalId,mode:"fast_best",
+      sensitivity:"internal",required_fields:["deliverable","verification","next_recommendation"],
+      input:{
+        task:"Dies ist ein technischer KI-Verbindungstest ohne Auftragserfüllung. Formuliere genau zwei kurze freundliche Begrüßungssätze für einen Neukunden. Keine rechtlichen oder sonstigen überprüfungsbedürftigen Aussagen.",
+        instruction:"Return JSON object with deliverable (two German greeting sentences), verification (how you checked the format), next_recommendation (one short next step). No sources needed for this greeting."
+      }
+    }});
+    if(response.error)throw await pilotApiError(response,"Der KI-Test konnte nicht abgeschlossen werden.");
+    const result=response.data||{};
+    const output=result.final_output||{};
+    if(result.status!=="completed"||
+       !["deliverable","verification","next_recommendation"].every(k=>String(output[k]||"").trim().length>8))
+      throw new Error("Das Modell hat keine vollständige strukturierte Testantwort geliefert.");
+    PS.textContent="KI-Verbindung funktionsfähig";
+    pilotNotice("✦ KI-Test erfolgreich: "+(result.winner==="anthropic"?"Claude":result.winner==="openai"?"OpenAI":"Modell")+
+      " liefert ein gültiges Testergebnis. Der vollständige Auftrag benötigt anschließend noch seinen eigenen Qualitätscheck.");
+  }catch(e){
+    PS.textContent="KI-Verbindung benötigt Aufmerksamkeit";
+    pilotNotice("Der kurze KI-Test ist nicht erfolgreich: "+String(e?.message||e).slice(0,260),"error");
+  }finally{
+    pilotAiDiagnosticBusy=false;
+    if(btn?.isConnected){btn.disabled=false;btn.textContent="✦ KI-Ausführung testen"}
+  }
+}
 async function executeAction(){
  if(pilotAutoSession?.active||pilotExecutionRequestActive)return;
  const n=actions.find(a=>a.status==="ready")||actions.find(a=>a.status==="pending");
