@@ -176,20 +176,40 @@ const pilotCorsHandler=async(req:Request)=>{
     return Response.json({goal_id:goalId,decision_type:"legal_form",...prior},{headers:H});
   }
 
-  // Autopilot is bounded: the client explicitly requests one durable next step at a time.
-  // It never bypasses a joint decision, an unresolved approval, or a review.
+  // The client requests one safe durable step at a time. Joint proposals may be
+  // prepared without a user click, but the final decision is NEVER automated.
+  // External writes, personal decisions and high-risk work require explicit approval.
   if(operation==="status"||operation==="next"){
     const goalId=String(body.goal_id||"");
     if(!/^[0-9a-f-]{36}$/i.test(goalId))return Response.json({error:"goal_id_required"},{status:400,headers:H});
-    const gr=await sb.from("goals").select("id,owner_id,status,title").eq("id",goalId).single();
+    const gr=await sb.from("goals").select("id,owner_id,status,title,domain").eq("id",goalId).single();
     if(gr.error||gr.data?.owner_id!==user.id)return Response.json({error:"goal_not_found"},{status:404,headers:H});
     if(!["active","draft"].includes(String(gr.data.status)))
       return Response.json({status:"goal_not_active",goal_id:goalId},{headers:H});
     const act=await sb.from("actions").select("id,title,status,owner_type,recommended_mode,blocking,priority,created_at").eq("goal_id",goalId).order("created_at",{ascending:true});
     if(act.error)return Response.json({error:"actions_read_failed"},{status:500,headers:H});
     const list=act.data||[];
-    // Respect the plan order, including pending prerequisites, instead of picking a later ready task.
-    const action=list.find((a:any)=>["ready","pending"].includes(a.status));
+    // Never skip an earlier prerequisite even if a later task is already READY.
+    const index=list.findIndex((a:any)=>["ready","pending"].includes(a.status));
+    let action=index<0?null:list[index];
+    // A follow-up may be left PENDING if progress was committed just before
+    // a device disconnected. Release it only after ALL earlier tasks completed.
+    // A blocked, unfinished or missing predecessor never qualifies.
+    const allPredecessorsDone=index>0&&list.slice(0,index).every((a:any)=>a.status==="completed");
+    if(action?.status==="pending"&&allPredecessorsDone){
+      if(operation==="next"){
+        const promoted=await sb.from("actions").update({status:"ready",updated_at:new Date().toISOString()})
+          .eq("id",action.id).eq("goal_id",goalId).eq("status","pending")
+          .select("id,title,status,owner_type,recommended_mode,blocking,priority,created_at").maybeSingle();
+        if(promoted.error)return Response.json({error:"next_action_unlock_failed",retryable:true},
+          {status:503,headers:H});
+        if(!promoted.data){
+          return Response.json({status:"queue_changed",goal_id:goalId,
+            message:"Der nächste Schritt wird bereits in einer anderen Sitzung übernommen."},{headers:H});
+        }
+        action=promoted.data;
+      }else action={...action,status:"ready"};
+    }
     const openIds=new Set(list.filter((a:any)=>["ready","pending","running","blocked"].includes(a.status)).map((a:any)=>a.id));
     const recent=await sb.from("executions").select("id,action_id,status,created_at")
       .eq("goal_id",goalId).in("status",["running","waiting_approval","review_required","blocked"])
@@ -211,7 +231,13 @@ const pilotCorsHandler=async(req:Request)=>{
       return Response.json({status:"pending_prerequisite",goal_id:goalId,
         next_action:action,counts,reason:"previous_step_must_finish_first"},{headers:H});
     // The status check must never label a joint or blocked action as autonomous.
-    if(action.owner_type!=="pilot"||action.recommended_mode!=="do_it"||action.blocking===true)
+    const solelyAutonomous=action.owner_type==="pilot"&&action.recommended_mode==="do_it"&&action.blocking!==true;
+    // Drafting a low-risk proposal is NOT approving it. No account write,
+    // statutory confirmation, payment, publication or user-only action can be pre-authorized.
+    const proposalOnly=action.owner_type==="joint"&&action.recommended_mode==="together"&&
+      action.blocking!==true&&!hasExternalWrite(action)&&
+      riskOf(String(gr.data.domain?.primary||"general"),false)==="low";
+    if(!solelyAutonomous&&!(proposalOnly&&operation==="next"))
       return Response.json({status:"collaboration_required",goal_id:goalId,
         next_action:action,counts,reason:"user_input_or_joint_decision_required"},{headers:H});
     if(operation==="status")return Response.json({status:"ready",goal_id:goalId,next_action:action,counts},{headers:H});
