@@ -4842,6 +4842,7 @@ async function pilotPartnerLoad(){
   pilotPartnerState.error="";
  }catch(e){
   pilotPartnerState.error="Die privaten Registrierungsdaten konnten nicht geladen werden.";
+  pilotPartnerState.loaded=true; // Do not loop infinitely on an unavailable profile service.
   console.warn("Partnerprofil:",String(e?.message||e).slice(0,130));
  }finally{
   pilotPartnerState.busy=false;
