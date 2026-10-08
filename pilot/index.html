@@ -1231,6 +1231,70 @@ input,textarea{border-radius:var(--radius-input)}.btn{border-radius:var(--radius
   .auth-capabilities>div{min-height:50px}
   .auth-curiosity small{display:none}
 }
+
+/* Mobile navigation cleanup v14 */
+.mobile-more{display:none}
+.mobile-more-menu{display:none}
+@media(max-width:760px){
+  .side{
+    overflow:visible!important;
+  }
+  .side nav{
+    display:grid!important;
+    grid-template-columns:repeat(6,minmax(0,1fr))!important;
+    gap:3px!important;
+    overflow:visible!important;
+    align-items:stretch;
+  }
+  .side .nav{
+    min-width:0!important;
+    width:100%!important;
+    padding:7px 2px!important;
+    gap:3px!important;
+    font-size:16px!important;
+    border-radius:14px!important;
+  }
+  .side .nav span{
+    display:block!important;
+    max-width:100%;
+    font-size:8px!important;
+    line-height:1.05!important;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap!important;
+  }
+  .side .mobile-secondary{display:none!important}
+  .side .mobile-more{display:flex!important}
+  .mobile-more-menu{
+    position:absolute;
+    right:10px;
+    bottom:calc(78px + env(safe-area-inset-bottom));
+    width:min(260px,calc(100vw - 20px));
+    padding:8px;
+    border-radius:18px;
+    background:rgba(255,255,255,.97);
+    border:1px solid #e1e6e9;
+    box-shadow:0 18px 55px rgba(18,24,33,.18);
+    backdrop-filter:blur(18px);
+    z-index:40;
+  }
+  .mobile-more-menu:not(.hidden){display:grid!important;grid-template-columns:1fr 1fr;gap:6px}
+  .mobile-more-menu button{
+    min-height:52px;
+    border:1px solid #e5e9ec;
+    background:#fff;
+    border-radius:14px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:0 11px;
+    font-weight:750;
+    color:#4f5861;
+  }
+  .mobile-more-menu button span{font-size:10px}
+  .mobile-more-menu button:hover,
+  .mobile-more-menu button:focus{background:linear-gradient(90deg,rgba(141,255,47,.10),rgba(255,116,23,.05))}
+}
 </style></head>
 <body>
 <section id="auth" class="auth"><div class="box">
@@ -1284,7 +1348,7 @@ input,textarea{border-radius:var(--radius-input)}.btn{border-radius:var(--radius
 </div>
 
 <section id="app" class="shell hidden"><aside class="side"><div class="brand"><div class="brand-meta"><img src="/nexaro-transparent-logo.webp" class="brand-logo" alt="neXaro Solutions"><div class="ey">Pilot-Kommandozentrale</div></div></div>
-<nav><button class="nav active" data-view="home">⌂ <span>Zentrale</span></button><button class="nav" data-view="goals">◎ <span>Ziele</span></button><button class="nav" data-view="documents">⌑ <span>Dokumente</span></button><button class="nav" data-view="results">▣ <span>Ergebnisse</span></button><button class="nav" data-view="execution">↗ <span>Ausführung</span></button><button class="nav" data-view="canva">✦ <span>Canva</span></button><button class="nav" data-view="roadmap">◫ <span>Entwicklungsplan</span></button><button class="nav" data-view="alpha">✓ <span>Alpha</span></button><button class="nav" data-view="me">⚙ <span>Einstellungen</span></button></nav>
+<nav><button class="nav active" data-view="home">⌂ <span>Zentrale</span></button><button class="nav" data-view="goals">◎ <span>Ziele</span></button><button class="nav" data-view="documents">⌑ <span>Dokumente</span></button><button class="nav" data-view="results">▣ <span>Ergebnisse</span></button><button class="nav" data-view="execution">↗ <span>Ausführung</span></button><button class="nav mobile-secondary" data-view="canva">✦ <span>Canva</span></button><button class="nav mobile-secondary" data-view="roadmap">◫ <span>Entwicklungsplan</span></button><button class="nav mobile-secondary" data-view="alpha">✓ <span>Alpha</span></button><button class="nav mobile-secondary" data-view="me">⚙ <span>Einstellungen</span></button><button id="mobileMore" class="nav mobile-more" type="button">••• <span>Mehr</span></button></nav><div id="mobileMoreMenu" class="mobile-more-menu hidden"><button data-view="canva">✦ <span>Canva</span></button><button data-view="roadmap">◫ <span>Entwicklungsplan</span></button><button data-view="alpha">✓ <span>Alpha</span></button><button data-view="me">⚙ <span>Einstellungen</span></button></div>
 <button id="logout" class="btn logout">Abmelden</button></aside>
 <main class="main"><div class="head"><div><div class="ey">PILOT · KOMMANDOZENTRALE</div><h1 id="title">Home</h1></div><div class="status"><span class="dot"></span><span id="pilotStatus">Pilot bereit</span></div></div><div id="view"></div></main></section><div id="pilotFlightLayer" aria-hidden="true"></div>
 
@@ -1344,7 +1408,7 @@ function roadmap(){const c=features.reduce((a,f)=>(a[f.status]=(a[f.status]||0)+
 function alphaView(){const passed=readiness.filter(x=>x.status==="passed").length,total=readiness.length,last=evalRuns[0],aiCost=aiRequests.reduce((s,x)=>s+Number(x.actual_cost||0),0);return '<div class="grid"><div class="card"><h2>Bereitschaft der privaten Testphase</h2><div style="font-size:42px;font-weight:900">'+passed+' / '+total+'</div><p class="muted">Pflichtchecks bestanden</p>'+readiness.map(x=>'<div class="stat"><span class="muted">'+esc(x.description)+'</span><strong>'+esc(deStatus(x.status))+'</strong></div>').join("")+'<div class="btns"><button id="runEvals" class="btn primary">Prüfsuite ausführen</button><button id="runAlphaE2E" class="btn ai">✦ Alpha-Systemtest starten</button></div><div id="e2eStatus" class="muted" style="margin-top:12px">Der Systemtest nutzt isolierte Testdaten und räumt sie automatisch wieder auf.</div></div><div><div class="card"><h3>Prüfung</h3>'+(last?'<div class="stat"><span class="muted">Status</span><strong>'+esc(last.status)+'</strong></div><div class="stat"><span class="muted">Bewertung</span><strong>'+Math.round(Number(last.score||0)*100)+'%</strong></div><div class="stat"><span class="muted">Fälle</span><strong>'+last.passed_cases+' / '+last.total_cases+'</strong></div>':'<p class="muted">Noch kein Eval-Run.</p>')+'</div><div class="card" style="margin-top:20px"><h3>KI-Kostenmonitor</h3><div class="stat"><span class="muted">Anfragen</span><strong>'+aiRequests.length+'</strong></div><div class="stat"><span class="muted">Aktuelle Kosten</span><strong>'+aiCost.toFixed(4)+'</strong></div><div class="stat"><span class="muted">Ausweichrouten</span><strong>'+aiRequests.filter(x=>x.fallback_used).length+'</strong></div></div><div class="card" style="margin-top:20px"><h3>Hinweise</h3>'+(notifications.map(n=>'<div class="item"><span class="badge">'+esc(n.priority)+'</span><strong>'+esc(n.title)+'</strong><div class="muted">'+esc(n.body)+'</div></div>').join("")||'<p class="muted">Keine offenen Hinweise.</p>')+'</div></div></div>'}
 function me(){return '<div class="grid"><div class="card"><h2>Profil</h2><div class="stat"><span class="muted">E-Mail</span><strong>'+esc(user.email)+'</strong></div><div class="stat"><span class="muted">Arbeitsbereich</span><strong>Personal</strong></div></div><div class="card"><h3>Sicherheit</h3><p class="muted">Pilot Intelligence verarbeitet nur deine User-Session. Alle Schreib- und Lesezugriffe bleiben unter Row-Level-Sicherheit.</p></div></div>'}
 function render(){document.querySelectorAll("[data-view]").forEach(b=>b.classList.toggle("active",b.dataset.view===current));T.textContent={home:"Zentrale",goals:"Ziele",documents:"Dokumente",results:"Ergebnisse",execution:"Ausführung",canva:"Canva",roadmap:"Entwicklungsplan",alpha:"Alpha",me:"Einstellungen"}[current];V.innerHTML={home:home,goals:goalsView,documents:documentsView,results:resultsView,execution:executionView,canva:canvaView,roadmap:roadmap,alpha:alphaView,me:me}[current]();bind()}
-function bind(){document.querySelectorAll("[data-view]").forEach(b=>b.onclick=()=>{current=b.dataset.view;render()});document.querySelectorAll("[data-jump]").forEach(b=>b.onclick=()=>{current=b.dataset.jump;render()});document.getElementById("createGoal")?.addEventListener("click",createGoal);document.getElementById("executeAction")?.addEventListener("click",executeAction);document.getElementById("uploadDoc")?.addEventListener("click",uploadDocument);document.getElementById("completeAction")?.addEventListener("click",()=>completeAction(false,false));document.getElementById("completeWithOutcome")?.addEventListener("click",()=>completeAction(true,false));document.getElementById("markBlocked")?.addEventListener("click",()=>completeAction(false,true));document.querySelectorAll("[data-feedback]").forEach(b=>b.onclick=()=>sendFeedback(b.dataset.feedback));document.getElementById("runEvals")?.addEventListener("click",runEvals);document.getElementById("runAlphaE2E")?.addEventListener("click",runAlphaE2E);document.getElementById("connectCanva")?.addEventListener("click",connectCanva);document.querySelectorAll("[data-canva]").forEach(b=>b.onclick=()=>designWithCanva(b.dataset.canva));document.querySelectorAll("[data-canva-poll]").forEach(b=>b.onclick=()=>pollCanva(b.dataset.canvaPoll));document.querySelectorAll("[data-exec-approve]").forEach(b=>b.onclick=()=>decideExecution(b.dataset.execApprove,true));document.querySelectorAll("[data-exec-reject]").forEach(b=>b.onclick=()=>decideExecution(b.dataset.execReject,false))}
+function bind(){document.querySelectorAll("[data-view]").forEach(b=>b.onclick=()=>{current=b.dataset.view;document.getElementById("mobileMoreMenu")?.classList.add("hidden");render()});document.querySelectorAll("[data-jump]").forEach(b=>b.onclick=()=>{current=b.dataset.jump;render()});document.getElementById("createGoal")?.addEventListener("click",createGoal);document.getElementById("executeAction")?.addEventListener("click",executeAction);document.getElementById("uploadDoc")?.addEventListener("click",uploadDocument);document.getElementById("completeAction")?.addEventListener("click",()=>completeAction(false,false));document.getElementById("completeWithOutcome")?.addEventListener("click",()=>completeAction(true,false));document.getElementById("markBlocked")?.addEventListener("click",()=>completeAction(false,true));document.querySelectorAll("[data-feedback]").forEach(b=>b.onclick=()=>sendFeedback(b.dataset.feedback));document.getElementById("runEvals")?.addEventListener("click",runEvals);document.getElementById("runAlphaE2E")?.addEventListener("click",runAlphaE2E);document.getElementById("connectCanva")?.addEventListener("click",connectCanva);document.querySelectorAll("[data-canva]").forEach(b=>b.onclick=()=>designWithCanva(b.dataset.canva));document.querySelectorAll("[data-canva-poll]").forEach(b=>b.onclick=()=>pollCanva(b.dataset.canvaPoll));document.querySelectorAll("[data-exec-approve]").forEach(b=>b.onclick=()=>decideExecution(b.dataset.execApprove,true));document.querySelectorAll("[data-exec-reject]").forEach(b=>b.onclick=()=>decideExecution(b.dataset.execReject,false))}
 async function createGoal(){
   const text=document.getElementById("goalText").value.trim();if(!text||!org)return;const btn=document.getElementById("createGoal");btn.classList.add("launching");startPilotFlight(btn);btn.disabled=true;btn.textContent="✈ Pilot startet …";PS.textContent="Pilot hebt ab …";setTimeout(()=>{if(PS.textContent==="Pilot hebt ab …")PS.textContent="Pilot versteht …"},650);
   try{
@@ -1382,6 +1446,16 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!AUTHM.classList.co
 SM.onclick=async()=>{const email=ME.value.trim(),password=MP.value;if(!email)return modalMessage("Bitte gib deine E-Mail-Adresse ein.");if(password.length<8)return modalMessage("Das Passwort muss mindestens 8 Zeichen enthalten.");SM.disabled=true;try{if(authMode==="login"){const r=await sb.auth.signInWithPassword({email,password});if(r.error)throw r.error;closeAuth();await enter(r.data.session);return}if(password!==MP2.value)return modalMessage("Die beiden Passwörter stimmen nicht überein.");if(!AP.checked)return modalMessage("Bitte bestätige die Datenschutzhinweise.");const r=await sb.functions.invoke("pilot-register",{body:{email,password,accepted_privacy:true,full_name:email.split("@")[0]}});if(r.error)throw new Error(r.data?.error||r.error.message||"Registrierung fehlgeschlagen");if(!r.data?.ok)throw new Error(r.data?.error||"Registrierung fehlgeschlagen");CE.textContent=email;document.querySelector(".modal-form-panel")?.classList.add("auth-complete");CS.classList.remove("hidden");document.getElementById("authModalEy").textContent="BESTÄTIGUNG ERFORDERLICH";document.getElementById("authModalTitle").textContent="E-Mail bestätigen";setTimeout(()=>CS.scrollIntoView({behavior:"smooth",block:"center"}),80)}catch(e){modalMessage(e.message||String(e))}finally{SM.disabled=false}}
 async function resendConfirmationMail(){const email=ME.value.trim(),password=MP.value;if(!email)return modalMessage("Bitte gib zuerst deine E-Mail-Adresse ein.");if(password.length<8)return modalMessage("Bitte gib dein Passwort erneut ein.");CR.disabled=true;try{const r=await sb.functions.invoke("pilot-register",{body:{email,password,accepted_privacy:true,full_name:email.split("@")[0]}});if(r.error)throw new Error(r.data?.error||r.error.message||"E-Mail konnte nicht gesendet werden");const old=CR.textContent;CR.textContent="E-Mail erneut gesendet ✓";setTimeout(()=>CR.textContent=old,2400)}catch(e){modalMessage(e.message||String(e))}finally{CR.disabled=false}}
 RC.onclick=resendConfirmationMail;CR.onclick=resendConfirmationMail;CL.onclick=()=>setAuthMode("login");
+
+document.getElementById("mobileMore")?.addEventListener("click",e=>{
+  e.stopPropagation();
+  document.getElementById("mobileMoreMenu")?.classList.toggle("hidden");
+});
+document.addEventListener("click",e=>{
+  const menu=document.getElementById("mobileMoreMenu"),btn=document.getElementById("mobileMore");
+  if(!menu||menu.classList.contains("hidden"))return;
+  if(!menu.contains(e.target)&&!btn?.contains(e.target))menu.classList.add("hidden");
+});
 document.getElementById("logout").onclick=async()=>{await sb.auth.signOut();await leave()}
 const sess=(await sb.auth.getSession()).data.session;if(sess)await enter(sess);
 </script></body></html>
