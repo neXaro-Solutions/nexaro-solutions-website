@@ -32,13 +32,14 @@ const intent={objective:"Erstelle ein Logo für die Gründung eines Garten- und 
  desiredOutcome:"Logo für das bestehende Unternehmen",constraints:[],budget:null,timeframe:null,
  domain:{primary:"general",secondary:[],confidence:"medium"},
  unknowns:["desired_outcome_detail"],confidence:"low"};
-function scenario(existingActions=[],goalOwner=OWNER,otherGoals=[]){
+function scenario(existingActions=[],goalOwner=OWNER,otherGoals=[],confirmed=[]){
  const data={
   goals:[{...goal,owner_id:goalOwner},...otherGoals],
   organization_members:[{organization_id:ORG,user_id:OWNER,active:true}],
   actions:existingActions.map(x=>({...x})),
   plans:[{id:PLAN,goal_id:GOAL,version:1}],
   context_items:[],results:[],documents:[],milestones:[],
+  pilot_decision_journal:confirmed.map(x=>({...x,goal_id:x.goal_id||GOAL,owner_id:OWNER})),
   goal_memories:[{goal_id:GOAL,owner_id:OWNER,active:true,importance:5,
    memory_key:"goal_brief",memory_type:"goal_brief",content:{project:"Gartenbau"},updated_at:"2026-10-07T12:00:00Z"}],
   pilot_states:[{user_id:OWNER,goal_id:GOAL,attention_required:true,
@@ -183,5 +184,70 @@ assert.equal(captured[0].buttons.length,3,"Two named projects and one new-projec
 assert(captured[0].buttons.some(x=>x.label.includes("Bäckereibetrieb")));
 assert(captured[0].buttons.some(x=>x.value==="new"));
 console.log("PASS Choice dialog presents named projects and preserves the chosen goal ID");
+
+
+const legalEntry={id:17,decision_key:"legal_form",decision_value:"einzelunternehmen",
+  event_type:"set",source_type:"direct_user",created_at:"2026-10-08T12:00:00Z"};
+const legalScenario=scenario([],OWNER,[],[legalEntry]);
+const legalConflict=await legalScenario.invoke({input:"Ändere die Rechtsform auf GmbH"});
+assert.equal(legalConflict.http,200);
+assert.equal(legalConflict.body.stage,"decision_conflict");
+assert.equal(legalConflict.body.goal.id,GOAL);
+assert.equal(legalConflict.body.decision.key,"legal_form");
+assert.equal(legalConflict.body.decision.old_value,"einzelunternehmen");
+assert.equal(legalConflict.body.decision.new_value,"gmbh");
+assert.equal(legalConflict.body.decision.revision_id,17);
+assert.equal(legalScenario.data.actions.length,0,"No work may be queued on contradiction");
+assert.equal(legalScenario.data.pilot_decision_journal.length,1,"AI cannot overwrite confirmed choices");
+console.log("PASS Explicit legal-form change intercepted before new work");
+
+const routine=scenario([],OWNER,[],[legalEntry]);
+const unchanged=await routine.invoke({input:"Erstelle mir ein Logo"});
+assert.equal(unchanged.http,200);
+assert.equal(unchanged.body.stage,"ready");
+assert.equal(unchanged.body.decision_journal.reused,1);
+assert.deepEqual(Array.from(unchanged.body.decision_journal.keys),["legal_form"]);
+assert.equal(routine.data.pilot_decision_journal.length,1);
+console.log("PASS Routine follow-up silently reuses a confirmed decision");
+
+const alternatives=scenario([],OWNER,[],[legalEntry]);
+const comparison=await alternatives.invoke({input:"Bitte Rechtsform GmbH oder Einzelunternehmen vergleichen"});
+assert.equal(comparison.http,200);
+assert.equal(comparison.body.stage,"ready");
+console.log("PASS Legal-form alternatives are not treated as confirmed changes");
+
+const same=scenario([],OWNER,[],[legalEntry]);
+const sameValue=await same.invoke({input:"Rechtsform Einzelunternehmen beibehalten"});
+assert.equal(sameValue.http,200);
+assert.equal(sameValue.body.stage,"ready");
+console.log("PASS Existing decision restated without extra confirmation");
+
+const revoked=scenario([],OWNER,[],[{...legalEntry,event_type:"revoke",decision_value:""}]);
+const revived=await revoked.invoke({input:"Ändere die Rechtsform auf GmbH"});
+assert.equal(revived.http,200);
+assert.equal(revived.body.stage,"ready");
+assert.equal(revived.body.decision_journal.reused,0);
+console.log("PASS Revoked decisions are neither reused nor considered conflicting");
+
+for(const [key,stored,command,expected] of [
+ ["company_name","Altes Unternehmen","Ändere den Firmennamen auf Neue Firma","Neue Firma"],
+ ["budget","5000 EUR","Ändere das Budget auf 8000 EUR","8000 EUR"],
+ ["industry","Gartenbau","Ändere die Branche auf Gastronomie","Gastronomie"],
+ ["brand_style","Neongrün","Ändere das Farbschema auf Neonorange","Neonorange"]
+]){
+ const c=scenario([],OWNER,[],[{id:18,decision_key:key,decision_value:stored,
+   event_type:"set",created_at:"2026-10-08T12:00:00Z"}]);
+ const r=await c.invoke({input:command});
+ assert.equal(r.http,200,key);
+ assert.equal(r.body.stage,"decision_conflict",key);
+ assert.equal(r.body.decision.new_value,expected,key);
+ assert.equal(c.data.actions.length,0,key);
+}
+console.log("PASS Company name, budget, industry and design conflicts require confirmation");
+
+assert(frontend.includes('while(data.stage==="decision_conflict"'),"Missing UI decision prompt");
+assert(frontend.includes('expected_revision_id:d.revision_id'),"Missing revision safety in UI");
+assert(frontend.includes('choice==="keep"'),"Missing retain existing choice");
+console.log("PASS UI provides confirmation, retention and optimistic version check");
 
 console.log("PASS Goal continuity handler regression suite — no real user data or writes");
