@@ -78,6 +78,7 @@ try{
    if(!first.landingVisible||first.docWidth>first.viewport+2||first.boxLeft< -2||first.boxRight>first.viewport+2){
     throw Error("Landing overflow or hidden: "+JSON.stringify(first));
    }
+   if(await page.locator("#app").isVisible())throw Error("Signed-out page must not expose the authenticated shell");
    await page.locator("#openLogin").click();
    if(await page.locator("#authModal").evaluate(el=>el.classList.contains("hidden")))
     throw Error("Login modal does not open");
