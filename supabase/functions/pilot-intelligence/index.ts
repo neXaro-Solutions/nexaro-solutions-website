@@ -212,10 +212,14 @@ function explicitDecisionProposal(input:string,latest:Map<string,any>){
     }
   }
   const patterns:Array<[string,RegExp]>=[
+    ["company_name",/(?:ändere|aendere|aktualisiere|setze)\s+(?:(?:den|die|das|meinen|unsere[nr]?)\s+)?(?:unternehmensnamen|firmennamen|firmenname|unternehmensname|firma)\s+(?:auf|zu|in)\s+(.+?)(?:[.!?\n]|$)/i],
     ["company_name",/(?:unternehmensnamen|firmennamen|firma|unternehmen)\s+(?:auf|in|zu)\s+(.+?)\s+(?:ändern|aendern|umbenennen)(?:[.!?\n]|$)/i],
     ["company_name",/(?:nenne|benenne)\s+(?:meine\s+)?(?:firma|unternehmen)\s+(?:jetzt\s+)?(.+?)(?:[.!?\n]|$)/i],
+    ["budget",/(?:ändere|aendere|aktualisiere|setze)\s+(?:(?:das|mein|unser)\s+)?(?:budget|startkapital)\s+(?:auf|zu)\s+(.+?)(?:[.!?\n]|$)/i],
     ["budget",/(?:budget|startkapital)\s+(?:auf|zu)\s+(.+?)\s+(?:ändern|aendern|setzen|festlegen)(?:[.!?\n]|$)/i],
+    ["industry",/(?:ändere|aendere|wechsel|wechsle)\s+(?:(?:die|meine|unsere)\s+)?(?:branche|geschäftsfeld)\s+(?:auf|zu|in)\s+(.+?)(?:[.!?\n]|$)/i],
     ["industry",/(?:branche|geschäftsfeld)\s+(?:auf|zu)\s+(.+?)\s+(?:ändern|aendern|wechseln)(?:[.!?\n]|$)/i],
+    ["brand_style",/(?:ändere|aendere|aktualisiere|setze)\s+(?:(?:den|die|das|mein|unser)\s+)?(?:gestaltungsstil|designstil|farbschema)\s+(?:auf|zu|in)\s+(.+?)(?:[.!?\n]|$)/i],
     ["brand_style",/(?:gestaltungsstil|designstil|farbschema)\s+(?:auf|zu)\s+(.+?)\s+(?:ändern|aendern|umstellen)(?:[.!?\n]|$)/i]
   ];
   for(const [key,pattern] of patterns){
