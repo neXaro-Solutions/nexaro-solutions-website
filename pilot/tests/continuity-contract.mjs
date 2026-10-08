@@ -85,9 +85,11 @@ function scenario(existingActions=[],goalOwner=OWNER,otherGoals=[],confirmed=[])
    return {data:found,error:null};
   }
   then(ok,err){return Promise.resolve(this.calculate()).then(ok,err)}
-  single(){const v=this.calculate();return Promise.resolve(v.data.length===1?
-    {data:v.data[0],error:null}:{data:null,error:{message:"not found",code:"PGRST116"}})}
-  maybeSingle(){const v=this.calculate();return Promise.resolve({data:v.data[0]||null,error:null})}
+  single(){const v=this.calculate();return Promise.resolve(v.error?{data:null,error:v.error}:
+    v.data.length===1?{data:v.data[0],error:null}:
+    {data:null,error:{message:"not found",code:"PGRST116"}})}
+  maybeSingle(){const v=this.calculate();return Promise.resolve(v.error?{data:null,error:v.error}:
+    {data:v.data[0]||null,error:null})}
  }
  const client={auth:{getUser:async()=>({data:{user:{id:OWNER}},error:null})},
   from:name=>new Query(name)};
