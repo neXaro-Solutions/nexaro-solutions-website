@@ -18,7 +18,7 @@ const problems=(compiled.diagnostics||[]).filter(d=>d.category===ts.DiagnosticCa
 assert.equal(problems.length,0,problems.map(d=>ts.flattenDiagnosticMessageText(d.messageText," ")).join("; "));
 for(const token of [
  'role.data?.role!=="admin"', 'pilot_request_id:receipt',
- 'goal.error.code==="23505"', 'operation:"start"',
+ 'goal.error.code==="23505"', 'const start=await call("start")',
  'check_key:KEY', 'verification_records',
  'background_worker===true','cost_capped',
  'test_goal_removed','worker_status:j.status',
