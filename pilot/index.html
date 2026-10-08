@@ -4958,6 +4958,9 @@ async function createGoal(){
       }
     });
     render();
+    if(data.recovered){
+      pilotNotice("Auftrag bereits übernommen. Pilot legt keinen zweiten Auftrag an.");
+    }
     // Keep the continuation effortless but transparent: a small one-time note
     // confirms that verified user decisions were reused, not requested again.
     const reusedDecisions=Number(data.decision_journal?.reused||0);

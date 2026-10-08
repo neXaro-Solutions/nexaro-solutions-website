@@ -161,6 +161,10 @@ const migration=readFileSync(resolve(root,
  "supabase/migrations/20261008162112_pilot_followup_request_idempotency.sql"),"utf8");
 assert(migration.includes("create unique index if not exists pilot_actions_request_once"));
 assert(migration.includes("where pilot_request_id is not null"));
+assert(frontend.includes('if(data.recovered){'),
+  "The user must receive an understandable recovered-command notice");
+assert(frontend.includes("Auftrag bereits übernommen. Pilot legt keinen zweiten Auftrag an."),
+  "Retry recovery must be explained without technical jargon");
 console.log("PASS Client retry token and database uniqueness contracts");
 
 const withPredecessor=scenario([earlier]);
