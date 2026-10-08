@@ -254,3 +254,21 @@ LUMEN .35 im authentifizierten iPhone-Test zeigt: **16 Brave-Suchtreffer, eine a
 Der rein optische Flugtest verfügt im Admin-Modus jetzt über eine **temporär erzeugte, deaktivierte Test-Landezone**, weil dort bewusst kein echter `executeAction`-Button existiert. Keine automatische Ausführung und keine Zieländerung; die künstliche Landezone wird am Ende immer entfernt.
 
 **Tests:** JavaScript-Syntax, HTML-Abschnittsbilanz, alle vier einmalig gerenderten Test-IDs, Admin-Autorisierung, Weiterbestehen von Auftragsschaltflächen, bestehende Click-Bindungen und isolierte Flugtest-Logik bestanden. Neue LUMEN `2026.10.08.36`. Authentifizierte iPhone-Bestätigung des neuen Teststandortes und echter KI-Anbieter-Kurztest weiterhin offen. **Kein** fälschlicher Abschluss einer KI-Ausführung.
+
+
+## LUMEN 2026.10.08.37 – tatsächliche Ausführung erfolgreich, historische Warnung entfernt
+
+**Live-iPhone-Test 12:07 CEST:** Die Zentrale zeigte „Automatischer Arbeitslauf: 1 überprüfte Folgeschritte. Nutzerentscheidung erforderlich. Pilot hat angehalten“ sowie gleichzeitig „Letzter Arbeitsversuch unterbrochen“ für den nächsten `joint`-Schritt Rechtsform/Gewerbe/Kammer. Letzteres war **kein** neuer Fehler: Das UI wählte irgendeinen alten fehlgeschlagenen Versuch dieser Aktion, obwohl zwischenzeitlich erfolgreich ausgeführte Aufgaben vorlagen.
+
+**Unabhängig aus DB bestätigt:**
+- `executions 50756240-2900-479b-a1f7-baa6d37b5644`: `Qualifikation & Versicherungsschutz bei Baumpflege prüfen`, `completed`, Ergebnis `d63f98cb-7ee8-4385-b922-cb9b2861b390` `final`, Quelle-IDs/URLs gespeichert; die `research`-, `reason`-, `create_result`-, `verify`- und `progress`-Schritte sind technisch abgeschlossen.
+- `executions d161e54b-2ebc-4727-883c-346020314358`: Automatischer Folgeschritt „Skalierung“, `completed`, Ergebnis `c1f65e8a-d950-4d6c-8a8a-a338a6e18dd5` `final`. Die Ausführung war ohne externe Recherche delegiert.
+- Danach meldete `operation=next` korrekt `collaboration_required` für `Rechtsform, Gewerbeanmeldung und zuständige Kammer klären` (`owner_type=joint`, `recommended_mode=together`). Es wurde **noch kein** Reviewdialog geöffnet; der Nutzer soll diese gemeinsame Aktion zuerst starten.
+
+**UX-Korrektur live in `pilot/index.html` LUMEN .37** (Commit `01788e76a0ae90cd835bf03a22f348b67a82f79b`):
+- Warnung über gescheiterten Versuch nur, wenn **neueste Ausführung des aktiven Ziels** tatsächlich zur aktuellen Aktion gehört und fehlgeschlagen ist. Erfolgreichere neue Schritte verdrängen veraltete Fehlmeldungen; Ausführungshistorie bleibt vollständig erhalten.
+- Autopilot-Rückmeldung unterscheidet `completed`, `waiting` und `error`; das Grün/✓ stellt eine erforderliche Zusammenarbeit nicht fälschlich als durchgängig fertig dar. Statt „Nutzerentscheidung erforderlich“ steht ausdrücklich, dass der **nächste** Schritt gemeinsam bearbeitet wird.
+- Für `joint/user/together`-Aktionen erscheinen kleine Kontextinfo „Gemeinsam mit dir“ und CTA `✈ Schritt gemeinsam starten`. Normale Pilot-Aufgaben behalten `✈ Nächsten Schritt ausführen`.
+- Vier mögliche Fehlerkonstellationen und drei Auto-Statusdarstellungen sowie komplette JS-Syntax wurden erfolgreich getestet.
+
+**Sachliche Abnahmegrenze:** Das qualifikations-/versicherungsrechtliche Ergebnis nennt noch fehlende verbindliche Pflichtenbelege; die Quelle `[S1]` aus Wikipedia ist keine hinreichende Rechtsgrundlage. Technische `verification_records.status=passed` bedeuten hier **nicht** abschließend rechtlich geprüft. Für eine vollständige Fach-/Quellenabnahme verlangt Pilot konkrete zuständige offizielle Dokumente oder eine qualifizierte Prüfung. Deshalb ist die umfassende E2E-Quellenprüfung im Entwicklungsplan noch `pending`, während der nun bestätigte **reale technische Ausführungs- und Speicherpfad** separat `passed` ist.
