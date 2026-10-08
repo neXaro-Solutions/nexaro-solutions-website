@@ -3239,6 +3239,25 @@ body{max-width:100%;overflow-x:clip}
 .pilot-partner-profile-line button,.pilot-partner-submitted{border:1px solid #cae0c9;background:#fff;border-radius:10px;min-height:41px;padding:7px 11px;font-size:11px;font-weight:740;color:#365e3d;cursor:pointer}
 .pilot-partner-submitted{flex:0 0 auto}
 @media(max-width:520px){.pilot-partner-enroll-item{align-items:stretch}.pilot-partner-submitted{width:100%}}
+
+/* A helpful result under the single conversation input, never a product comparison menu. */
+.pilot-shopping-card{width:min(760px,100%);margin:22px auto 0;border:1px solid rgba(153,195,160,.35);border-radius:23px;background:linear-gradient(145deg,rgba(247,255,244,.98),#fff);padding:20px 22px;box-shadow:0 12px 36px rgba(18,57,27,.06);color:#20382d}
+.pilot-shopping-heading{display:flex;align-items:center;gap:10px;margin-bottom:13px}
+.pilot-shopping-mark{width:35px;height:35px;display:grid;place-items:center;background:#ddf9cf;border-radius:12px;font-size:19px}
+.pilot-shopping-heading div{flex:1;min-width:0}.pilot-shopping-heading small{display:block;font-weight:820;font-size:10px;letter-spacing:.13em;color:#66836c}
+.pilot-shopping-heading h3{font-size:17px;letter-spacing:-.02em;line-height:1.3;margin:3px 0 0}
+.pilot-shopping-heading>button{border:0;background:transparent;color:#67816d;font-size:24px;cursor:pointer;min-width:40px;min-height:44px}
+.pilot-shopping-answer{font-size:14px;line-height:1.7;color:#385348;white-space:pre-wrap;overflow-wrap:anywhere;margin:8px 0 16px}
+.pilot-shopping-choice{display:flex;gap:13px;flex-wrap:wrap;align-items:center}.pilot-shopping-choice small{font-size:12px;line-height:1.6;color:#607466}
+.pilot-shopping-evidence{display:grid;gap:9px;margin:18px 0}
+.pilot-shopping-offer{border:1px solid #ddeade;border-radius:14px;background:#fff;display:flex;justify-content:space-between;gap:12px;padding:13px;align-items:center}
+.pilot-shopping-offer>div:first-child{min-width:0}.pilot-shopping-offer small{display:block;color:#547c55;font-size:10px;font-weight:750}
+.pilot-shopping-offer strong{display:block;font-size:13px;margin:4px 0;overflow-wrap:anywhere}
+.pilot-shopping-offer span{display:block;color:#6a7d70;font-size:11px;line-height:1.5}
+.pilot-shopping-price{text-align:right;min-width:118px}.pilot-shopping-price b{display:block;font-size:16px}
+.pilot-shopping-price a{display:inline-block;margin-top:6px;font-size:11px;font-weight:820;text-decoration:none;color:#316d37}
+.pilot-shopping-footer{font-size:11px;color:#748279;line-height:1.6;margin:12px 0 0}
+@media(max-width:580px){.pilot-shopping-card{padding:15px 14px;border-radius:18px;margin-top:14px}.pilot-shopping-offer{align-items:start;flex-direction:column}.pilot-shopping-price{text-align:left}.pilot-shopping-choice .btn{width:100%}}
 </style><style id="pilot-orbit-design">
 /* ORBIT — canonical product tokens and layouts. Legacy tooling keeps its selectors. */
 :root{--bg:#f2f6f3;--s:#ffffff;--t:#172d29;--m:#5b7068;--l:#dae5de;--g:#9aef55;--g2:#6cba3c;--o:#e99342;--sh:0 24px 70px #243f3010;--sh2:0 10px 30px #243f300b}
@@ -3439,7 +3458,7 @@ body:has(#auth:not(.hidden))::before{display:none!important}
 </div>
 
 <section id="app" class="shell hidden"><aside class="side"><div class="brand"><div class="brand-meta"><img src="/nexaro-transparent-logo.webp" class="brand-logo" alt="neXaro Solutions"><div class="ey">Dein intelligenter Mitarbeiter</div></div></div>
-<nav class="pilot-minimal-nav" aria-label="Hauptnavigation"><button class="nav active" data-view="home" aria-label="Pilot"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="m3 10 9-7 9 7"/><path d="M5 9v11h14V9"/><path d="M9.5 20v-7h5v7"/></svg></span><span>Pilot</span></button><button class="nav" data-view="goals" aria-label="Aufträge"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/></svg></span><span>Aufträge</span></button><button class="nav" data-view="results" aria-label="Ergebnisse"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="4"/><path d="m8 12 3 3 5-6"/></svg></span><span>Ergebnisse</span></button><details class="pilot-nav-more"><summary aria-label="Weitere Bereiche"><span class="pilot-nav-more-symbol">•••</span><span>Mehr</span></summary><div class="pilot-nav-more-content"><button class="nav" data-view="market" aria-label="Angebote vergleichen"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16M4 12h16M4 19h16"/><circle cx="8" cy="5" r="2" fill="white"/><circle cx="15" cy="12" r="2" fill="white"/><circle cx="11" cy="19" r="2" fill="white"/></svg></span><span>Angebote vergleichen</span></button><button class="nav" data-view="notifications" aria-label="Mitteilungen"><span class="pilot-nav-icon" aria-hidden="true">◉</span><span>Mitteilungen & Push</span></button><button class="nav" data-view="documents" aria-label="Dokumente"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M7 3.5h7l4 4V21H7a2 2 0 0 1-2-2V5.5a2 2 0 0 1 2-2Z"/><path d="M14 3.5V8h4"/><path d="M9 12h6M9 16h6"/></svg></span><span>Dokumente</span></button><button class="nav auxiliary-nav" data-view="canva" aria-label="Gestaltung"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="m12 2 2.8 7.2L22 12l-7.2 2.8L12 22l-2.8-7.2L2 12l7.2-2.8L12 2Z"/></svg></span><span>Gestaltung</span></button><button class="nav admin-only hidden" data-view="roadmap" aria-label="Entwicklungsplan"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M9 9v12"/></svg></span><span>Entwicklungsplan</span></button><button class="nav admin-only hidden" data-view="alpha" aria-label="Systemtest"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="m4 12 5 5L20 6"/><circle cx="12" cy="12" r="9"/></svg></span><span>Systemtest</span></button><button class="nav account-nav" data-view="me" aria-label="Einstellungen"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M10 2h4l.7 2.3 2.2 1.2 2.3-.8 2 3.4-1.7 1.7v2.5l1.7 1.7-2 3.4-2.3-.8-2.2 1.2L14 22h-4l-.7-2.3-2.2-1.2-2.3.8-2-3.4 1.7-1.7v-2.5L2.8 10l2-3.4 2.3.8 2.2-1.2L10 2Z"/><circle cx="12" cy="12" r="3"/></svg></span><span>Einstellungen</span></button><button class="nav admin-only hidden" data-view="admin">Administration</button></div></details></nav>
+<nav class="pilot-minimal-nav" aria-label="Hauptnavigation"><button class="nav active" data-view="home" aria-label="Pilot"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="m3 10 9-7 9 7"/><path d="M5 9v11h14V9"/><path d="M9.5 20v-7h5v7"/></svg></span><span>Pilot</span></button><button class="nav" data-view="goals" aria-label="Aufträge"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/></svg></span><span>Aufträge</span></button><button class="nav" data-view="results" aria-label="Ergebnisse"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="4"/><path d="m8 12 3 3 5-6"/></svg></span><span>Ergebnisse</span></button><details class="pilot-nav-more"><summary aria-label="Weitere Bereiche"><span class="pilot-nav-more-symbol">•••</span><span>Mehr</span></summary><div class="pilot-nav-more-content"><button class="nav" data-view="notifications" aria-label="Mitteilungen"><span class="pilot-nav-icon" aria-hidden="true">◉</span><span>Mitteilungen & Push</span></button><button class="nav" data-view="documents" aria-label="Dokumente"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M7 3.5h7l4 4V21H7a2 2 0 0 1-2-2V5.5a2 2 0 0 1 2-2Z"/><path d="M14 3.5V8h4"/><path d="M9 12h6M9 16h6"/></svg></span><span>Dokumente</span></button><button class="nav auxiliary-nav" data-view="canva" aria-label="Gestaltung"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="m12 2 2.8 7.2L22 12l-7.2 2.8L12 22l-2.8-7.2L2 12l7.2-2.8L12 2Z"/></svg></span><span>Gestaltung</span></button><button class="nav admin-only hidden" data-view="roadmap" aria-label="Entwicklungsplan"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M9 9v12"/></svg></span><span>Entwicklungsplan</span></button><button class="nav admin-only hidden" data-view="alpha" aria-label="Systemtest"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="m4 12 5 5L20 6"/><circle cx="12" cy="12" r="9"/></svg></span><span>Systemtest</span></button><button class="nav account-nav" data-view="me" aria-label="Einstellungen"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M10 2h4l.7 2.3 2.2 1.2 2.3-.8 2 3.4-1.7 1.7v2.5l1.7 1.7-2 3.4-2.3-.8-2.2 1.2L14 22h-4l-.7-2.3-2.2-1.2-2.3.8-2-3.4 1.7-1.7v-2.5L2.8 10l2-3.4 2.3.8 2.2-1.2L10 2Z"/><circle cx="12" cy="12" r="3"/></svg></span><span>Einstellungen</span></button><button class="nav admin-only hidden" data-view="admin">Administration</button></div></details></nav>
 <button id="logout" class="btn logout">Abmelden</button></aside>
 <main class="main"><div class="head"><div><div class="ey">PILOT · DEIN KI-MITARBEITER</div><h1 id="title">Pilot</h1></div><div class="head-actions"><button id="adminSystem" class="head-tool admin-only hidden" data-view="admin">Admin</button><button id="customerPreviewToggle" class="head-tool admin-preview hidden" type="button">Kundenansicht</button><button id="accountButton" class="head-tool" data-view="me">Profil</button><div class="status"><span class="dot"></span><span id="pilotStatus">Pilot bereit</span></div></div></div><div id="view"><section class="pilot-initial-fallback" role="status" aria-live="polite"><span class="pilot-initial-beacon" aria-hidden="true">✈</span><div><strong>Pilot wird geladen</strong><p>Dein Auftrag und deine Ergebnisse bleiben gespeichert.</p></div></section></div></main></section><div id="pilotFlightLayer" aria-hidden="true"></div>
 
@@ -4140,7 +4159,7 @@ function home(){
  '<div class="pilot-focus-tools"><div class="command-attachments"><button class="attach-btn" type="button" data-attach-kind="file" aria-label="Datei hinzufügen">'+
  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>'+attach+'</div>'+
  '<button id="createGoal" type="button" class="btn ai launch-primary" aria-label="Auftrag starten"><span class="pilot-send-label">Starten</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 19V5m-6 6 6-6 6 6"/></svg></button></div>'+
- '<div id="attachmentTray" class="attachment-tray" aria-live="polite"></div></div></section></div>';
+ '<div id="attachmentTray" class="attachment-tray" aria-live="polite"></div></div></section>'+pilotShoppingCard()+'</div>';
 }
 function pilotNextMove(){
  const g=goals[0],n=pilotNextQueuedAction(),approval=pilotReviewContext(),interrupt=pilotRelevantInterruption();
@@ -4608,7 +4627,7 @@ function adminViewLegacy(){
       '<div class="admin-hero-heading"><span class="admin-console-kicker"><i aria-hidden="true"></i> PILOT · SYSTEMSTEUERUNG</span>'+
         '<h2>Admin-Cockpit</h2><p>Systemstatus, Rollen und Tests auf einen Blick.</p></div>'+
       '<div class="admin-hero-actions" aria-label="Administrationsfunktionen">'+
-        '<button type="button" class="btn" data-jump="roadmap" aria-label="Entwicklungsplan öffnen">◫ Plan</button>'+
+        '<button type="button" class="btn" data-jump="roadmap" aria-label="Entwicklungsplan öffnen">◫ Plan</button><button type="button" class="btn" data-jump="market" aria-label="Partnerprogramme verwalten">Partnerprogramme</button>'+
         '<button type="button" class="btn" data-jump="alpha" aria-label="Systemtest öffnen">✓ Tests</button>'+
         '<button type="button" id="refreshAdmin" class="btn primary" aria-label="Admin-Daten aktualisieren">↻ Aktualisieren</button>'+
       '</div></header>'+
@@ -4771,7 +4790,7 @@ function pilotMarketSafeLink(value){try{const u=new URL(String(value));return u.
 function pilotMarketView(){
  const p=pilotMarketState;
  const intro='<section class="pilot-market-hero"><span class="pilot-market-kicker">PILOT · ANGEBOTSINTELLIGENZ</span>'+
- '<h2>Finden. Vergleichen. Besser entscheiden.</h2>'+
+ '<h2>Partnerangebote und Datenquellen prüfen</h2>'+
  '<p>Ich prüfe verfügbare Angebote verbundener Anbieter und zeige dir den tatsächlichen Preis. Quellen ohne Freigabe werden nicht als aktiv ausgegeben.</p>'+
  '<form class="pilot-market-form" id="pilotMarketForm"><input name="q" id="pilotMarketInput" type="search" autocomplete="off" minlength="3" maxlength="120" required aria-label="Produkt oder Angebot suchen" placeholder="Was möchtest du vergleichen?" value="'+esc(p.query)+'">'+
  '<button type="submit" '+(p.loading?'disabled':'')+'>'+(p.loading?'Suche läuft …':'Angebote finden →')+'</button></form>'+
@@ -4983,7 +5002,31 @@ function pilotMarketFromHome(text){
  return query.length>=3?query:t;
 }
 
-function render(){if(!effectiveAdmin()&&["roadmap","alpha","admin"].includes(current))current="home";applyRoleUI();document.querySelectorAll("[data-view]").forEach(b=>b.classList.toggle("active",b.dataset.view===current));T.textContent={home:"Pilot",goals:"Aufträge",documents:"Dokumente",results:"Ergebnisse",market:"Angebote",notifications:"Mitteilungen",execution:"Ausführung",canva:"Gestaltung",roadmap:"Entwicklungsplan",alpha:"Systemtest",admin:"Admin-Cockpit",me:"Einstellungen"}[current];V.dataset.screen=current;APP.dataset.screen=current;V.innerHTML={home:home,goals:goalsView,documents:documentsView,results:resultsView,market:pilotMarketView,notifications:pilotNotificationsView,execution:executionView,canva:canvaView,roadmap:roadmap,alpha:alphaView,admin:adminView,me:me}[current]();document.querySelectorAll(".side .nav[data-view]").forEach(b=>{if(b.dataset.view===current)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current")});bind();pilotBindSpatialUI();pilotSyncFlightScreen();pilotUpdateDock()}
+
+/* Hidden product intelligence: same home input, private context, real verified offers. */
+let pilotShoppingAssistant=null,pilotShoppingLoader=null;
+async function pilotShoppingGet(){
+ if(pilotShoppingAssistant)return pilotShoppingAssistant;
+ if(!pilotShoppingLoader){
+  pilotShoppingLoader=import("./shopping-assistant.mjs").then(module=>
+   pilotShoppingAssistant=module.makeShoppingAssistant({
+    sb,getUser:()=>user,getOrg:()=>org,redraw:()=>{if(current==="home")render()},
+    safeLink:pilotMarketSafeLink,escape:esc,money:pilotMarketMoney
+   })
+  ).catch(error=>{pilotShoppingLoader=null;console.warn("Pilot advice not available",String(error));return null});
+ }
+ return pilotShoppingLoader;
+}
+function pilotShoppingCard(){return pilotShoppingAssistant?.card()||"";}
+async function pilotShoppingAsk(text){
+ const assistant=await pilotShoppingGet();
+ if(!assistant)return false;
+ const handled=await assistant.handle(text,{attachments:pendingAttachments.length>0});
+ if(handled)pilotComposerDraft="";
+ return handled;
+}
+
+function render(){if(!effectiveAdmin()&&["roadmap","alpha","admin","market"].includes(current))current="home";applyRoleUI();document.querySelectorAll("[data-view]").forEach(b=>b.classList.toggle("active",b.dataset.view===current));T.textContent={home:"Pilot",goals:"Aufträge",documents:"Dokumente",results:"Ergebnisse",market:"Angebote",notifications:"Mitteilungen",execution:"Ausführung",canva:"Gestaltung",roadmap:"Entwicklungsplan",alpha:"Systemtest",admin:"Admin-Cockpit",me:"Einstellungen"}[current];V.dataset.screen=current;APP.dataset.screen=current;V.innerHTML={home:home,goals:goalsView,documents:documentsView,results:resultsView,market:pilotMarketView,notifications:pilotNotificationsView,execution:executionView,canva:canvaView,roadmap:roadmap,alpha:alphaView,admin:adminView,me:me}[current]();document.querySelectorAll(".side .nav[data-view]").forEach(b=>{if(b.dataset.view===current)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current")});bind();pilotBindSpatialUI();pilotSyncFlightScreen();pilotUpdateDock()}
 
 function formatBytes(n){const v=Number(n||0);if(v<1024)return v+" B";if(v<1024*1024)return (v/1024).toFixed(1)+" KB";return (v/1024/1024).toFixed(1)+" MB"}
 function renderAttachmentTray(){
@@ -5094,6 +5137,8 @@ async function processPendingAttachments(goalId,taskText){
 }
 
 function bind(){
+  document.getElementById("pilotShoppingAny")?.addEventListener("click",()=>void pilotShoppingAsk("egal"));
+  document.getElementById("pilotShoppingDismiss")?.addEventListener("click",()=>{pilotShoppingAssistant?.clear();render()});
   if(current==="market"&&effectiveAdmin()&&!pilotPartnerState.loaded&&!pilotPartnerState.busy)void pilotPartnerLoad();
   document.querySelectorAll("[data-partner-copy]").forEach(b=>b.addEventListener("click",()=>void pilotPartnerCopy(b.dataset.partnerCopy)));
   document.getElementById("pilotPartnerCopyAll")?.addEventListener("click",()=>void pilotPartnerCopy("all"));
@@ -5488,8 +5533,7 @@ function pilotClearPendingCommand(id){
 async function createGoal(){
   const text=document.getElementById("goalText").value.trim();
   if(!text||!org)return;
-  const marketQuery=pendingAttachments.length===0?pilotMarketFromHome(text):null;
-  if(marketQuery){pilotComposerDraft="";void pilotMarketSearch(marketQuery);return;}
+  if(await pilotShoppingAsk(text))return;
   pilotComposerDraft=text;
   const requestId=pilotPendingCommandId(text);
 
@@ -6735,6 +6779,7 @@ async function enter(session){
  }
  try{
    await load();
+   void pilotShoppingGet().then(a=>a?.load());
    await pilotEnsureJourney();
    if(goals[0])await pilotBackgroundRead(goals[0].id).catch(()=>null);
    render();
@@ -6754,7 +6799,7 @@ async function enter(session){
    pilotShowLoadError(e);
  }
 }
-async function leave(){pilotPinnedGoalId=null;pilotForceNewGoal=false;pilotComposerDraft="";pilotDownloadCache.clear();if(activePilotFlight)pilotDestroyFlight(activePilotFlight);pilotSetFlightState(null,"idle","");user=null;org=null;isAdmin=false;customerPreview=false;adminData=null;pendingAttachments=[];goalSuccessMap={};goals=[];features=[];plans=[];actions=[];contexts=[];milestones=[];documents=[];results=[];claims=[];evidence=[];completeness=[];progressEvents=[];outcomes=[];adaptations=[];pilotState=null;aiRequests=[];qualityContracts=[];consensusRuns=[];executions=[];executionSteps=[];designJobs=[];canvaStatus=null;researchBusy=false;researchAttempted.clear();notifications=[];readiness=[];evalRuns=[];APP.classList.add("hidden");A.classList.remove("hidden")}
+async function leave(){pilotShoppingAssistant?.clear();pilotShoppingAssistant=null;pilotShoppingLoader=null;pilotPinnedGoalId=null;pilotForceNewGoal=false;pilotComposerDraft="";pilotDownloadCache.clear();if(activePilotFlight)pilotDestroyFlight(activePilotFlight);pilotSetFlightState(null,"idle","");user=null;org=null;isAdmin=false;customerPreview=false;adminData=null;pendingAttachments=[];goalSuccessMap={};goals=[];features=[];plans=[];actions=[];contexts=[];milestones=[];documents=[];results=[];claims=[];evidence=[];completeness=[];progressEvents=[];outcomes=[];adaptations=[];pilotState=null;aiRequests=[];qualityContracts=[];consensusRuns=[];executions=[];executionSteps=[];designJobs=[];canvaStatus=null;researchBusy=false;researchAttempted.clear();notifications=[];readiness=[];evalRuns=[];APP.classList.add("hidden");A.classList.remove("hidden")}
 let authMode="login";
 const AUTHM=document.getElementById("authModal"),ME=document.getElementById("modalEmail"),MP=document.getElementById("modalPassword"),MP2=document.getElementById("modalPassword2"),MW=document.getElementById("repeatPasswordWrap"),PW=document.getElementById("privacyWrap"),AP=document.getElementById("acceptPrivacy"),SM=document.getElementById("submitAuth"),SW=document.getElementById("switchAuthMode"),RC=document.getElementById("resendConfirmation"),MM=document.getElementById("modalMessage"),CS=document.getElementById("confirmationState"),CE=document.getElementById("confirmationEmail"),CR=document.getElementById("confirmationResend"),CL=document.getElementById("confirmationLogin");
 function modalMessage(s,ok=false){MM.innerHTML='<div class="msg '+(ok?'ok':'')+'">'+esc(s)+'</div>'}
