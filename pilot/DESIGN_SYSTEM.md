@@ -101,3 +101,21 @@ Dieser Zusatz ist verbindlich für alle mobilen und Desktop-Oberflächen.
 - Jede künftige Gestaltung muss zuerst nach dem Grundsatz beurteilt werden: **futuristischer KI-Mitarbeiter statt herkömmlicher Office-Software**. Funktionalität, Lesbarkeit und visuelle Tiefe gleichzeitig bewahren.
 
 **Status:** Quellcode in `pilot/index.html`, LUMEN 2026.10.08.25. Funktionstests bestanden, echter iPhone-Scroll-/Eingabetest noch offen.
+
+
+## LUMEN 2026.10.08.31 — kompakte Steuerzentrale, besonders auf dem iPhone
+
+Aus dem iPhone-Praxistest (10:55) folgt eine neue verbindliche Designregel für alle Pilot-Bereiche, insbesondere für Administrations-, Roadmap- und Systemtest-Ansichten:
+
+**Niemals mehrere große Einführungs-/Hero-Karten hintereinander anzeigen.** Der Administrator benötigt eine kompakte Kommandoübersicht, keine raumgreifende Office-/CRM-Startseite. Die helle futuristische LUMEN-Ästhetik bleibt bestehen, soll aber durch Lichttiefe und Mikrointeraktionen und nicht durch Größe wirken.
+
+- Mobile Admin-Ansicht: **ein** kompaktes Hero/Command Strip mit einer klaren Hauptüberschrift und kurzer Erklärung; kein doppeltes „Systemadministration“ + „Betreiber-Cockpit“ mehr.
+- Kurze, priorisierte Verwaltungsaktionen (Plan, Tests, Aktualisieren) in einer responsiven Zeile. Navigation und alle funktionalen IDs/Bindungen bleiben unverändert.
+- Kennzahlen in einem mobilen Grid mit **minmax(0,1fr)**, kleineren Fonts und deutlich weniger Leerraum; keine horizontale Bildschirmüberbreite, kein Abschneiden der zweiten Spalte.
+- Untergeordnete Administratorinhalte sind als zugängliche, native `details/summary`-Bereiche verfügbar. Das reduziert kognitive Belastung, ohne Rollen-, Analyse- oder Ereignisfunktionen zu entfernen.
+- Nutzerverwaltung auf dem iPhone als kompakte zweispaltige Liste mit eigener 43px-Rollenauswahl statt einer mindestens 650px breiten Desktop-Tabelle; kein seitliches Scrollen der Gesamtseite.
+- **Leichtes LUMEN, keine Bürosoftware:** weiß/mint, neon-grüne/orange Statussignale, dezente Raster, kurze Typografiehierarchie, zurückhaltender Glow. Keine neue große Animation als Dekoration.
+- Für andere Admin-Bereiche die Kopfkarte auf dem iPhone ebenfalls verkleinern, ohne Prüf- und Bedienfunktionen zu verstecken.
+- Erst nach realem iPhone-Test visuell als abgenommen markieren. Syntax- und Strukturtests sind technische Teilabnahme, ersetzen aber keine Prüfung des tatsächlichen mobilen Renderings.
+
+**Umgesetzt** in `pilot/index.html`, LUMEN `2026.10.08.31`; GitHub-Commit `e5b4bdaecbf0fd9731ed6e9da1b867edf7258bc3`. Kompakte Darstellung, Admin-Berechtigungsprüfung, offene/geschlossene `details` und ursprüngliche Aktions-IDs wurden mit Mockdaten strukturell getestet.
