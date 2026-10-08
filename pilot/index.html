@@ -3835,8 +3835,37 @@ function nxOpenNext(){
     (config.cancelable===false?'':'<button type="button" class="nx-action" data-cancel>Abbrechen</button>')+'</div></form>'+
     '<p class="nx-foot">Deine Angaben werden nur im passenden Auftrag verwendet.</p></section>';
   document.body.appendChild(mask);document.body.style.overflow="hidden";
+  const flightQuestion=!!config.pilotFlightHandoff&&!!activePilotFlight?.plane?.isConnected;
+  if(flightQuestion){
+    pilotSetFlightState(goals[0]?.id||null,"attention","Hier ist deine Handlung erforderlich");
+    const landingTarget=mask.querySelector(".nx-actions .nx-action.accent")||mask.querySelector(".nx-actions .nx-action");
+    if(landingTarget)void landPilotAtNextAction({scroll:false,minCruise:0,keepLanded:true,
+      targetElement:landingTarget,landingMessage:"✈ Gelandet · Deine Entscheidung wird benötigt"});
+  }
   let settled=false;
-  const finish=value=>{if(settled)return;settled=true;mask.removeEventListener("keydown",keyHandler);mask.remove();document.body.style.overflow=prevOverflow;try{prev?.focus?.({preventScroll:true})}catch{}nxDialogActive=false;resolve(value);queueMicrotask(nxOpenNext)};
+  const finish=value=>{
+    if(settled)return;settled=true;
+    mask.removeEventListener("keydown",keyHandler);mask.remove();
+    document.body.style.overflow=prevOverflow;
+    try{prev?.focus?.({preventScroll:true})}catch{}
+    nxDialogActive=false;
+    const complete=()=>{resolve(value);queueMicrotask(nxOpenNext)};
+    if(!flightQuestion){complete();return}
+    if(value===null){
+      pilotSetFlightState(goals[0]?.id||null,"finished","Auftrag pausiert");
+      finishPilotFlight();complete();return;
+    }
+    void (async()=>{
+      // Board only after the required input was supplied, not while the dialog is open.
+      const plane=activePilotFlight;
+      if(plane?.phase==="parked")await pilotAvatarReboard(pilotFlightState.goalId);
+      else if(plane?.phase==="landing")pilotDestroyFlight(plane);
+      const origin=document.getElementById("createGoal");
+      if(origin&&!activePilotFlight?.plane?.isConnected)startPilotFlight(origin);
+      pilotSetFlightState(goals[0]?.id||null,"flying","Pilot arbeitet weiter");
+      complete();
+    })().catch(()=>{finishPilotFlight();complete()});
+  };
   const keyHandler=e=>{if(e.key==="Escape"&&config.cancelable!==false){e.preventDefault();finish(null)}if(e.key==="Tab"){const items=[...mask.querySelectorAll("button,input,textarea")];if(e.shiftKey&&document.activeElement===items[0]){e.preventDefault();items.at(-1).focus()}else if(!e.shiftKey&&document.activeElement===items.at(-1)){e.preventDefault();items[0].focus()}}};
   mask.addEventListener("keydown",keyHandler);
   mask.querySelector(".nx-close").onclick=()=>finish(null);
@@ -4018,6 +4047,7 @@ async function pilotAskQuestions(questions){
   const qs=(questions||[]).filter(q=>q.required!==false).slice(0,1);
   const business=qs[0]?.key==="business_idea";
   const answer=await nxDialog({
+    pilotFlightHandoff:true,
     title:qs[0]?.dialog_title_de||(business?"Welche Geschäftsidee hast du?":"Pilot hat noch eine Frage"),
     description:qs[0]?.dialog_intro_de||(business?"Zuerst klären wir, welches Unternehmen du aufbauen möchtest. Das Budget besprechen wir erst, wenn es gebraucht wird.":"Pilot fragt nur das ab, was für den nächsten sinnvollen Schritt fehlt."),
     fields:qs.map(q=>({key:q.key,label:q.question_de||q.question_en||"Deine Antwort",hint:q.hint_de||"",placeholder:q.placeholder_de||"",required:q.required!==false})),
@@ -4028,7 +4058,7 @@ async function pilotAskQuestions(questions){
 }
 
 async function askGoalResolution(candidate){
-  return nxDialog({title:"Gehört das zum bestehenden Ziel?",description:"Bestehendes Ziel: "+(candidate?.title||"Unbenannt")+"\n"+(candidate?.desired_outcome||candidate?.description||"")+"\n\nPilot kann damit fortfahren oder ein neues Ziel anlegen.",buttons:[{value:"existing",label:"Bestehendes Ziel fortsetzen",primary:true},{value:"new",label:"Neues Ziel anlegen",orange:true}]});
+  return nxDialog({pilotFlightHandoff:true,title:"Gehört das zum bestehenden Ziel?",description:"Bestehendes Ziel: "+(candidate?.title||"Unbenannt")+"\n"+(candidate?.desired_outcome||candidate?.description||"")+"\n\nPilot kann damit fortfahren oder ein neues Ziel anlegen.",buttons:[{value:"existing",label:"Bestehendes Ziel fortsetzen",primary:true},{value:"new",label:"Neues Ziel anlegen",orange:true}]});
 }
 async function createGoal(){
   const text=document.getElementById("goalText").value.trim();
