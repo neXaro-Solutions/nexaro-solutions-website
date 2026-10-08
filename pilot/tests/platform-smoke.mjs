@@ -63,10 +63,10 @@ try{
    // Corporate root must keep a visible, working DE/EN switch even when its hamburger is closed.
    const corporate=await context.newPage();
    await corporate.goto(`http://127.0.0.1:${server.address().port}/index.html`,{waitUntil:"domcontentloaded"});
-   const switcher=corporate.locator(".top .top-inner > .nx-language-toggle");
+   const switcher=corporate.locator(".top .top-inner > .nx-language-toggle, body > .nx-language-toggle");
    await switcher.waitFor({state:"visible",timeout:8000});
    const rootBounds=await corporate.evaluate(()=>{
-    const r=document.querySelector(".top .top-inner > .nx-language-toggle").getBoundingClientRect();
+    const r=document.querySelector(".top .top-inner > .nx-language-toggle, body > .nx-language-toggle").getBoundingClientRect();
     return {left:r.left,right:r.right,viewport:innerWidth,scroll:document.documentElement.scrollWidth,
      payment:!!document.querySelector('a[href="./sumup-beratung.html"]'),
      crm:!!document.querySelector('a[href="./crm/"]'),
