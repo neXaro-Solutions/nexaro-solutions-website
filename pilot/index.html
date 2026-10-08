@@ -3288,7 +3288,18 @@ async function load(){
       pilotDecisionDraft.legalChoiceRestored=true;
     }
   }else pilotPriorLegalChoice=null;
- }else{plans=[];actions=[];contexts=[];milestones=[];const d=await sb.from("documents").select("*").eq("owner_id",user.id).order("created_at",{ascending:false});documents=d.data||[];results=[];claims=[];evidence=[];completeness=[];progressEvents=[];outcomes=[];adaptations=[];pilotState=null;aiRequests=[];qualityContracts=[];consensusRuns=[];executions=[];executionSteps=[];const dj=await sb.from("design_jobs").select("*").eq("user_id",user.id).order("created_at",{ascending:false}).limit(30);designJobs=dj.data||[];const cs=await sb.functions.invoke("canva-status",{body:{}});canvaStatus=cs.error?null:cs.data}
+ }else{plans=[];actions=[];contexts=[];milestones=[];const d=await sb.from("documents").select("*").eq("owner_id",user.id).order("created_at",{ascending:false});documents=d.data||[];results=[];claims=[];evidence=[];completeness=[];progressEvents=[];outcomes=[];adaptations=[];pilotState=null;aiRequests=[];qualityContracts=[];consensusRuns=[];executions=[];executionSteps=[];const dj=await sb.from("design_jobs").select("*").eq("user_id",user.id).order("created_at",{ascending:false}).limit(30);designJobs=dj.data||[];const cs=await sb.functions.invoke("canva-status",{body:{}});canvaStatus=cs.error?null:cs.data;
+  // Admin readiness belongs to the workspace, not to an arbitrary active goal.
+  // Keep live test results visible even after the isolated test goal is deleted.
+  if(isAdmin){
+   const [rd,ev]=await Promise.all([
+    sb.from("alpha_readiness_checks").select("*").order("category"),
+    sb.from("evaluation_runs").select("*").order("started_at",{ascending:false}).limit(5)
+   ]);
+   if(rd.error||ev.error)throw new Error("Systemtest-Status konnte nicht geladen werden.");
+   readiness=rd.data||[];evalRuns=ev.data||[];
+  }else{readiness=[];evalRuns=[]}
+ }
 }
 
 
