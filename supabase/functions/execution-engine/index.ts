@@ -381,18 +381,26 @@ const pilotCorsHandler=async(req:Request)=>{
       // Only an explicitly clicked legal-form review is journalled, never an AI comparison.
       // Service-owned write is permitted only after the user/goal/review ownership checks.
       const sourceRef="execution:"+executionId;
-      const before=await sb.from("pilot_decision_journal")
-        .select("id").eq("goal_id",exReview.goal_id)
-        .eq("decision_key","legal_form").eq("source_ref",sourceRef).limit(1);
-      if(before.error)return Response.json({error:"decision_journal_read_failed"},{status:503,headers:H});
-      if(!before.data?.length){
+      // Deduplicate the same review and atomically append after the latest
+      // confirmed decision (including a prior user revocation).
+      const journalHistory=await sb.from("pilot_decision_journal")
+        .select("id,source_ref").eq("goal_id",exReview.goal_id)
+        .eq("decision_key","legal_form").order("id",{ascending:false}).limit(150);
+      if(journalHistory.error)return Response.json({error:"decision_journal_read_failed"},{status:503,headers:H});
+      if(!(journalHistory.data||[]).some((row:any)=>row.source_ref===sourceRef)){
+        const latestId=journalHistory.data?.[0]?.id||null;
         const recorded=await admin.from("pilot_decision_journal").insert({
           goal_id:exReview.goal_id,organization_id:exReview.goals.organization_id,owner_id:user.id,
           decision_key:"legal_form",decision_value:selectedForm,event_type:"set",
-          source_type:"user_confirmed_review",source_ref:sourceRef
+          source_type:"user_confirmed_review",source_ref:sourceRef,
+          expected_revision_id:latestId
         });
-        if(recorded.error&&recorded.error.code!=="23505")
+        if(recorded.error&&recorded.error.code!=="23505"){
+          if(recorded.error.code==="P0001")
+            return Response.json({error:"decision_changed_during_confirmation",
+              reason_code:"DECISION_REVISION_CHANGED",retryable:true},{status:409,headers:H});
           return Response.json({error:"decision_journal_write_failed",retryable:true},{status:503,headers:H});
+        }
       }
     }
     const step=await sb.from("execution_steps").update({status:"completed",output:{confirmed_by_user:true,progress},completed_at:new Date().toISOString()})
