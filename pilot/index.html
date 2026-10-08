@@ -6733,9 +6733,13 @@ function pilotPositionWorker(worker,plane){
  const dockTop=navRect&&navRect.top>h*.45&&navRect.top<h?navRect.top:h;
  const baseFloor=Math.min(h-14,dockTop-12);
  const workerWidth=Math.min(168,w-16),speech=worker.querySelector(".pilot-worker-speech");
- // The figure is approx 50px high, including the boots. It stays aligned with
- // the ground shadow irrespective of the airplane's airborne coordinates.
+ // Measure the complete message even after a previous cramped viewport had
+ // suppressed it; never guess its height and accidentally cover a control.
+ worker.classList.remove("pilot-worker--quiet");
+ worker.style.setProperty("width",workerWidth+"px","important");
  const speechHeight=speech?.offsetHeight||54,speechWidth=Math.min(124,w-80);
+ // The figure is approx 50px high, including the boots, on the ground shadow.
+
  const obstacles=pilotWorkerObstacleRects(worker);
  const xCandidates=[12,Math.round(w-workerWidth-12),Math.round((w-workerWidth)/2),
   Math.round(w*.24-workerWidth/2),Math.round(w*.76-workerWidth/2)]
