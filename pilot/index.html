@@ -3135,7 +3135,7 @@ function nxOpenNext(){
   const mask=document.createElement("div");mask.className="nx-mask";
   const safe=esc;
   mask.innerHTML='<section class="nx-modal" role="dialog" aria-modal="true" aria-labelledby="nxTitle" aria-describedby="nxDesc">'+
-    '<div class="nx-top"><div class="nx-symbol" aria-hidden="true">✦</div><span class="nx-kicker">neXaro · PILOT · LUMEN 2026.10.08.33</span><button type="button" class="nx-close" aria-label="Schließen">×</button></div>'+
+    '<div class="nx-top"><div class="nx-symbol" aria-hidden="true">✦</div><span class="nx-kicker">neXaro · PILOT · LUMEN 2026.10.08.34</span><button type="button" class="nx-close" aria-label="Schließen">×</button></div>'+
     '<h2 id="nxTitle">'+safe(config.title||"Pilot fragt nach")+'</h2><p class="nx-description" id="nxDesc">'+safe(config.description||"Bitte ergänze die noch fehlenden Angaben.")+'</p>'+
     '<form novalidate><div class="nx-fields">'+fields.map((f,i)=>'<div class="nx-field"><label for="nxInput'+i+'">'+safe(f.label)+'</label>'+
       (f.short?'<input id="nxInput'+i+'" type="text" name="'+safe(f.key)+'" maxlength="500" placeholder="'+safe(f.placeholder||"")+'" data-required="'+(f.required?"1":"0")+'">':
@@ -3836,9 +3836,22 @@ async function pilotBraveDiagnostic(){
    if(status==="not_configured"){
      pilotNotice("Brave ist vorbereitet, aber noch nicht freigeschaltet. Hinterlege BRAVE_SEARCH_API_KEY unter Supabase → Edge Functions → Secrets.");
    }else if(status==="completed"){
-     pilotNotice("Brave Search antwortet: "+Number(result.data?.results_checked||0)+
-       " Suchtreffer, davon "+Number(result.data?.verified_official||0)+
-       " überprüfte amtliche Seiten. Andere Treffer gelten nur als Suchhinweise.");
+     const total=Number(result.data?.results_checked||0);
+     const official=Number(result.data?.verified_official||0);
+     const candidates=Number(result.data?.official_candidates||0);
+     const focused=!!result.data?.focused_search_performed;
+     if(official>0){
+       pilotNotice("Brave Search verbunden: "+total+" Treffer, "+official+
+         " amtliche Seiten erfolgreich abgerufen. Die fachliche Prüfung ihrer Aussagen erfolgt im Auftrag.");
+     }else if(candidates>0){
+       pilotNotice("Brave Search verbunden: "+total+" Treffer. "+candidates+
+         " amtliche Fundstellen erkannt, aber keine Seite konnte bisher zuverlässig ausgelesen werden. "+
+         "Diese Treffer bleiben Suchhinweise, bis die Originalquelle geprüft ist.");
+     }else{
+       pilotNotice("Brave Search verbunden: "+total+" Treffer. "+
+         (focused?"Auch die gezielte Suche nach amtlichen Fachquellen wurde versucht. ":"")+
+         "Noch keine amtliche Originalseite bestätigt; allgemeine Treffer bleiben Suchhinweise.");
+     }
    }else{
      pilotNotice("Brave-Anbindung: "+({"invalid_api_key":"API-Schlüssel prüfen",
        "rate_limited":"Anfragelimit erreicht","provider_unavailable":"Dienst vorübergehend nicht erreichbar"}[status]||
