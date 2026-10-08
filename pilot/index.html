@@ -3543,6 +3543,13 @@ function bindPilotDecisionEditor(){
 
 /* The authenticated client only observes durable server-side jobs. */
 let pilotBackgroundJob=null,pilotBackgroundTimer=null,pilotBackgroundBusy=false;
+function pilotBackgroundStageLabel(job){
+ const label={queued:"Nächsten Arbeitsschritt prüfen",preparing:"Auftrag vorbereiten",
+ drafting:"Nutzbares Ergebnis erstellen",verifying:"Ergebnisqualität prüfen",
+ saving:"Geprüftes Ergebnis im Auftrag speichern",waiting_user:"Prüfung erforderlich",
+ completed:"Abschnitt abgeschlossen",paused:"Angehalten"};
+ return label[job?.stage]||"Hintergrund läuft";
+}
 function pilotBackgroundWorking(id){return !!id&&pilotBackgroundJob?.goal_id===id&&["queued","running"].includes(pilotBackgroundJob.status)}
 async function pilotBackgroundRead(id){
  if(!id||!user)return null;
@@ -3565,8 +3572,11 @@ async function pilotBackgroundObserve(id){
   pilotBackgroundBusy=true;
   try{
    const prev=pilotBackgroundJob?.status||"",done=pilotBackgroundJob?.steps_completed||0;
+   const stage=pilotBackgroundJob?.stage||"",title=pilotBackgroundJob?.current_action_title||"";
    const job=await pilotBackgroundRead(id);if(!job)return;
-   if(prev!==job.status||done!==job.steps_completed){await load();if(!document.querySelector("#goalText:focus"))render()}
+   if(prev!==job.status||done!==job.steps_completed||stage!==job.stage||title!==job.current_action_title){
+     await load();if(!document.querySelector("#goalText:focus"))render()
+   }
    if(pilotBackgroundWorking(id)){if(current==="home")pilotEnsureContinuousFlight(id)}
    else{
     pilotBackgroundStopPolling();
@@ -3638,7 +3648,10 @@ function pilotBgProgressHTML(j){
      '<p>'+esc(j.status==="paused"?"Hintergrundarbeit pausiert.":"Genehmigter Hintergrundabschnitt beendet.")+'</p>')+'</div>';
 }
 function pilotAutoStatusCard(){
- if(pilotBackgroundWorking(goals[0]?.id))return '<div class="pilot-auto-status" role="status"><span>✈</span><div><strong>Pilot arbeitet auch bei geschlossener App</strong><small>Sicherer mehrstufiger Kreativauftrag · keine einzelnen Klicks nötig</small></div><button id="pausePilotBackground" class="btn" type="button">Pausieren</button></div>';
+ if(pilotBackgroundWorking(goals[0]?.id))return '<div class="pilot-auto-status" role="status"><span>✈</span><div><strong>Pilot arbeitet auch bei geschlossener App</strong><small>'+esc(pilotBackgroundStageLabel(pilotBackgroundJob))+
+   (pilotBackgroundJob.current_action_title?' · '+esc(pilotBackgroundJob.current_action_title):'')+
+   ' · '+pilotBackgroundJob.steps_completed+' / '+pilotBackgroundJob.max_steps+
+   ' sichere Schritte · bis '+Number(pilotBackgroundJob.max_cost_usd).toFixed(2)+' USD geschätzte KI-Kosten</small></div><button id="pausePilotBackground" class="btn" type="button">Pausieren</button></div>';
  if(pilotAutoSession?.active)return '<div class="pilot-auto-status" role="status" aria-live="polite"><span class="pilot-auto-orbit" aria-hidden="true">✦</span><div><strong>Pilot arbeitet selbstständig</strong><small>'+esc(pilotAutoSession.label||"Arbeitsschritt wird bearbeitet …")+'</small></div>'+
  '<button id="pausePilotAutopilot" type="button" class="btn">'+(pilotAutoSession.cancelRequested?"Stop angefordert":"Nach diesem Schritt stoppen")+'</button></div>';
  if(pilotAutoSummary?.text)return '<div class="pilot-auto-status pilot-auto-summary pilot-auto-'+esc(pilotAutoSummary.kind||"completed")+'" role="status"><span aria-hidden="true">'+(pilotAutoSummary.kind==="waiting"?"◌":pilotAutoSummary.kind==="error"?"!":"✓")+'</span><div><strong>'+(pilotAutoSummary.kind==="waiting"?"Pilot wartet auf dich":pilotAutoSummary.kind==="error"?"Prüfung benötigt":"Automatischer Arbeitslauf")+'</strong><small>'+esc(pilotAutoSummary.text)+'</small></div></div>';
