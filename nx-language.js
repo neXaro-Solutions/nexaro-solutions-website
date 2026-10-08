@@ -147,9 +147,13 @@ function installToggle(){
  const b=document.createElement("button");b.type="button";b.dataset.nxLang="1";b.className="nx-language-toggle";
  renderLanguageToggle(b);
  b.addEventListener("click",()=>setLanguage(language==="de"?"en":"de"));
- // Keep the language choice accessible on every page and every scroll position.
- // It must never be hidden inside the mobile navigation or consume corporate header space.
- document.body.appendChild(b);
+ // On the corporate homepage show DE / EN visibly beside the header menu.
+ // Other pages keep their existing language-toggle placement.
+ const isCorporateHome=location.pathname==="/"||location.pathname==="/index.html";
+ const homeHeader=isCorporateHome?document.querySelector(".top .top-inner"):null;
+ const homeMenu=homeHeader?.querySelector("#menuButton");
+ if(homeHeader&&homeMenu)homeHeader.insertBefore(b,homeMenu);
+ else document.body.appendChild(b);
  const st=document.createElement("style");st.textContent=`
  .nx-language-toggle{display:inline-flex;align-items:center;gap:3px;min-width:108px;height:42px;padding:4px;border:2px solid #ff6b00;border-radius:999px;background:#172015;color:#fff;font:inherit;font-size:11px;font-weight:900;letter-spacing:.08em;cursor:pointer;box-shadow:0 9px 24px rgba(23,32,21,.2),0 0 0 3px rgba(186,255,55,.18);transition:transform .18s ease,box-shadow .18s ease}
  .nx-language-toggle:hover{transform:translateY(-1px);box-shadow:0 12px 30px rgba(23,32,21,.26),0 0 0 4px rgba(186,255,55,.24)}
