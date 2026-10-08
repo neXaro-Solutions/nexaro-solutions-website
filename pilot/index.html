@@ -2903,7 +2903,7 @@ function nxOpenNext(){
   const mask=document.createElement("div");mask.className="nx-mask";
   const safe=esc;
   mask.innerHTML='<section class="nx-modal" role="dialog" aria-modal="true" aria-labelledby="nxTitle" aria-describedby="nxDesc">'+
-    '<div class="nx-top"><div class="nx-symbol" aria-hidden="true">✦</div><span class="nx-kicker">neXaro · PILOT · LUMEN 2026.10.08.28</span><button type="button" class="nx-close" aria-label="Schließen">×</button></div>'+
+    '<div class="nx-top"><div class="nx-symbol" aria-hidden="true">✦</div><span class="nx-kicker">neXaro · PILOT · LUMEN 2026.10.08.29</span><button type="button" class="nx-close" aria-label="Schließen">×</button></div>'+
     '<h2 id="nxTitle">'+safe(config.title||"Pilot fragt nach")+'</h2><p class="nx-description" id="nxDesc">'+safe(config.description||"Bitte ergänze die noch fehlenden Angaben.")+'</p>'+
     '<form novalidate><div class="nx-fields">'+fields.map((f,i)=>'<div class="nx-field"><label for="nxInput'+i+'">'+safe(f.label)+'</label>'+
       (f.short?'<input id="nxInput'+i+'" type="text" name="'+safe(f.key)+'" maxlength="500" placeholder="'+safe(f.placeholder||"")+'" data-required="'+(f.required?"1":"0")+'">':
@@ -2961,6 +2961,13 @@ async function pilotApiError(response,fallback){
   }
   if(extracted?.reason_code==="safety_provider_unavailable"||extracted?.error==="safety_check_unavailable"){
     return new Error("Die Sicherheitsprüfung ist derzeit technisch nicht verfügbar. Deshalb wird der Auftrag noch nicht ausgeführt. Dein Auftrag wurde nicht als unzulässig eingestuft. (Code: SAFETY_PROVIDER_UNAVAILABLE)");
+  }
+  // Separate provider availability from work-quality failures in the user experience.
+  const executionErrorCode=String(extracted?.reason_code||"").toUpperCase();
+  if(executionErrorCode.includes("MODEL_OUTPUT_NOT_READY")||
+      executionErrorCode.includes("BOTH_PROVIDERS_FAILED")||
+      executionErrorCode.includes("PROVIDER_TIMEOUT")){
+    return new Error("Die KI-Anbieter konnten noch kein verlässliches Arbeitsergebnis zurückgeben. Die recherchierten Quellen bleiben nachvollziehbar; der Schritt ist nicht abgeschlossen. Pilot hat den Vorgang sicher angehalten. Bitte starte ihn nach kurzer Zeit erneut.");
   }
   // Never expose raw provider or invalid-JSON exceptions in a customer dialog.
   if(extracted?.error==="execution_failed"||extracted?.error==="research_temporarily_unavailable"||
