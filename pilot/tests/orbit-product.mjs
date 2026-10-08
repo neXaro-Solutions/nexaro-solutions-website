@@ -48,6 +48,10 @@ for(const width of [320,390,768,1366]){
  assert.equal(await page.locator('#pilotNextActionPanel,.pilot-push-card,#pilotTravelIntake').count(),0,'Home contains only the task composer');
  assert.equal(await page.locator('.main>.head').isVisible(),false,'Profile and tools belong in the dock');
  assert.equal(await page.locator('.pilot-minimal-nav>[data-view="results"]').isVisible(),true);
+ await page.locator('.pilot-nav-more>summary').click();
+ assert.equal(await page.locator('.side [data-view="admin"]').isVisible(),false,'Customer menu excludes administration');
+ assert.equal(await page.locator('.side [data-view="alpha"]').isVisible(),false,'Customer menu excludes system tests');
+ await page.locator('.pilot-nav-more>summary').click();
  const dims=await page.evaluate(()=>({w:innerWidth,scroll:document.documentElement.scrollWidth}));assert.ok(dims.scroll<=dims.w+2,JSON.stringify(dims));
  await page.evaluate(()=>__orbit.scene({goals:[{id:'g',title:'Berlin nach Paris',description:'Flug von Berlin nach Paris, 20.11.2026, 22.11.2026, 2 Personen',status:'active',created_at:'2026-10-08'}],actions:[{id:'a',goal_id:'g',status:'completed',title:'Flugangebote recherchieren'}]}));
  assert.equal(await page.locator('#pilotNextActionPanel').count(),0,'Existing missions do not clutter home');

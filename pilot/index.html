@@ -3319,7 +3319,7 @@ body:has(.shell[data-screen="home"]:not(.hidden))::before{display:none!important
 .pilot-guest-dock button{border:0;background:transparent;border-radius:13px;padding:12px 18px;font:600 12px inherit;color:#3e5b48;white-space:nowrap;cursor:pointer}.pilot-guest-dock button:hover{background:#eaf2e8}
 
 /* Hidden auth/app surfaces must never be revived by the layout's display overrides. */
-#app.hidden,#auth.hidden{display:none!important}
+#app .hidden,#app.hidden,#auth.hidden{display:none!important}
 #auth::before,#auth::after,#auth>.box::before,#auth>.box::after{display:none!important}
 body:has(#auth:not(.hidden))::before{display:none!important}
 </style><link rel="manifest" href="/pilot/manifest.webmanifest"><link rel="apple-touch-icon" href="/pilot/icon-192.png"><meta name="theme-color" content="#f2f6f3"><meta name="apple-mobile-web-app-capable" content="yes"></head>
