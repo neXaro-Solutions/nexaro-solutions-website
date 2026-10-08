@@ -250,4 +250,29 @@ assert(frontend.includes('expected_revision_id:d.revision_id'),"Missing revision
 assert(frontend.includes('choice==="keep"'),"Missing retain existing choice");
 console.log("PASS UI provides confirmation, retention and optimistic version check");
 
+const implicitRename=scenario([],OWNER,[],[{
+ id:27,decision_key:"company_name",decision_value:"Alte Firma",
+ event_type:"set",created_at:"2026-10-08T12:00:00Z"
+}]);
+const renaming=await implicitRename.invoke({
+ input:"Ändere den Firmennamen auf Neue Firma",existing_goal_id:undefined
+});
+assert.equal(renaming.http,200);
+assert.equal(renaming.body.stage,"decision_conflict");
+assert.equal(renaming.body.goal.id,GOAL);
+assert.equal(renaming.body.decision.key,"company_name");
+assert.equal(implicitRename.data.goals.length,1);
+assert.equal(implicitRename.data.actions.length,0);
+console.log("PASS A new company name remains attached to the original project without manual selection");
+
+const trueNew=scenario();
+const startingNew=await trueNew.invoke({
+ input:"Ich möchte eine neue Firma gründen",existing_goal_id:undefined
+});
+assert.equal(startingNew.http,200);
+assert.equal(startingNew.body.stage,"clarification");
+assert.equal(trueNew.data.actions.length,0);
+console.log("PASS A genuinely new company request starts fresh qualification");
+
+
 console.log("PASS Goal continuity handler regression suite — no real user data or writes");
