@@ -6814,7 +6814,7 @@ async function pilotAttentionRecall(f){
    if(activePilotFlight!==f||f.phase!=="returning")return;
    f.phase="parked";
    f.from={x:station.x,y:station.y};
-   setPilotFlightPhase("✈ Pilot wartet auf deine Handlung");
+   setPilotFlightPhase("✈ "+(pilotFlightState.mode==="attention"&&pilotFlightState.message?pilotFlightState.message:"Hier ist deine Handlung erforderlich."));
  };
  if(reduced){
    f.animation?.cancel?.();
