@@ -20,7 +20,7 @@ export function productShoppingIntent(text){
 }
 export function shoppingPreferences(text){
  const t=String(text||"");
- const amount=t.match(/(?:bis|max(?:imal)?|unter|höchstens|budget|ca\.?|etwa)?\s*(\d{2,5})(?:[.,]00)?\s*(?:€|eur|euro)\b/i);
+ const amount=t.match(/(?:bis|max(?:imal)?|unter|höchstens|budget|ca\.?|etwa)?\s*(\d{2,5})(?:[.,]00)?\s*(?:€(?!\w)|eur\b|euro\b)/i);
  const budget=amount?Number(amount[1]):null;
  const platform=/\b(?:ios|iphone|apple)\b/i.test(t)?"iOS":/\bandroid\b/i.test(t)?"Android":null;
  const needs=[
