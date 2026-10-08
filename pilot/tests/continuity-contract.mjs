@@ -65,7 +65,7 @@ function scenario(existingActions=[],goalOwner=OWNER,otherGoals=[],confirmed=[])
    }
    if(this.operation!=="select"){
     const incoming=(Array.isArray(this.payload)?this.payload:[this.payload]).map(p=>({id:uuid(),...p}));
-    if(this.name==="actions"&&incoming.some(row=>row.pilot_request_id&&
+    if((this.name==="actions"||this.name==="goals")&&incoming.some(row=>row.pilot_request_id&&
        rows.some(old=>old.pilot_request_id===row.pilot_request_id)))
       return {data:[],error:{code:"23505",message:"duplicate key"}};
     if(this.operation==="upsert"){
@@ -94,7 +94,7 @@ function scenario(existingActions=[],goalOwner=OWNER,otherGoals=[],confirmed=[])
  const client={auth:{getUser:async()=>({data:{user:{id:OWNER}},error:null})},
   from:name=>new Query(name)};
  const context={
-  Response,Request,Headers,URL,crypto:webcrypto,
+  Response,Request,Headers,URL,crypto:webcrypto,TextEncoder,
   console:{log(){},error(){},warn(){}},
   Deno:{env:{get:key=>({
    SUPABASE_URL:"https://mock.supabase.co",
@@ -136,6 +136,47 @@ assert.equal(conflictingToken.http,409);
 assert.equal(conflictingToken.body.error,"request_id_conflict");
 const badToken=await retried.invoke({request_id:"not-a-uuid"});
 assert.equal(badToken.http,400);
+// A lost initial response must never create a second new project.
+const firstGoalReceipt="99999999-9999-4999-8999-999999999990";
+const initialProject=scenario();
+const firstInput="Erstelle einen vollständigen Markenauftritt für mein neues Unternehmen";
+const initialIntent={objective:firstInput,desiredOutcome:"Ein nutzbares Markenkonzept erstellen",
+ constraints:[],budget:null,timeframe:null,unknowns:[],confidence:"high",
+ domain:{primary:"marketing",secondary:[],confidence:"high"}};
+const freshArgs={input:firstInput,intent:initialIntent,request_id:firstGoalReceipt,
+ force_new_goal:true,existing_goal_id:undefined,skip_clarification:true};
+const created=await initialProject.invoke(freshArgs);
+assert.equal(created.http,200,JSON.stringify(created.body));
+assert.equal(created.body.stage,"ready");
+assert.equal(initialProject.data.goals.length,2);
+assert.equal(initialProject.data.goals[1].pilot_request_id,firstGoalReceipt);
+const originalGoalId=created.body.goal.id;
+const goalCount=initialProject.data.goals.length;
+const initialActions=initialProject.data.actions.length;
+const initialPlans=initialProject.data.plans.length;
+const recoveredProject=await initialProject.invoke(freshArgs);
+assert.equal(recoveredProject.http,200);
+assert.equal(recoveredProject.body.recovered,true);
+assert.equal(recoveredProject.body.goal.id,originalGoalId);
+assert.equal(recoveredProject.body.continuity.mode,"new_goal");
+assert.equal(initialProject.data.goals.length,goalCount);
+assert.equal(initialProject.data.actions.length,initialActions);
+assert.equal(initialProject.data.plans.length,initialPlans);
+const changedOriginal=await initialProject.invoke({
+ ...freshArgs,input:"Erstelle eine unabhängige neue Marke"});
+assert.equal(changedOriginal.http,409);
+assert.equal(changedOriginal.body.error,"request_id_conflict");
+const crossRoute=await initialProject.invoke({
+ ...freshArgs,existing_goal_id:GOAL,force_new_goal:false});
+assert.equal(crossRoute.http,409);
+const removed=initialProject.data.actions.splice(0);
+const incomplete=await initialProject.invoke(freshArgs);
+assert.equal(incomplete.http,503);
+assert.equal(incomplete.body.error,"goal_setup_incomplete");
+assert.equal(initialProject.data.goals.length,goalCount);
+initialProject.data.actions.push(...removed);
+console.log("PASS First-project retry is idempotent, conflict-safe and fails closed on incomplete plans");
+
 console.log("PASS Retried follow-up is idempotent, scoped, and creates no orphan milestones");
 
 // Simulate simultaneous retries: one unique insert wins, the other recovers it.
@@ -163,6 +204,10 @@ assert(migration.includes("create unique index if not exists pilot_actions_reque
 assert(migration.includes("where pilot_request_id is not null"));
 assert(frontend.includes('if(data.recovered){'),
   "The user must receive an understandable recovered-command notice");
+const newGoalMigration=readFileSync(resolve(root,
+ "supabase/migrations/20261008165100_pilot_new_goal_request_idempotency.sql"),"utf8");
+assert(newGoalMigration.includes("create unique index if not exists pilot_goals_request_once"));
+assert(newGoalMigration.includes("pilot_request_fingerprint"));
 assert(frontend.includes("Auftrag bereits übernommen. Pilot legt keinen zweiten Auftrag an."),
   "Retry recovery must be explained without technical jargon");
 console.log("PASS Client retry token and database uniqueness contracts");
