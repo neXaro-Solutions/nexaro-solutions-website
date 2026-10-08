@@ -40,9 +40,13 @@ const sb={
  },
  functions:{invoke:async(name)=>{
   if(name==="pilot-market"){marketCalls++;return {data:{offers:items},error:null}}
-  if(name==="best-of-ai"){aiCalls++;return {data:{status:"completed",final_output:aiCalls===1?
-   {selected_id:"samsung",answer:"Dieses passende Gerät ist preislich belegt.",reason:"Zur Leistung fehlen unabhängige Testdaten."}:
-   {answer:"Aus dem Angebot geht keine Akkulaufzeit hervor.",uncertainty:"Eine Herstellerangabe wäre erforderlich."}}},error:null}}
+  if(name==="best-of-ai"){
+   aiCalls++;
+   const final_output=aiCalls===1?
+    {selected_id:"samsung",answer:"Dieses passende Gerät ist preislich belegt.",reason:"Zur Leistung fehlen unabhängige Testdaten."}:
+    {answer:"Aus dem Angebot geht keine Akkulaufzeit hervor.",uncertainty:"Eine Herstellerangabe wäre erforderlich."};
+   return {data:{status:"completed",final_output},error:null};
+  }
   throw Error(name);
  }}
 };
