@@ -4,11 +4,17 @@ on:
   push:
     paths:
       - "pilot/index.html"
+      - "index.html"
+      - "site-shell.css"
+      - "nx-language.js"
       - "pilot/tests/**"
       - ".github/workflows/pilot-compatibility.yml"
   pull_request:
     paths:
       - "pilot/index.html"
+      - "index.html"
+      - "site-shell.css"
+      - "nx-language.js"
       - "pilot/tests/**"
       - ".github/workflows/pilot-compatibility.yml"
   workflow_dispatch:
