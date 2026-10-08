@@ -200,7 +200,7 @@ body:has(.shell[data-screen="home"]:not(.hidden)){background:
  transition:transform .75s cubic-bezier(.37,0,.33,1),opacity .45s ease!important;
 }
 .pilot-demo-scene .pilot-demo-avatar .pilot-worker-figure{
- transform:translate3d(0,0,0) scale(.58)!important;transform-origin:18% 8%!important;
+ transform:translate3d(0,0,0) scale(.58);transform-origin:18% 8%!important;
 }
 .pilot-demo-scene .pilot-demo-avatar.pilot-worker--patrol .pilot-worker-figure{
  animation:pilotLumenPace 4.8s ease-in-out infinite!important;
