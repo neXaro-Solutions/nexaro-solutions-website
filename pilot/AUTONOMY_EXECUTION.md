@@ -105,3 +105,14 @@ Zwei fachliche Titel („Für wen arbeiten wir?“ und „Das versprechen wir un
 ### Ergänzung: korrektes Ziel- und Wissenskontext-Mapping (execution-engine v25)
 
 Beim abschließenden Quellcodevergleich fiel eine inkonsistente Datenabbildung auf: Der schnelle Prompt-Adapter griff auf `memory_type` statt `type` und auf `summary`/`content` statt des gespeicherten `statement` aus `pilot_internal_knowledge` zu. Dies wurde vor dem Praxistest korrigiert: `goal_memories` und echte, quellengestützte Brancheninformationen werden nun als kurze lesbare Texte mit ihren Quellenverweisen übergeben. **Fachinformationen wurden nicht erfunden.** Auch dieser Fix ist bisher nur technisch, nicht auf dem iPhone end-to-end bestätigt.
+
+
+### Live-Fix 2026-10-08, 10:22 – Backend-Modus und Schema kompatibel (best-of-ai v18)
+
+Der Authentifizierte-Testlauf `d8127ae2-509e-488b-98f0-352e68e2134a` benötigte etwa 9,3 s und brach **nach** der Quellensuche mit `UPSTREAM_best-of-ai_500_consensus_create_failed` ab. Die Quelle war bereits in ca. 5 s gefunden, `source_count=2` und `evidence_gate=passed`. Eine neue KI-Artefakt-Erstellung war noch nicht gestartet.
+
+**Root cause verifiziert:** `best-of-ai v17` verwendete `fast_best` sowohl für die Laufzeitsteuerung als auch im INSERT-Feld `public.ai_consensus_runs.mode`. Der vorhandene Datenbank-CHECK erlaubt dort nur `best` und `high_assurance`.
+
+**Korrektur deployed:** In `best-of-ai v18` bleibt `fast_best` ein Laufzeitmodus; persistent wird `mode=best` gespeichert und `decision=fast_verified_<provider>` dokumentiert die tatsächlich genutzte schnelle Route. Hochrisiko-`high_assurance` ist unverändert. Interne Datenbankfehlermeldungen werden nicht mehr als Klartext an den Nutzer weitergereicht. SQL-Verifikation: `best` und `high_assurance` zulässig, `fast_best` nicht. Keine Schema-Aufweichung vorgenommen.
+
+**Status:** V18 aktiv mit JWT, Datenbank-Constraint und Quellensuche geprüft. Die Live-Aktion „Qualifikation & Versicherungsschutz bei Baumpflege prüfen“ ist weiterhin `ready`, kein laufender Job und noch kein abgeschlossenes Ergebnis. Erneute **echte** Benutzerabnahme ist offen; keine unbelegte Erfolgsbehauptung.
