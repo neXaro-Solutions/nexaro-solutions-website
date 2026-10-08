@@ -12,8 +12,8 @@ new Function("async function syntax(){"+script+"}");
 const i=script.indexOf("/* Market intelligence"),j=script.indexOf("function render(){",i);
 assert(i>0&&j>i,"Market module exists");
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const api=new Function("URL","esc","sb","render",script.slice(i,j)+
- '\nreturn {route:pilotMarketFromHome,link:pilotMarketSafeLink,view:pilotMarketView,set:v=>pilotMarketState=v};')(URL,esc,{},()=>{});
+const api=new Function("URL","esc","sb","render","effectiveAdmin",script.slice(i,j)+
+ '\nreturn {route:pilotMarketFromHome,link:pilotMarketSafeLink,view:pilotMarketView,set:v=>pilotMarketState=v};')(URL,esc,{},()=>{},()=>false);
 assert.equal(api.route("Vergleiche Preise für Apple iPhone"),"Apple iPhone");
 assert.equal(api.route("Finde günstige Angebote für Bürostühle"),"Bürostühle");
 assert.equal(api.route("Was kostet MacBook Pro?"),"MacBook Pro");
@@ -22,6 +22,10 @@ assert.equal(api.link("http://example.org"),null,"HTTPS only");
 const common={query:"iPhone",loading:false,searched:true,error:"",notice:"",checked:""};
 api.set({...common,offers:[{name:"<img src=x onerror=alert(1)>",merchant:"Test & Partner",source:"Awin",url:"https://example.org/item",price_eur:99,shipping_eur:4,total_eur:103,affiliate:true,condition:"Neu"}]});
 const affiliate=api.view();
+assert(!affiliate.includes('id="pilotMarketFeedForm"'),"Customer page does not expose partner management");
+const adminApi=new Function("URL","esc","sb","render","effectiveAdmin",script.slice(i,j)+
+ '\\nreturn {view:pilotMarketView};')(URL,esc,{},()=>{},()=>true);
+assert(adminApi.view().includes('id="pilotMarketFeedForm"'),"Only admins receive the file-import UI");
 assert(affiliate.includes("103,00"),"Known total displayed");
 assert(affiliate.includes('rel="sponsored noopener noreferrer"'),"Affiliate disclosure in link");
 assert(affiliate.includes("Werbelink"),"Visible affiliate label");
