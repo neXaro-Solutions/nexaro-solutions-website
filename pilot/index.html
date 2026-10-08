@@ -3585,7 +3585,11 @@ async function pilotBackgroundResume(id){
  const prior=await pilotBackgroundRead(id);
  if(!prior||!["paused","waiting_user","queued","running"].includes(prior.status))return false;
  const r=await pilotBackgroundCall("resume",id);
- if(["queued","running"].includes(r.status)){pilotBackgroundJob=r.job||prior;void pilotBackgroundObserve(id);return true}
+ if(["queued","running"].includes(r.status)){
+  pilotBackgroundJob=r.job||prior;render();
+  if(current==="home")pilotEnsureContinuousFlight(id);
+  void pilotBackgroundObserve(id);return true
+ }
  return false;
 }
 function pilotAutoStatusCard(){
@@ -3738,6 +3742,8 @@ function home(){
  '<span>'+esc(label)+'</span></div>'+
  (count?'<p class="pilot-simple-count">'+done+' von '+count+' vorbereiteten Arbeitsschritten bearbeitet. Das tatsächliche Endziel wird gesondert geprüft.</p>':'')+
  (needsHuman?'<div id="pilotFlightAttention" class="pilot-flight-attention" role="status"><strong>Prüfung erforderlich.</strong> '+(activePilotFlight?.phase==="parked"?"✈ Pilot ist gelandet. ":"")+'Nach deiner Entscheidung arbeitet Pilot weiter.</div>':'')+
+ (pilotBackgroundJob?.goal_id===g.id&&pilotBackgroundJob.status==="paused"?
+  '<button type="button" id="resumePilotBackground" class="btn">✈ Hintergrundarbeit fortsetzen</button>':'')+
  (inProgress?'<div class="pilot-simple-activity">'+esc(pilotAutoSession?.label||"Pilot bearbeitet sichere Schritte auch bei geschlossener App …")+
  (pilotBackgroundWorking(g.id)?'<button id="pausePilotBackground" class="pilot-simple-textbutton" type="button">Hintergrund pausieren</button>':
  '<button id="pausePilotAutopilot" class="pilot-simple-textbutton" type="button">Nach diesem Schritt stoppen</button>')+'</div>':
@@ -4381,6 +4387,7 @@ function bind(){
   bindPilotDecisionEditor();
   bindPilotLegalFormDecision();
   document.getElementById("pausePilotBackground")?.addEventListener("click",()=>void pilotBackgroundPause());
+  document.getElementById("resumePilotBackground")?.addEventListener("click",()=>void pilotBackgroundResume(goals[0]?.id).catch(e=>pilotNotice(e.message||String(e),"error")));
   document.getElementById("pausePilotAutopilot")?.addEventListener("click",()=>{if(pilotAutoSession?.active){pilotAutoSession.cancelRequested=true;pilotAutoRunPreference(goals[0]?.id,false);pilotAutoSession.label="Der laufende Schritt wird sicher beendet; danach hält Pilot an.";render()}});
   document.getElementById("uploadDoc")?.addEventListener("click",uploadDocument);
   document.getElementById("completeAction")?.addEventListener("click",()=>completeAction(false,false));
@@ -5837,6 +5844,8 @@ async function enter(session){
    if(goals[0]){
      void startGoalResearch(goals[0].id);
      if(pilotBackgroundWorking(goals[0].id))void pilotBackgroundObserve(goals[0].id);
+     else if(pilotBackgroundJob?.goal_id===goals[0].id&&pilotBackgroundJob.status==="waiting_user")
+       void pilotLandAtAttention(goals[0].id,"Hier ist deine Prüfung erforderlich");
      else if(!pilotBackgroundJob)void pilotResumeApprovedWork();
      // Existing decisions remain visible in the project, but do not trigger
      // a fresh airplane + avatar just because the user reopened the webpage.
