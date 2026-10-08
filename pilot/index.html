@@ -3841,7 +3841,7 @@ body:has(.auth-modal:not(.hidden)) #pilotLanguageSwitcher{display:none!important
  .shell:not([data-screen="home"]) .main>.head{padding-top:48px!important}
 }
 
-</style><link rel="stylesheet" href="/pilot/lumen-depth.css?v=20261008-41"><link rel="manifest" href="/pilot/manifest.webmanifest"><link rel="apple-touch-icon" href="/pilot/icon-192.png"><meta name="theme-color" content="#fbfdf9"><meta name="apple-mobile-web-app-capable" content="yes"></head>
+</style><link rel="preload" href="/pilot/lumen-orb.svg" as="image" type="image/svg+xml"><link rel="stylesheet" href="/pilot/lumen-depth.css?v=20261008-42"><link rel="manifest" href="/pilot/manifest.webmanifest"><link rel="apple-touch-icon" href="/pilot/icon-192.png"><meta name="theme-color" content="#fbfdf9"><meta name="apple-mobile-web-app-capable" content="yes"></head>
 <body>
 <div id="pilotLanguageSwitcher" class="pilot-language-switcher" role="group" aria-label="Sprachauswahl"><button type="button" id="pilotLanguageToggle" aria-expanded="false" aria-controls="pilotLanguageOptions" aria-label="Sprache auswählen"><span class="pilot-language-globe" aria-hidden="true">🌐</span><span id="pilotLanguageCurrent">DE</span><span class="pilot-language-chevron" aria-hidden="true">⌄</span></button><div id="pilotLanguageOptions" role="group" aria-label="Sprache" hidden><button type="button" data-pilot-locale="de" aria-pressed="true" class="is-active" lang="de">Deutsch</button><button type="button" data-pilot-locale="en" aria-pressed="false" lang="en">English</button></div></div>
 <section id="auth" class="auth"><div class="box">
@@ -6324,8 +6324,8 @@ function pilotOrbit(f,u){
  const vy=-radiusY*omega*Math.sin(theta)*1000;
  return {x,y,vx,vy,angle:-12+9*Math.sin(theta),scale:1};
 }
-function pilotLaunchPoint(f,t){
- const a=f.from,b=pilotOrbit(f,0),duration=1320;
+function pilotLaunchPoint(f,t,duration=1320){
+ const a=f.from,b=pilotOrbit(f,0);
  const c1={x:a.x,y:a.y};
  const c2={x:b.x-b.vx*duration/3000,y:b.y-b.vy*duration/3000};
  const arch=-Math.min(75,Math.max(24,Math.abs(b.y-a.y)*.25))*Math.sin(Math.PI*t)**2;
@@ -6390,9 +6390,9 @@ function startPilotFlight(button){
    }else return true;
  }
  layer.replaceChildren();
- const size=72; // Must match the ORBIT aircraft CSS geometry.
+ const size=76; // Matches the single approved LUMEN aircraft sprite and its compositor layer.
  const plane=document.createElement("div"),label=document.createElement("div");
- plane.className="pilot-plane";plane.setAttribute("aria-hidden","true");plane.innerHTML=pilotAircraftSVG();
+ plane.className="pilot-plane";plane.setAttribute("aria-hidden","true");plane.dataset.artwork="lumen-orb";
  label.className="pilot-flight-status";label.textContent="Pilot hebt vom Startbutton ab …";
  const from=pilotMotion.center(button.getBoundingClientRect(),size);
  layer.append(plane,label);
@@ -6551,7 +6551,7 @@ async function previewPilotFlight(){
  runway.innerHTML='<div class="pilot-demo-preview-header"><strong class="pilot-demo-caption">✈ Flug, Landung, Avatar und neuer Start</strong>'+
    '<button type="button" class="pilot-demo-close" aria-label="Animationstest schließen">Schließen ×</button></div>'+
    '<div class="pilot-demo-scene" data-stage="takeoff">'+
-     '<div class="pilot-demo-plane" aria-hidden="true">✈</div>'+
+     '<div class="pilot-demo-plane" aria-hidden="true" data-artwork="lumen-orb"></div>'+
      '<div class="pilot-demo-avatar" data-job="'+esc(profile.id)+'" aria-hidden="true">'+
        '<div class="pilot-worker-figure"><i class="pilot-worker-hat"></i><i class="pilot-worker-face"><i class="pilot-worker-eyes"></i><i class="pilot-worker-smile"></i></i>'+
        '<i class="pilot-worker-body"></i><i class="pilot-worker-arm pilot-worker-arm--wave"></i><i class="pilot-worker-arm pilot-worker-arm--rest"></i>'+
@@ -6668,7 +6668,7 @@ function pilotFlyingFromCurrentWork(){
    document.querySelector(".pilot-simple-work");
 }
 function pilotEnsureContinuousFlight(goalId){
- if(!goalId||goals[0]?.id!==goalId||current!=="home"||pilotFlightPreviewRunning)return;
+ if(!goalId||goals[0]?.id!==goalId||pilotFlightPreviewRunning)return;
  if(activePilotFlight?.phase==="parked"||activePilotFlight?.phase==="boarding")void pilotAvatarReboard(goalId);
  if(!activePilotFlight?.plane?.isConnected){
    const origin=pilotFlyingFromCurrentWork();
@@ -6789,7 +6789,7 @@ async function pilotAvatarReboard(goalId){
      f.animation?.cancel?.();
      f.plane.style.transform=pilotMotion.transform(pilotOrbit(f,0));
      f.phase="cruise";
-   }else pilotTrack(f,pilotMotion.curveFrames(t=>pilotLaunchPoint(f,t),88),1150,1,()=>pilotStartCruise(f));
+   }else pilotTrack(f,pilotMotion.curveFrames(t=>pilotLaunchPoint(f,t,1150),88),1150,1,()=>pilotStartCruise(f));
  })().finally(()=>{if(activePilotFlight===f)f.boardingPromise=null});
  return f.boardingPromise;
 }
