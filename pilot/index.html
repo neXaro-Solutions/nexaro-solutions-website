@@ -4475,8 +4475,31 @@ async function pilotAskQuestions(questions){
   return answer;
 }
 
-async function askGoalResolution(candidate){
-  return nxDialog({pilotFlightHandoff:true,title:"Gehört das zum bestehenden Ziel?",description:"Bestehendes Ziel: "+(candidate?.title||"Unbenannt")+"\n"+(candidate?.desired_outcome||candidate?.description||"")+"\n\nPilot kann damit fortfahren oder ein neues Ziel anlegen.",buttons:[{value:"existing",label:"Bestehendes Ziel fortsetzen",primary:true},{value:"new",label:"Neues Ziel anlegen",orange:true}]});
+async function askGoalResolution(resolution){
+  const fallback=resolution?.candidate_goal||null;
+  const found=Array.isArray(resolution?.candidate_goals)?resolution.candidate_goals:[fallback];
+  const candidates=found.filter(g=>g?.id&&g?.title).slice(0,6);
+  if(!candidates.length)throw new Error("Pilot hat keine gültige Projektauswahl geliefert.");
+  if(candidates.length===1){
+    const candidate=candidates[0];
+    const decision=await nxDialog({
+      pilotFlightHandoff:true,title:"Gehört das zu deinem Projekt?",
+      description:"Pilot hat ein mögliches Projekt erkannt: "+candidate.title+
+        "\n"+String(candidate.description||candidate.desired_outcome||"").slice(0,180),
+      buttons:[{value:"goal:"+candidate.id,label:"Dieses Projekt fortsetzen",primary:true},
+        {value:"new",label:"Neues Projekt anlegen",orange:true}]
+    });
+    return decision;
+  }
+  const decision=await nxDialog({
+    pilotFlightHandoff:true,
+    title:"Welches Projekt meinst du?",
+    description:"Pilot hat mehrere passende Projekte gefunden. Eine Auswahl genügt – vorhandene Entscheidungen und Ergebnisse werden übernommen.",
+    buttons:[...candidates.map(g=>({
+      value:"goal:"+g.id,label:String(g.title||"Projekt").slice(0,75)
+    })),{value:"new",label:"Neues Projekt anlegen",orange:true}]
+  });
+  return decision;
 }
 async function createGoal(){
   const text=document.getElementById("goalText").value.trim();
@@ -4499,17 +4522,15 @@ async function createGoal(){
     if(data.stage==="goal_resolution"){
       PS.textContent="Pilot prüft den Zusammenhang …";
       setPilotFlightPhase("Pilot ordnet dein Ziel zu …");
-      const choice=await askGoalResolution(data.candidate_goal);
-       if(choice===null){PS.textContent="Pilot bereit";btn.disabled=false;btn.textContent="✈ Pilot jetzt starten";btn.classList.remove("launching");return;}
+      const choice=await askGoalResolution(data);
+      if(choice===null){PS.textContent="Pilot bereit";btn.disabled=false;btn.textContent="✈ Pilot jetzt starten";btn.classList.remove("launching");return;}
+      const matches=Array.isArray(data.candidate_goals)?data.candidate_goals:[data.candidate_goal];
+      const selected=matches.find(g=>g?.id&&choice==="goal:"+g.id);
+      if(selected)resolutionPayload={existing_goal_id:selected.id};
+      else if(choice==="new")resolutionPayload={force_new_goal:true};
+      else throw new Error("Diese Projektauswahl ist nicht mehr verfügbar. Bitte erneut versuchen.");
 
-      if(choice==="existing"){
-        resolutionPayload={existing_goal_id:data.candidate_goal.id};
-        r=await sb.functions.invoke("pilot-intelligence",{body:{input:text,...resolutionPayload}});
-      }else{
-        resolutionPayload={force_new_goal:true};
-        r=await sb.functions.invoke("pilot-intelligence",{body:{input:text,...resolutionPayload}});
-      }
-
+      r=await sb.functions.invoke("pilot-intelligence",{body:{input:text,...resolutionPayload}});
       if(r.error)throw await pilotApiError(r,"Pilot konnte die Zielentscheidung nicht übernehmen.");
       data=r.data;
     }
