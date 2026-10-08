@@ -2032,20 +2032,136 @@ function home(){
     '<div><span class="pilot-home-stepnum pilot-home-step-orange">2</span><strong>Planen</strong><small>Er erstellt die nächsten Schritte.</small></div>'+
     '<div><span class="pilot-home-stepnum">3</span><strong>Ausführen</strong><small>Er arbeitet bis zum Ergebnis.</small></div>'+
     '</div></section>';
-  return '<div class="pilot-home">'+composer+active+action+guide+'</div>';
+  return '<div class="pilot-home"><div class="pilot-home-guidance">✦ OPERATIVE KI · BEREIT FÜR DEINEN AUFTRAG</div>'+composer+active+action+guide+'</div>';
+}
+
+
+/** LUMEN: shared scene header for every customer-facing Pilot screen. */
+function pilotScene(kicker,title,description,symbol="✦"){
+ return '<section class="pilot-screen-head" aria-label="'+esc(title)+'">'+
+ '<div class="pilot-screen-copy"><div class="pilot-screen-kicker">'+esc(kicker)+'</div>'+
+ '<h2>'+esc(title)+'</h2><p>'+esc(description)+'</p></div>'+
+ '<div class="pilot-intel-core" aria-hidden="true"><span>'+esc(symbol)+'</span></div></section>';
 }
 
 function executionView(){
-  const ex=executions[0];
-  if(!ex)return '<div class="machine-page"><section class="core-stage" style="min-height:330px"><div class="core-copy"><div class="system-kicker"><span class="live-pulse"></span>AUSFÜHRUNGS-ENGINE · BEREIT</div><h2 class="machine-title" style="font-size:clamp(40px,5vw,66px)">Keine Simulation.<br><em>Nur echte Ausführung.</em></h2><p class="machine-sub">Starte eine nächste Aktion in der Zentrale. Jeder Arbeitsschritt wird anschließend als nachvollziehbarer Ausführungslauf sichtbar.</p></div><div class="core-orbit" style="opacity:.35"><div class="core-ring"></div><div class="core-engine">↗</div></div></section></div>';
-  const steps=executionSteps.filter(s=>s.execution_id===ex.id).sort((a,b)=>a.step_order-b.step_order);
-  return '<div class="machine-page"><section class="core-stage" style="min-height:340px"><div class="core-copy"><div class="system-kicker"><span class="live-pulse"></span>AUSFÜHRUNGS-ENGINE · '+esc(deStatus(ex.status)).toUpperCase()+'</div><h2 class="machine-title" style="font-size:clamp(40px,5vw,66px)">Pilot produziert.<br><em>Jeder Schritt ist sichtbar.</em></h2><p class="machine-sub">'+esc(ex.objective||"Aktive Mission wird ausgeführt.")+'</p><div class="machine-metrics"><div class="machine-metric"><span>Risiko</span><strong>'+esc(ex.risk_level||"low")+'</strong></div><div class="machine-metric"><span>Schritte</span><strong>'+steps.length+'</strong></div><div class="machine-metric"><span>Kosten</span><strong>'+Number(ex.actual_cost||0).toFixed(4)+'</strong></div><div class="machine-metric"><span>Status</span><strong>'+esc(deStatus(ex.status))+'</strong></div></div></div><div class="core-orbit"><div class="core-ring"></div><div class="core-engine">↗</div><span class="orbit-node n1">LAUF AKTIV</span><span class="orbit-node n2">PROTOKOLL AKTIV</span><span class="orbit-node n3">PRÜFUNG</span></div></section><section class="operation-panel"><div class="section-head"><div><div class="ey">LIVE-PRODUKTIONSLINIE</div><h3 class="op-title">Ausführungspipeline</h3></div><span class="badge '+(ex.status==="completed"?"green":ex.status==="waiting_approval"?"orange":"")+'">'+esc(deStatus(ex.status))+'</span></div><div class="pipeline">'+steps.map((s,i)=>'<div class="pipe-step '+(s.status==="completed"?"done":s.status==="running"?"running":"")+'"><div class="pnum">'+String(i+1).padStart(2,"0")+' · '+esc(deStatus(s.status)).toUpperCase()+'</div><strong>'+esc(s.title)+'</strong>'+(s.status==="waiting_approval"?'<div class="btns"><button class="btn primary" data-exec-approve="'+ex.id+':'+s.id+'">Freigeben</button><button class="btn" data-exec-reject="'+ex.id+':'+s.id+'">Ablehnen</button></div>':'')+'</div>').join("")+'</div></section><div class="operations-grid"><section class="operation-panel"><div class="ey">PRÜFLOGIK</div><h3 class="op-title" style="font-size:27px">Erledigt heißt verifiziert</h3><p class="muted">Pilot setzt einen Lauf nicht auf abgeschlossen, nur weil Inhalt erzeugt wurde. Ergebnis, Speicherung, Qualitätsprüfung und Prüfprotokoll gehören zum Abschluss.</p></section><aside class="control-tower"><section class="operation-panel"><div class="ey">LAUFSTEUERUNG</div><div class="tower-line"><span class="muted">Gestartet</span><strong>'+esc(new Date(ex.started_at||ex.created_at).toLocaleString("de-DE"))+'</strong></div><div class="tower-line"><span class="muted">Fähigkeiten</span><strong>'+((ex.required_capabilities||[]).length||"—")+'</strong></div><div class="tower-line"><span class="muted">Ergebnis</span><strong>'+(ex.output_reference?.result_id?"gespeichert":"ausstehend")+'</strong></div></section></aside></div></div>'
+ const ex=executions[0]||null;
+ const steps=ex?executionSteps.filter(s=>s.execution_id===ex.id).sort((a,b)=>a.step_order-b.step_order):[];
+ const status=ex?deStatus(ex.status):"Bereit";
+ const numberCompleted=steps.filter(s=>s.status==="completed").length;
+ return '<div class="pilot-screen pilot-execution-screen">'+
+  pilotScene("OPERATIVE INTELLIGENZ",ex?"Pilot führt aus":"Bereit für den nächsten Schritt",ex?.objective||"Starte in der Zentrale eine operative Aktion. Hier wird der tatsächliche Ausführungsablauf sichtbar.","↗")+
+  '<section class="card"><div class="section-head"><div><div class="pilot-screen-kicker">PROZESSSPUR</div><h2 style="margin:12px 0 7px">Arbeitsschritte</h2></div>'+
+  '<span class="badge '+(ex?.status==="completed"?"green":ex?.status==="waiting_approval"?"orange":"")+'">'+esc(status)+'</span></div>'+
+  '<p class="muted" style="font-size:13px;margin-bottom:18px">Pilot plant, bearbeitet und prüft jeden Schritt. Abschlüsse werden erst nach der erforderlichen Prüfung angezeigt.</p>'+
+  (steps.length?'<div class="pilot-process-track">'+steps.map((s,i)=>'<div class="pilot-process-step '+(s.status==="completed"?"completed":s.status==="running"?"running":"")+'">'+
+     '<small>SCHRITT '+String(i+1).padStart(2,"0")+' · '+esc(deStatus(s.status))+'</small>'+
+     '<strong>'+esc(s.title||"Arbeitsschritt")+'</strong>'+
+     (s.status==="waiting_approval"?'<div class="btns"><button class="btn ai" data-exec-approve="'+esc(ex.id)+':'+esc(s.id)+'">Freigeben</button>'+
+       '<button class="btn" data-exec-reject="'+esc(ex.id)+':'+esc(s.id)+'">Ablehnen</button></div>':'')+
+     '</div>').join("")+'</div>':
+   '<div class="pilot-process-track">'+
+     '<div class="pilot-process-step"><small>01 · BEREIT</small><strong>Verstehen</strong></div>'+
+     '<div class="pilot-process-step"><small>02 · BEREIT</small><strong>Planen</strong></div>'+
+     '<div class="pilot-process-step"><small>03 · BEREIT</small><strong>Ausführen</strong></div>'+
+     '<div class="pilot-process-step"><small>04 · BEREIT</small><strong>Prüfen</strong></div></div>'+
+     '<div class="btns"><button class="btn ai" data-jump="home">Auftrag in der Zentrale starten ↗</button></div>')+
+   '</section>'+
+   (ex?'<section class="card"><div class="pilot-screen-kicker">LAUFÜBERSICHT</div><div class="pilot-home-summary">'+
+     '<div class="pilot-home-stat"><strong>'+numberCompleted+' / '+steps.length+'</strong><small>Schritte beendet</small></div>'+
+     '<div class="pilot-home-stat"><strong>'+esc(deStatus(ex.risk_level||"low"))+'</strong><small>Risikoklasse</small></div>'+
+     '<div class="pilot-home-stat"><strong>'+(ex.output_reference?.result_id?"Vorhanden":"Ausstehend")+'</strong><small>Ergebnis</small></div>'+
+     '</div><p class="pilot-screen-footnote">Start: '+esc(new Date(ex.started_at||ex.created_at).toLocaleString("de-DE"))+' · Ausführungskosten: '+Number(ex.actual_cost||0).toFixed(4)+'</p></section>':'')+
+  '</div>';
 }
-function goalsView(){return '<div class="card"><div class="section-head"><div><div class="ey">ZIELSTEUERUNG</div><h2>Ziele</h2></div><span class="badge">'+goals.length+' aktiv / vorhanden</span></div><p class="muted">Die Erfolgsampel zeigt, wie nah jedes Ziel am messbaren Ergebnis liegt. Echte Outcome-Werte haben Vorrang vor reinem Aufgabenfortschritt.</p>'+(goals.map(g=>{const s=goalSuccessMap[g.id]||{percent:0,level:"red",label:"Noch nicht gemessen",source:"Fortschritt"};return '<div class="goal-success-item"><div class="goal-success-copy"><div><span class="badge '+(g.status==="active"?"green":"")+'">'+esc(deStatus(g.status))+'</span></div><strong>'+esc(g.title)+'</strong><div class="muted">'+esc(g.desired_outcome||"")+'</div><div class="goal-meta"><span class="badge">'+esc(g.domain?.primary||"general")+'</span><span class="badge">'+esc(g.readiness||"")+'</span></div></div>'+successGaugeHtml(s,true)+'</div>'}).join("")||'<p class="muted">Noch keine Ziele.</p>')+'</div>'}
-function documentsView(){return '<div class="grid"><div class="card"><h2>Dokumente</h2><p class="muted">TXT, MD, CSV, JSON, XML, PDF und DOCX werden direkt verarbeitet. Gescannte PDFs werden sauber als OCR erforderlich erkannt.</p><div class="field"><label>Datei</label><input id="fileInput" type="file" accept="image/*,.txt,.md,.csv,.json,.xml,.pdf,.docx,text/plain,text/csv,application/json,application/pdf"></div><div class="btns"><button id="uploadDoc" class="btn primary">Hochladen & analysieren</button></div></div><div class="card"><h3>Dokumente</h3>'+(documents.map(d=>'<div class="item"><strong>'+esc(d.title||d.filename)+'</strong><div class="muted">'+esc(d.mime_type||"")+'</div><div style="margin-top:7px"><span class="badge '+(d.processing_status==="ready"?"green":"")+'">'+esc(d.processing_status)+'</span></div></div>').join("")||'<p class="muted">Noch keine Dokumente.</p>')+'</div></div>'}
-function resultsView(){return '<div class="card"><h2>Ergebnisse Library</h2>'+(results.map(r=>{const c=claims.filter(x=>x.result_id===r.id),evCount=evidence.filter(e=>c.some(x=>x.id===e.claim_id)).length,co=completeness.find(x=>x.document_id===r.structured_content?.document_id),canva=r.result_type==="canva_design";return '<div class="item"><div><span class="badge '+(r.quality_status==="ready"?"green":"orange")+'">'+esc(deStatus(r.quality_status||"draft"))+'</span> <span class="badge">v'+r.version+'</span></div><strong style="margin-top:8px">'+esc(r.title)+'</strong><div class="muted" style="white-space:pre-wrap">'+esc(r.content||"")+'</div>'+(r.result_type==="research_analysis"&&Array.isArray(r.structured_content?.sources)?'<div style="margin-top:12px"><strong>Quellen</strong>'+r.structured_content.sources.map(s=>'<div class="item"><span class="badge">'+esc(s.source_key||"source")+'</span><strong>'+esc(s.title||s.url||"Quelle")+'</strong><div class="muted">Belege '+Math.round(Number(s.evidence_score||0)*100)+'%</div>'+(s.url?'<a class="btn" target="_blank" rel="noopener" href="'+esc(s.url)+'">Quelle öffnen</a>':'')+'</div>').join("")+'</div>':'')+(canva?'<div class="btns"><span class="badge green">Design bereit</span></div>':'<div class="stat"><span class="muted">Aussagen</span><strong>'+c.length+'</strong></div><div class="stat"><span class="muted">Belege</span><strong>'+evCount+'</strong></div><div class="stat"><span class="muted">Vollständigkeit</span><strong>'+esc(co?.readiness||r.structured_content?.completeness?.readiness||"—")+'</strong></div><div class="btns"><button class="btn primary" data-canva="'+r.id+':presentation">✦ Präsentation gestalten</button><button class="btn" data-canva="'+r.id+':doc">Dokument gestalten</button><button class="btn" data-feedback="'+r.id+':up">👍 Hilfreich</button><button class="btn" data-feedback="'+r.id+':down">👎 Verbessern</button></div>')+'</div>'}).join("")||'<p class="muted">Noch keine Ergebnisse.</p>')+'</div>'}
+
+function goalsView(){
+  return '<div class="pilot-screen pilot-missions-screen">'+
+    pilotScene("MISSIONSKONTEXT","Deine Ziele","Pilot behält Fortschritt, Zusammenhänge und Ergebnisse deiner Missionen im Blick.","◎")+
+    '<section class="pilot-mission-list" aria-label="Gespeicherte Ziele">'+
+    (goals.map((g,i)=>{
+       const sv=goalSuccessMap[g.id]||{percent:0,level:"red",label:"Noch nicht gemessen",source:"Fortschritt"};
+       const pct=Math.max(0,Math.min(100,Math.round(Number(sv.percent)||0)));
+       const active=g.status==="active";
+       const label=sv.label||"Noch kein messbares Ergebnis";
+       return '<article class="pilot-mission">'+
+         '<div class="pilot-mission-head"><span class="pilot-mission-signal '+(active?'':'orange')+'">'+esc(deStatus(g.status||"ready"))+'</span>'+
+           '<span class="pilot-mission-signal">'+pct+' % Zielerreichung</span></div>'+
+         '<h3>'+esc(g.title||g.description||"Ziel")+'</h3>'+
+         '<p>'+esc(g.desired_outcome||"Pilot verwaltet die nächsten Schritte in diesem Ziel.")+'</p>'+
+         '<div class="pilot-mission-signals"><span class="pilot-mission-signal">'+esc(g.domain?.primary||"Allgemein")+'</span>'+
+         '<span class="pilot-mission-signal '+(pct>=75?'':'orange')+'">'+esc(label)+'</span></div>'+
+         '<div class="pilot-mission-track" aria-label="Zielerreichung '+pct+' Prozent"><div class="pilot-mission-fill" style="width:'+pct+'%"></div></div>'+
+         (i===0?'<div class="btns"><button class="btn ai" data-jump="home">In Zentrale fortsetzen ↗</button></div>':'')+
+         '</article>'
+     }).join("")||'<div class="pilot-home-empty">Noch keine Mission vorhanden. Beschreibe in der Zentrale dein erstes Ziel.<div class="btns"><button class="btn ai" data-jump="home">Ersten Auftrag starten ↗</button></div></div>')+
+    '</section>'+
+    '<p class="pilot-screen-footnote">Die Erfolgsanzeige bewertet die vorhandenen Messwerte. Ein erzeugtes Dokument allein bedeutet noch nicht, dass das Ziel erreicht ist.</p>'+
+   '</div>';
+}
+
+function documentsView(){
+ return '<div class="pilot-screen pilot-documents-screen">'+
+  pilotScene("WISSEN & KONTEXT","Wissen aufnehmen","Dokumente und Bilder fließen in den passenden Arbeitsauftrag ein. Pilot verarbeitet sie sicher und nachvollziehbar.","⌑")+
+  '<div class="pilot-knowledge-zone">'+
+   '<section class="card"><div class="pilot-screen-kicker">DATEI HINZUFÜGEN</div><h2 style="margin:13px 0 7px">Wissen übergeben</h2>'+
+   '<p class="muted" style="font-size:13px;line-height:1.6">Wähle eine Datei aus. Pilot liest die Informationen im Kontext deines aktuellen Ziels.</p>'+
+   '<div class="field"><label for="fileInput">Foto oder Dokument</label><input id="fileInput" type="file" accept="image/*,.txt,.md,.csv,.json,.xml,.pdf,.docx,text/plain,text/csv,application/json,application/pdf"></div>'+
+   (goals.length?'<div class="btns"><button id="uploadDoc" class="btn ai">✦ Datei übergeben & analysieren</button></div>':
+   '<p class="muted">Lege zuerst in der Zentrale einen Auftrag an.</p><div class="btns"><button class="btn ai" data-jump="home">Zur Zentrale ↗</button></div>')+
+   '</section>'+
+   '<section class="card pilot-document-list"><div class="section-head"><div><div class="pilot-screen-kicker">GESPEICHERTES WISSEN</div><h2 style="margin:12px 0">Deine Dokumente</h2></div><span class="badge">'+documents.length+'</span></div>'+
+    (documents.map(d=>'<div class="item"><span class="pilot-document-symbol" aria-hidden="true">⌑</span><div style="min-width:0;flex:1"><strong style="overflow-wrap:anywhere">'+esc(d.title||d.filename||"Dokument")+'</strong>'+
+    '<span class="muted" style="font-size:11px">'+esc(d.mime_type||"")+'</span><div style="margin-top:5px"><span class="badge '+(d.processing_status==="ready"?"green":"")+'">'+esc(deStatus(d.processing_status||"uploaded"))+'</span></div></div></div>').join("")||'<p class="muted">Noch keine Dokumente vorhanden.</p>')+
+    '</section></div><p class="pilot-screen-footnote">Unterstützt werden unter anderem PDF, DOCX, Text und Bilder. Gescannte Inhalte können eine zusätzliche Erkennung erfordern.</p></div>';
+}
+
+function resultsView(){
+ return '<div class="pilot-screen pilot-results-screen">'+
+   pilotScene("LIEFEROBJEKTE","Deine Ergebnisse","Hier findest du, was Pilot bereits erzeugt, dokumentiert oder zur Prüfung vorbereitet hat.","✧")+
+   '<div class="pilot-artifact-grid">'+
+    (results.map(r=>{
+      const c=claims.filter(x=>x.result_id===r.id);
+      const evCount=evidence.filter(e=>c.some(x=>x.id===e.claim_id)).length;
+      const co=completeness.find(x=>x.document_id===r.structured_content?.document_id);
+      const canva=r.result_type==="canva_design";
+      const sources=r.result_type==="research_analysis"&&Array.isArray(r.structured_content?.sources)?r.structured_content.sources:[];
+      return '<article class="pilot-artifact">'+
+        '<div class="pilot-mission-head"><span class="badge '+(r.quality_status==="ready"?"green":"orange")+'">'+esc(deStatus(r.quality_status||"draft"))+'</span><span class="badge">Version '+esc(r.version||1)+'</span></div>'+
+        '<h3>'+esc(r.title||"Ergebnis")+'</h3>'+
+        '<div class="pilot-artifact-body">'+esc(r.content||"Keine Textvorschau vorhanden.")+'</div>'+
+        (sources.length?'<details style="margin-top:13px"><summary style="font-weight:850;font-size:12px;color:#517946;cursor:pointer">Quellen und Belege ('+sources.length+')</summary>'+
+           sources.map(a=>'<div class="item"><strong>'+esc(a.title||a.url||"Quelle")+'</strong><div class="muted">Belegwert '+Math.round(Number(a.evidence_score||0)*100)+' %</div>'+
+           (a.url?'<a class="btn" target="_blank" rel="noopener noreferrer" href="'+esc(a.url)+'">Quelle öffnen ↗</a>':'')+'</div>').join("")+'</details>':'')+
+        (!canva?'<div class="pilot-mission-signals" style="margin-top:15px"><span class="pilot-mission-signal">'+c.length+' Aussagen</span><span class="pilot-mission-signal">'+evCount+' Belege</span>'+
+          '<span class="pilot-mission-signal">'+esc(co?.readiness||r.structured_content?.completeness?.readiness||"Prüfung offen")+'</span></div>':'<p class="pilot-connection-label" style="margin-top:13px">Designobjekt angelegt</p>')+
+        (!canva?'<div class="btns"><button class="btn ai" data-canva="'+esc(r.id)+':presentation">✦ Präsentation gestalten</button>'+
+          '<button class="btn" data-canva="'+esc(r.id)+':doc">Dokument gestalten</button>'+
+          '<button class="btn" data-feedback="'+esc(r.id)+':up">👍 Hilfreich</button>'+
+          '<button class="btn" data-feedback="'+esc(r.id)+':down">👎 Verbessern</button></div>':'')+
+        '</article>'
+    }).join("")||'<div class="pilot-home-empty">Noch keine Ergebnisse vorhanden. Beginne in der Zentrale eine Mission oder führe den nächsten Schritt aus.<div class="btns"><button class="btn ai" data-jump="home">Zur Zentrale ↗</button></div></div>')+
+   '</div></div>';
+}
+
 async function uploadDocument(){const f=document.getElementById("fileInput")?.files?.[0];if(!f)return;if(!goals[0])return pilotNotice("Bitte zuerst ein aktives Ziel anlegen.");const btn=document.getElementById("uploadDoc");btn.disabled=true;btn.textContent="Verarbeitung läuft …";PS.textContent="Pilot verarbeitet Anhang …";try{await processCommandAttachment({file:f},goals[0].id,goals[0].description||goals[0].desired_outcome||goals[0].title);await load();await telemetry("event",{goal_id:goals[0]?.id||null,event_name:"document_processed",event_category:"value",properties:{document_count:documents.length,result_count:results.length}});PS.textContent="Pilot bereit";render()}catch(e){PS.textContent="Pilot bereit";await telemetry("incident",{goal_id:goals[0]?.id||null,source:"documents",severity:"error",error_code:"DOCUMENT_FAILED",message:e.message||String(e)});pilotNotice(e.message||String(e));btn.disabled=false;btn.textContent="Hochladen & analysieren"}}
-function canvaView(){return '<div class="grid"><div class="card"><h2>Gestaltung</h2><p class="muted">Pilot überführt geprüfte Inhalte in visuelle Dokumente und Präsentationen. Analyse, Freigabe und Ergebnissteuerung bleiben vollständig in Pilot.</p><div class="stat"><span class="muted">Verbindung</span><strong>'+(canvaStatus?.connected?'Verbunden':'Nicht verbunden')+'</strong></div><div class="stat"><span class="muted">Generative Gestaltung</span><strong>Dokumente & Präsentationen</strong></div><div class="stat"><span class="muted">Markenvorlagen-Automatik</span><strong>Vorlagen / Designs</strong></div><div class="btns">'+(!canvaStatus?.connected?'<button id="connectCanva" class="btn primary">Gestaltungsmodul</button>':'<span class="badge green">Gestaltungsmodul bereit</span>')+'</div></div><div class="card"><h3>Design-Aufträge</h3>'+(designJobs.map(j=>'<div class="item"><span class="badge '+(j.status==="completed"?"green":j.status==="failed"?"orange":"")+'">'+esc(deStatus(j.status))+'</span><strong>'+esc(j.design_type)+'</strong><div class="muted">'+esc(j.brief?.text||"Designauftrag")+'</div><div class="btns">'+(j.status==="running"?'<button class="btn" data-canva-poll="'+j.id+'">Status aktualisieren</button>':'')+(j.status==="completed"?'<span class="badge green">Design fertig</span>':'')+'</div></div>').join("")||'<p class="muted">Noch keine Design-Aufträge.</p>')+'</div></div>'}
+function canvaView(){
+ return '<div class="pilot-screen pilot-creative-screen">'+
+  pilotScene("KREATIVE PRODUKTION","Ideen werden sichtbar","Pilot führt geprüfte Inhalte in grafische Dokumente, Präsentationen und Gestaltungsschritte über.","✦")+
+  '<div class="pilot-knowledge-zone"><section class="card"><div class="pilot-screen-kicker">GESTALTUNGSVERBINDUNG</div>'+
+  '<h2 style="margin:12px 0">Kreativmodul</h2><p class="muted">Designaufträge werden über das angebundene Gestaltungsmodul bearbeitet, sofern es verbunden ist.</p>'+
+  '<div class="stat"><span class="muted">Verbindung</span><strong>'+esc(canvaStatus?.connected?"Verbunden":"Noch nicht verbunden")+'</strong></div>'+
+  '<div class="stat"><span class="muted">Formate</span><strong>Dokumente & Präsentationen</strong></div>'+
+  '<div class="btns">'+(!canvaStatus?.connected?'<button id="connectCanva" class="btn ai">✦ Gestaltungsmodul verbinden</button>':'<span class="badge green">Gestaltung bereit</span>')+'</div></section>'+
+  '<section class="card"><div class="pilot-screen-kicker">KREATIVE LÄUFE</div><h2 style="margin:12px 0">Designaufträge</h2>'+
+    (designJobs.map(j=>'<div class="item"><span class="badge '+(j.status==="completed"?"green":j.status==="failed"?"orange":"")+'">'+esc(deStatus(j.status))+'</span>'+
+     '<strong style="margin-top:10px">'+esc(j.design_type||"Designauftrag")+'</strong>'+
+     '<p class="muted" style="font-size:12px">'+esc(j.brief?.text||"Gestaltung wird vorbereitet.")+'</p>'+
+     (j.status==="running"?'<div class="btns"><button class="btn" data-canva-poll="'+esc(j.id)+'">Status aktualisieren</button></div>':'')+
+     '</div>').join("")||'<p class="muted">Noch kein Designauftrag vorhanden.</p>')+
+   '</section></div></div>';
+}
+
 function roadmap(){if(!effectiveAdmin())return home();const c=features.reduce((a,f)=>(a[f.status]=(a[f.status]||0)+1,a),{}),done=c.ready||0,total=features.length,pct=total?Math.round(done/total*100):0;return '<div class="card roadmap-card"><div class="section-head"><div><div class="ey">NUR ADMIN</div><h2>Entwicklungsplan</h2></div><button class="btn" data-jump="alpha">Systemtest öffnen</button></div><p class="muted">Umgesetzte Funktionen sind abgehakt. Der Status wird automatisch aus technischen Verifikationsnachweisen aktualisiert; offene oder spätere Funktionen bleiben sichtbar und werden nicht vergessen.</p><div class="roadmap-auto"><span class="dot"></span><strong>Automatische Statuspflege aktiv</strong><small>Verifiziert → automatisch grün</small></div><div class="roadmap-progress"><div><strong>'+done+' / '+total+' erledigt</strong><span>'+pct+'%</span></div><div class="progress-track"><div class="progress-bar" style="width:'+pct+'%"></div></div></div><div class="btns roadmap-summary"><span class="badge green">✓ Erledigt '+done+'</span><span class="badge">MVP '+(c.mvp||0)+'</span><span class="badge">Alpha '+(c.alpha||0)+'</span><span class="badge">Geplant '+(c.planned||0)+'</span><span class="badge orange">Zurückgestellt '+(c.deferred||0)+'</span></div><div class="roadmap-list">'+features.map(f=>{const ready=f.status==="ready";return '<div class="roadmap-item '+(ready?"done":"")+'"><span class="roadmap-check">'+(ready?"✓":"")+'</span><div><strong>'+f.workspace_number+'. '+esc(f.name)+'</strong><small>'+esc(f.priority)+'</small></div><span class="badge '+(ready?"green":"")+'">'+(ready?"Erledigt":esc(deStatus(f.status)))+'</span></div>'}).join("")+'</div></div>'}
 function alphaView(){if(!effectiveAdmin())return home();const passed=readiness.filter(x=>x.status==="passed").length,total=readiness.length,last=evalRuns[0],aiCost=aiRequests.reduce((s,x)=>s+Number(x.actual_cost||0),0);return '<div class="grid"><div class="card"><h2>Bereitschaft der privaten Testphase</h2><div style="font-size:42px;font-weight:900">'+passed+' / '+total+'</div><p class="muted">Pflichtchecks bestanden</p>'+readiness.map(x=>'<div class="stat"><span class="muted">'+esc(x.description)+'</span><strong>'+esc(deStatus(x.status))+'</strong></div>').join("")+'<div class="btns"><button id="runEvals" class="btn primary">Prüfsuite ausführen</button><button id="runAlphaE2E" class="btn ai">✦ Alpha-Systemtest starten</button></div><div id="e2eStatus" class="muted" style="margin-top:12px">Der Systemtest nutzt isolierte Testdaten und räumt sie automatisch wieder auf.</div></div><div><div class="card"><h3>Prüfung</h3>'+(last?'<div class="stat"><span class="muted">Status</span><strong>'+esc(last.status)+'</strong></div><div class="stat"><span class="muted">Bewertung</span><strong>'+Math.round(Number(last.score||0)*100)+'%</strong></div><div class="stat"><span class="muted">Fälle</span><strong>'+last.passed_cases+' / '+last.total_cases+'</strong></div>':'<p class="muted">Noch kein Eval-Run.</p>')+'</div><div class="card" style="margin-top:20px"><h3>KI-Kostenmonitor</h3><div class="stat"><span class="muted">Anfragen</span><strong>'+aiRequests.length+'</strong></div><div class="stat"><span class="muted">Aktuelle Kosten</span><strong>'+aiCost.toFixed(4)+'</strong></div><div class="stat"><span class="muted">Ausweichrouten</span><strong>'+aiRequests.filter(x=>x.fallback_used).length+'</strong></div></div><div class="card" style="margin-top:20px"><h3>Hinweise</h3>'+(notifications.map(n=>'<div class="item"><span class="badge">'+esc(n.priority)+'</span><strong>'+esc(n.title)+'</strong><div class="muted">'+esc(n.body)+'</div></div>').join("")||'<p class="muted">Keine offenen Hinweise.</p>')+'</div></div></div>'}
 
@@ -2105,7 +2221,16 @@ async function changeAdminRole(el){
   }finally{el.disabled=false}
 }
 
-function me(){return '<div class="grid"><div class="card"><h2>Profil</h2><div class="stat"><span class="muted">E-Mail</span><strong>'+esc(user.email)+'</strong></div><div class="stat"><span class="muted">Arbeitsbereich</span><strong>Personal</strong></div></div><div class="card"><h3>Sicherheit</h3><p class="muted">Pilot Intelligence verarbeitet nur deine User-Session. Alle Schreib- und Lesezugriffe bleiben unter Row-Level-Sicherheit.</p></div></div>'}
+function me(){
+ return '<div class="pilot-screen pilot-settings-screen">'+
+ pilotScene("DEIN ZUGANG","Deine Umgebung","Hier verwaltest du deinen Zugang und siehst die Sicherheit deines Arbeitsbereichs.","⚙")+
+ '<div class="pilot-knowledge-zone"><section class="card"><div class="pilot-screen-kicker">PROFIL</div><h2 style="margin:12px 0">Dein Konto</h2>'+
+ '<div class="stat"><span class="muted">E-Mail</span><strong style="overflow-wrap:anywhere">'+esc(user.email)+'</strong></div>'+
+ '<div class="stat"><span class="muted">Arbeitsbereich</span><strong>Personal</strong></div></section>'+
+ '<section class="card"><div class="pilot-screen-kicker">SICHERHEITSKONTEXT</div><h2 style="margin:12px 0">Geschützt arbeiten</h2>'+
+ '<p class="muted">Pilot verwendet deine angemeldete Sitzung. Datenbankzugriffe sind über die entsprechenden Zugriffsrichtlinien geschützt.</p></section></div></div>';
+}
+
 function effectiveAdmin(){return isAdmin&&!customerPreview}
 function applyRoleUI(){document.querySelectorAll(".admin-only").forEach(el=>el.classList.toggle("hidden",!effectiveAdmin()));document.querySelectorAll(".admin-preview").forEach(el=>el.classList.toggle("hidden",!isAdmin));const p=document.getElementById("customerPreviewToggle");if(p)p.textContent=customerPreview?"Adminansicht":"Kundenansicht"}
 
