@@ -66,6 +66,15 @@ try{
    const moves=points.slice(1).map((p,i)=>Math.hypot(p.x-points[i].x,p.y-points[i].y));
    assert(moves.filter(x=>x>1).length>=4,"Cruise movement must be continuous across observed frames: "+JSON.stringify(moves));
    assert(Math.max(...moves)<110,"Unexpected jump in cruise: "+JSON.stringify(moves));
+   // A protected real button occupies the lower left ground strip. The
+   // figure and its pacing range must find a safe alternative.
+   await page.evaluate(()=>{
+     const block=document.createElement("button");
+     block.id="flightProtectedAction";
+     block.type="button";block.textContent="Wichtige Handlung";
+     block.style.cssText="position:fixed;left:4px;bottom:12px;width:155px;height:112px;z-index:1";
+     document.body.appendChild(block);
+   });
    const landed=await page.evaluate(()=>window.__lumenV6.land({scroll:false,minCruise:0,keepLanded:true,targetElement:document.getElementById("flightHarnessFinish")}));
    assert.equal(landed,true,"Landing must finish on action");
    assert.equal(await page.locator(selector).count(),1,"Plane must remain parked, not replaced");
@@ -82,6 +91,18 @@ try{
    assert.equal(avatar.walking,true);
    assert.equal(avatar.animation,"pilotLumenPace");
    assert(avatar.height<76&&avatar.width<76,"The human figure must remain smaller than aircraft: "+JSON.stringify(avatar));
+   const ground=await page.evaluate(()=>{
+     const worker=document.querySelector("#pilotFlightLayer .pilot-worker-avatar");
+     const figure=worker.querySelector(".pilot-worker-figure");
+     const protectedAction=document.getElementById("flightProtectedAction").getBoundingClientRect();
+     const feet=figure.getBoundingClientRect();
+     const floor=worker.getBoundingClientRect().top+Number.parseFloat(getComputedStyle(worker).getPropertyValue("--worker-ground-y"));
+     const collision=feet.left<protectedAction.right+7&&feet.right+14>protectedAction.left-7&&feet.top<protectedAction.bottom+7&&feet.bottom>protectedAction.top-7;
+     return {floor,feetBottom:feet.bottom,collision,safe:worker.dataset.groundSafe,quiet:worker.classList.contains("pilot-worker--quiet"),hidden:worker.hidden};
+   });
+   assert.equal(ground.hidden,false,"Avatar needs a visible safe ground location");
+   assert.equal(ground.collision,false,"Ground patrol must not cover the protected action: "+JSON.stringify(ground));
+   assert(Math.abs(ground.feetBottom-ground.floor)<13,"Boots must touch the ground: "+JSON.stringify(ground));
    await page.evaluate(()=>window.__lumenV6.reboard());
    assert.equal(await page.locator("#pilotFlightLayer .pilot-worker-avatar").count(),0,"Boarding removes the worker");
    assert.equal(await page.locator(selector).count(),1,"Reboard reuses same aircraft");
