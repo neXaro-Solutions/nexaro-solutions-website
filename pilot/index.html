@@ -5115,19 +5115,36 @@ function pilotAutoRunPreference(id,active){
  const key=pilotAutoRunKey(id);if(!key)return;
  try{if(active)localStorage.setItem(key,"1");else localStorage.removeItem(key)}catch{}
 }
-async function pilotResumeApprovedWork(){
+/* Only continue work authorized by an earlier user launch. Never start a
+   new mission merely because a user opens a browser tab. */
+let pilotResumeWorkTimer=null;
+async function pilotResumeApprovedWork(attempt=0){
  const goalId=goals[0]?.id,key=pilotAutoRunKey(goalId);
- if(!key||pilotAutoSession?.active||pilotExecutionRequestActive)return;
+ if(!user||!key||pilotAutoSession?.active||pilotExecutionRequestActive)return;
+ if(pilotResumeWorkTimer){clearTimeout(pilotResumeWorkTimer);pilotResumeWorkTimer=null}
  try{
   if(localStorage.getItem(key)!=="1")return;
   const r=await sb.functions.invoke("execution-engine",{body:{operation:"status",goal_id:goalId}});
   if(r.error)return;
   const data=r.data||{},next=data.next_action;
-  if(data.status==="attention_required"&&data.reason==="running")return;
-  if(data.status==="ready"&&next?.status==="ready"&&next.owner_type==="pilot"&&next.recommended_mode==="do_it"&&next.blocking!==true){
+  if(data.status==="attention_required"&&data.reason==="running"){
+   // Another tab still works; status checks are read-only and cannot duplicate AI costs.
+   if(attempt<48&&goals[0]?.id===goalId){
+     pilotResumeWorkTimer=setTimeout(()=>{
+       pilotResumeWorkTimer=null;
+       if(!pilotAutoSession?.active&&goals[0]?.id===goalId)void pilotResumeApprovedWork(attempt+1);
+     },5000);
+   }
+   return;
+  }
+  const autonomous=data.status==="ready"&&next?.status==="ready"&&
+    next.owner_type==="pilot"&&next.recommended_mode==="do_it"&&next.blocking!==true;
+  const lowRiskProposal=data.status==="collaboration_required"&&next?.status==="ready"&&
+    next.owner_type==="joint"&&next.recommended_mode==="together"&&next.blocking!==true;
+  if(autonomous||lowRiskProposal){
    void pilotContinueSafely(goalId,32);
   }else pilotAutoRunPreference(goalId,false);
- }catch{}
+ }catch(e){console.warn("Pilot-Fortsetzung derzeit nicht verfügbar",String(e?.message||e).slice(0,160))}
 }
 
 /* One aircraft per user-started run. A review parks it instead of clearing it. */
@@ -5386,6 +5403,12 @@ async function pilotContinueSafely(goalId,maxSteps=32){
      void pilotLandAtAttention(goalId,"Hier ist deine Handlung erforderlich");
    }else{
      pilotEndContinuousFlight(goalId,stopped);
+     if(stopKind==="working"&&!session.cancelRequested&&goals[0]?.id===goalId){
+       pilotResumeWorkTimer=setTimeout(()=>{
+         pilotResumeWorkTimer=null;
+         if(!pilotAutoSession?.active&&goals[0]?.id===goalId)void pilotResumeApprovedWork();
+       },5000);
+     }
    }
  }
 }
