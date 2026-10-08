@@ -243,3 +243,14 @@ LUMEN .35 im authentifizierten iPhone-Test zeigt: **16 Brave-Suchtreffer, eine a
 **Abnahme und Abgrenzung:** `brave_official_source_live_validation` im Entwicklungsplan `pilot_federated_research_sources_v2` auf **passed** gesetzt (11/12 Pflichtprüfungen bestanden). Mindestens eine behördliche HTTPS-Originalseite wurde unter geltenden Host-Sicherheitsregeln tatsächlich abgerufen und ein relevanter Textabschnitt extrahiert; dies beweist noch **nicht** die fachliche Richtigkeit ihrer einzelnen Aussagen. 2 der versuchten amtlichen Treffer sind PDFs, die der jetzige HTML-Reader bewusst als `pdf_requires_reader` zurückweist; offizielle PDF-Unterstützung ist ein sinnvoller zukünftiger Ausbauschritt mit Größen-, Herkunfts- und Textsicherheitsprüfungen.
 
 **Noch offen:** `authenticated_multisource_executions` ist die letzte verpflichtende Praxisprüfung: ein echter angemeldeter Pilot-Auftrag muss daraus einen gespeicherten, durch Quellen-IDs nachvollziehbaren und fachlich zur Nutzerprüfung vorgelegten Ergebnisentwurf erzeugen. Vor dieser Abnahme **kein** vollständiger Feature-Abschluss, keine erfundenen Quellenbelege und kein verdeckter automatischer Erfolgseintrag.
+
+
+## LUMEN 2026.10.08.36 – technische Einzeltests ausschließlich in Admin → Systemtests
+
+**Auslöser:** Nutzer konnte den zuvor empfohlenen `✦ KI-Ausführung testen` in der Zentrale nicht finden; Screenshot 11:59 zeigt stattdessen den aktiven Gartenbau-Auftrag und `✈ Flug & Landung testen`. Ursache: Testschaltflächen waren über die Zentrale verstreut und der KI-Test lag weit oberhalb des sichtbaren Auftragsbereichs.
+
+**Fix im echten Website-Quellcode:** Die Administrator-Tests `✦ KI-Ausführung testen`, `⌕ Brave prüfen`, `🛡 Verbindung prüfen` und `✈ Flug & Landung testen` sind jetzt **alle** unter `Admin → Systemtests` in einem kompakten, zugänglich beschrifteten Testpanel mit 2-spaltiger mobiler Schaltflächenanordnung (44px Bedienhöhe). Sie sind aus der Produkt-Zentrale entfernt, damit dort nur echte Auftragstätigkeiten erscheinen. Die vorhandenen Event-Handler/IDs, Zugriffskontrolle und Prüfverfahren bleiben bestehen.
+
+Der rein optische Flugtest verfügt im Admin-Modus jetzt über eine **temporär erzeugte, deaktivierte Test-Landezone**, weil dort bewusst kein echter `executeAction`-Button existiert. Keine automatische Ausführung und keine Zieländerung; die künstliche Landezone wird am Ende immer entfernt.
+
+**Tests:** JavaScript-Syntax, HTML-Abschnittsbilanz, alle vier einmalig gerenderten Test-IDs, Admin-Autorisierung, Weiterbestehen von Auftragsschaltflächen, bestehende Click-Bindungen und isolierte Flugtest-Logik bestanden. Neue LUMEN `2026.10.08.36`. Authentifizierte iPhone-Bestätigung des neuen Teststandortes und echter KI-Anbieter-Kurztest weiterhin offen. **Kein** fälschlicher Abschluss einer KI-Ausführung.
