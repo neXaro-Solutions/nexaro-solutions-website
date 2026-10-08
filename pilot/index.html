@@ -2598,6 +2598,81 @@ body{background:radial-gradient(ellipse 72vw 60vw at 92% -10%,rgba(145,255,62,.1
 .pilot-simple-goal-choice.selected{border-color:#aee98b;background:#f6fff0}
 .pilot-simple-goal-choice strong{display:block;font-size:14px;line-height:1.5}
 .pilot-simple-goal-choice small{display:block;font-size:12px;color:#879081;margin-top:4px}
+
+/* Pilot Compact: one named project contains its own collapsible results. */
+.pilot-project-list{max-width:660px;margin:auto;display:grid;gap:9px;padding-bottom:18px}
+.pilot-project-intro{padding:3px 2px 7px}
+.pilot-project-intro h2{font-size:20px!important;line-height:1.2;margin:5px 0}
+.pilot-project-intro p{font-size:12px;color:#7c8b78;margin:0}
+.pilot-project-card{background:#fff;border:1px solid #e3ecdd;border-radius:15px;overflow:hidden;box-shadow:0 7px 24px #19350e08}
+.pilot-project-card>summary{list-style:none;display:flex;align-items:center;gap:9px;padding:12px 13px;cursor:pointer}
+.pilot-project-card>summary::-webkit-details-marker{display:none}
+.pilot-project-caret{font-size:12px;color:#76a957}
+.pilot-project-card[open] .pilot-project-caret{transform:rotate(90deg)}
+.pilot-project-heading{flex:1;min-width:0}
+.pilot-project-heading strong{font-size:14px;font-weight:800;line-height:1.4;overflow-wrap:anywhere;display:block}
+.pilot-project-heading small{display:block;font-size:11px;color:#7d8879;margin-top:3px}
+.pilot-project-state{font-size:10px;font-weight:850;color:#48772a;background:#eaffde;border-radius:99px;padding:3px 8px}
+.pilot-project-body{border-top:1px solid #e9f0e4;padding:10px 13px 13px}
+.pilot-project-continue{background:#f0ffe9;color:#42792d;font-size:12px;font-weight:850;border:0;border-radius:9px;padding:8px 11px;cursor:pointer}
+.pilot-project-results-title{display:flex;align-items:center;gap:8px;margin:13px 0 7px;color:#5d7158;font-size:12px;font-weight:850}
+.pilot-project-results-title span{font-size:10px;padding:2px 6px;border-radius:99px;background:#edf6e7}
+.pilot-project-category{border:1px solid #e5ecdf;border-radius:11px;background:#fff;margin:7px 0;overflow:hidden}
+.pilot-project-category>summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:9px;padding:10px 12px;font-size:12px;font-weight:780}
+.pilot-project-category>summary::-webkit-details-marker{display:none}
+.pilot-project-category>summary:before{content:"▸";font-size:11px;color:#85ab62}
+.pilot-project-category[open]>summary:before{content:"▾"}
+.pilot-project-category>summary span{flex:1}
+.pilot-project-category>summary small{font-size:10px;color:#879582}
+.pilot-project-file{border-top:1px solid #eaf1e6;padding:10px 12px}
+.pilot-project-file h4{font-size:12px;margin:6px 0 4px}
+.pilot-project-file p,.pilot-project-empty{font-size:12px;color:#71806d;line-height:1.55;margin:8px 0}
+.pilot-project-document{border:0;margin-top:8px}
+.pilot-project-document>summary{font-size:11px;font-weight:800;color:#4d8537;cursor:pointer}
+.pilot-project-document-body{white-space:pre-wrap;font-size:12px;line-height:1.6;color:#374233;max-height:60vh;overflow:auto;padding:11px 0}
+.pilot-simple-created{font-size:11px;color:#849182;margin:-3px 0 8px}
+.pilot-simple{max-width:660px;gap:9px}
+.pilot-simple-card{padding:13px 15px;border-radius:15px}
+.pilot-simple-heading{gap:10px;margin-bottom:10px}
+.pilot-simple-heading h2{font-size:19px!important;margin:2px 0}
+.pilot-simple-heading p{font-size:12px}
+.pilot-simple-orb{width:37px;height:37px;font-size:19px;border-radius:11px}
+.pilot-simple textarea{min-height:78px;padding:10px 12px;line-height:1.5}
+.pilot-simple-entry-footer{margin-top:9px;gap:7px}
+.pilot-simple-entry-footer>.btn{min-height:42px;font-size:13px}
+.pilot-simple-work h2,.pilot-simple-outcome h2{font-size:16px!important;margin:5px 0 8px}
+.pilot-simple-state,.pilot-simple-count{font-size:11px}
+.pilot-simple-state{margin:7px 0}
+.pilot-simple-outcome .pilot-simple-preview{font-size:12px;line-height:1.5}
+.pilot-simple-action{padding:9px 11px;margin:10px 0 5px}
+.pilot-simple-action p{font-size:12px}
+.pilot-minimal-nav{max-width:360px;margin-inline:auto;justify-content:center;align-items:center}
+@media(max-width:760px){
+ .side{padding:5px 8px calc(5px + env(safe-area-inset-bottom));}
+ .side nav.pilot-minimal-nav{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));max-width:288px;margin:0 auto;justify-content:center;gap:7px;overflow:visible!important}
+ .side .pilot-minimal-nav>.nav{min-width:0;width:100%;min-height:47px;padding:4px 6px;gap:2px;font-size:12px}
+ .side .pilot-minimal-nav .nav>span:not(.pilot-nav-icon){font-size:10px!important;font-weight:800}
+ .side .pilot-minimal-nav .pilot-nav-icon{width:20px;height:20px}
+ .side .pilot-minimal-nav .pilot-nav-icon svg{width:19px;height:19px}
+ .side .pilot-nav-more>summary{min-height:47px;gap:0;padding:3px 4px;font-size:10px}
+ .side .pilot-nav-more-symbol{font-size:15px}
+ .side .pilot-nav-more-content{width:190px;bottom:calc(100% + 5px);padding:6px;gap:3px}
+ .side .pilot-nav-more-content .nav{min-height:35px!important;font-size:12px;gap:8px}
+ .main{padding:10px 12px 18px!important}
+ .main .head{margin-bottom:10px!important}
+ .main .head h1{font-size:20px!important}
+ .main .head .ey{font-size:9px}
+ .main .status{font-size:11px;padding:6px 9px}
+ .pilot-simple{gap:8px}
+ .pilot-simple-card{padding:12px 13px;border-radius:14px}
+ .pilot-simple-heading h2{font-size:18px!important}
+ .pilot-simple-heading p{font-size:11px}
+ .pilot-simple textarea{font-size:14px;min-height:76px}
+ .pilot-simple-entry-footer>.btn{min-height:40px}
+ .pilot-project-list{gap:7px}
+ .pilot-project-card>summary{padding:11px 12px}
+ .pilot-project-body{padding:9px 11px 11px}
+}
 </style></head>
 <body>
 <section id="auth" class="auth"><div class="box">
