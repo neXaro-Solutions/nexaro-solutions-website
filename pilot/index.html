@@ -6310,7 +6310,8 @@ function pilotWait(ms){return new Promise(resolve=>setTimeout(resolve,ms))}
 function pilotButtonTarget(){
  const b=document.getElementById("confirmPilotResult")||document.getElementById("executeAction");
  if(b&&b.getClientRects().length)return b;
- return document.querySelector('[data-view="execution"]')||document.querySelector('[data-view="results"]');
+ return document.querySelector('.side .nav[data-view="goals"]')||
+   document.querySelector('[data-view="execution"]')||document.querySelector('[data-view="results"]');
 }
 function pilotOrbit(f,u){
  const w=window.innerWidth,h=window.innerHeight,theta=u*2*Math.PI;
@@ -6802,7 +6803,8 @@ async function pilotLandAtAttention(goalId,message){
  const target=document.getElementById("confirmPilotResult")||
    document.getElementById("executeAction")||
    document.querySelector('[data-jump="execution"]')||
-   document.getElementById("pilotNextActionPanel");
+   document.getElementById("pilotNextActionPanel")||
+   document.querySelector('.side .nav[data-view="goals"]');
  if(!activePilotFlight?.plane?.isConnected){
    const origin=pilotFlyingFromCurrentWork();
    if(origin)startPilotFlight(origin);
