@@ -22,7 +22,7 @@ export function productShoppingIntent(text){
  const generic=t.match(/^(?:(?:was\s+ist|welches?\s+ist|welche\s+ist|welcher\s+ist)\s+(?:(?:das|der|die)\s+)?)?(?:beste[nrs]?|günstigste[nrs]?|empfehlenswerteste[nrs]?)\s+([\p{L}\p{N}äöüÄÖÜß -]{4,45})[?.!]?$/iu);
  if(generic){
   const noun=generic[1].trim().replace(/\s*[?.!]$/, "");
-  if(!/\b(?:versicherung|kredit|tarif|bank|anwalt|arzt|aktie|medikament)\b/i.test(noun))
+  if(!/(?:versicherung|kredit|tarif|bank|anwalt|arzt|aktie|medikament|strategie|marketing|werbung|geschäftsmodell|geschaeftsmodell|idee|programm|software|methode|service|immobilie|vertrag|job|reiseziel|hotel|restaurant)/i.test(noun))
    return {key:"generic",topic:noun,query:noun,raw:t};
  }
  return null;
