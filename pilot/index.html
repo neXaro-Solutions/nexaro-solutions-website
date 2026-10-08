@@ -2593,6 +2593,11 @@ body{background:radial-gradient(ellipse 72vw 60vw at 92% -10%,rgba(145,255,62,.1
 .pilot-simple-technical>summary{opacity:.75}
 .pilot-simple-techrow{font-size:12px;color:#768370;border-top:1px solid #eef3e9;padding:9px 15px;margin:0}
 @media(max-width:650px){.pilot-simple-topic>summary{padding:15px 13px}.pilot-simple-topic-items{padding:0 12px 12px}}
+
+.pilot-simple-goal-choice{width:100%;display:flex;justify-content:space-between;align-items:center;gap:12px;text-align:left;background:white;border:1px solid #e1ebda;border-radius:16px;padding:17px 19px;color:#273629;cursor:pointer}
+.pilot-simple-goal-choice.selected{border-color:#aee98b;background:#f6fff0}
+.pilot-simple-goal-choice strong{display:block;font-size:14px;line-height:1.5}
+.pilot-simple-goal-choice small{display:block;font-size:12px;color:#879081;margin-top:4px}
 </style></head>
 <body>
 <section id="auth" class="auth"><div class="box">
@@ -2664,7 +2669,7 @@ async function load(){
   const roleRes=await sb.from("user_system_roles").select("role").eq("user_id",user.id).maybeSingle();
   isAdmin=roleRes.data?.role==="admin";
   const m=await sb.from("organization_members").select("organization_id,role").eq("user_id",user.id).limit(1);if(m.error)throw m.error;org=m.data?.[0]||null;if(!org)return;
-  const [g,f]=await Promise.all([sb.from("goals").select("*").order("created_at",{ascending:false}),isAdmin?sb.from("features").select("workspace_number,name,status,priority").order("workspace_number"):Promise.resolve({data:[],error:null})]);if(g.error)throw g.error;if(f.error)throw f.error;goals=g.data||[];features=f.data||[];
+  const [g,f]=await Promise.all([sb.from("goals").select("*").order("created_at",{ascending:false}),isAdmin?sb.from("features").select("workspace_number,name,status,priority").order("workspace_number"):Promise.resolve({data:[],error:null})]);if(g.error)throw g.error;if(f.error)throw f.error;goals=g.data||[];features=f.data||[];if(activeGoalId&&goals.some(x=>x.id===activeGoalId))goals.sort((a,b)=>Number(b.id===activeGoalId)-Number(a.id===activeGoalId));else activeGoalId=goals[0]?.id||null;
   goalSuccessMap={};goalPlanProgressMap={};
   if(goals.length){
     const goalIds=goals.map(x=>x.id);
@@ -2732,6 +2737,7 @@ function successGaugeHtml(s,compact=false){
 function avatarIcon(v){return ({general:"X",business:"↗",creative:"✦",medical:"✚",document:"⌑",technical:"⌘"})[v||"general"]||"X"}
 function moduleState(aktiv,done,warn=false){return warn?"warn":aktiv?"live":done?"done":""}
 /* Customer-facing collaborative result approval. The back end still enforces ownership and verified output. */
+let activeGoalId=null;
 let pilotAutoSession=null;
 let pilotAutoSummary=null;
 function pilotReviewContext(){
@@ -3176,6 +3182,13 @@ function executionView(){
 }
 
 function goalsView(){
+ return '<div class="pilot-simple-results"><div class="pilot-simple-card"><span class="pilot-simple-kicker">DEINE AUFTRÄGE</span><h2>Meine Ziele</h2><p class="pilot-results-description">Wähle den Auftrag, den Pilot bearbeiten soll.</p></div>'+
+ (goals.map(g=>'<button type="button" class="pilot-simple-goal-choice '+(g.id===goals[0]?.id?"selected":"")+'" data-open-goal="'+esc(g.id)+'">'+
+ '<span><strong>'+esc(g.title||"Auftrag")+'</strong><small>'+(g.status==="achieved"?"Nachweislich erreicht":g.id===goals[0]?.id?"Aktiv":"Gespeichert")+'</small></span>'+
+ '<span aria-hidden="true">→</span></button>').join("")||'<div class="pilot-simple-card"><p>Du hast noch keinen Auftrag angelegt.</p><button class="btn" data-jump="home">Pilot starten</button></div>')+
+ '</div>';
+}
+function goalsViewLegacy(){
   return '<div class="pilot-screen pilot-missions-screen">'+
     pilotScene("MISSIONSKONTEXT","Deine Ziele","Pilot behält Fortschritt, Zusammenhänge und Ergebnisse deiner Missionen im Blick.","◎")+
     '<section class="pilot-mission-list" aria-label="Gespeicherte Ziele">'+
@@ -3537,6 +3550,7 @@ async function processPendingAttachments(goalId,taskText){
 function bind(){
   document.querySelectorAll("[data-view]").forEach(b=>b.onclick=async()=>{current=b.dataset.view;if(current==="admin"&&isAdmin){try{await loadAdminConsole()}catch(e){pilotNotice(e.message||String(e))}}render()});
   document.querySelectorAll("[data-jump]").forEach(b=>b.onclick=()=>{current=b.dataset.jump;render()});
+   document.querySelectorAll("[data-open-goal]").forEach(b=>b.onclick=async()=>{activeGoalId=b.dataset.openGoal;await load();current="home";render()});
   document.getElementById("createGoal")?.addEventListener("click",createGoal);
   document.getElementById("goalText")?.addEventListener("input",e=>{const c=document.getElementById("goalTextCount");if(c)c.textContent=String(e.target.value.length)+" / 3000"});
   document.getElementById("openActiveAction")?.addEventListener("click",()=>{
@@ -3835,6 +3849,7 @@ async function createGoal(){
     if(data.stage!=="ready")throw new Error("Pilot konnte den Plan nicht abschließen.");
 
     setPilotFlightPhase("Pilot öffnet deinen Arbeitsbereich …");
+    if(data.goal?.id)activeGoalId=data.goal.id;
     await load();
     const targetGoalId=data.goal?.id||goals[0]?.id;
     const targetGoal=goals.find(g=>g.id===targetGoalId)||goals[0];
