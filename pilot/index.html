@@ -1822,7 +1822,7 @@ function home(){
       '<button class="attach-btn pilot-home-upload" type="button" data-attach-kind="file">＋ Foto / Dokument</button>'+
       '<span class="attachment-note">Optional</span></div>'+attachmentInputs+'<div id="attachmentTray" class="attachment-tray" aria-live="polite"></div></div>'+
       '<button id="createGoal" type="button" class="btn ai launch-primary pilot-home-primary">✈ Pilot jetzt starten →</button></div>'+
-      (isAdmin?'<div class="pilot-home-admin"><button id="diagnoseSafety" type="button" class="btn">🛡 Verbindung prüfen</button></div>':'')+
+      (effectiveAdmin()?'<div class="pilot-home-admin"><button id="diagnoseSafety" type="button" class="btn">🛡 Verbindung prüfen</button></div>':'')+
     '</section>';
   const active=g?'<section class="pilot-home-card pilot-home-active" aria-labelledby="homeActiveTitle">'+
       '<div class="pilot-home-active-header"><div class="pilot-home-active-title"><span class="pilot-home-icon-orange" aria-hidden="true">◎</span><div>'+
@@ -1839,7 +1839,7 @@ function home(){
     '</section>':'<section class="pilot-home-empty">Noch kein aktiver Auftrag. Starte oben dein erstes Ziel – Pilot plant die nächsten Schritte mit dir.</section>';
   const action=g?'<section class="pilot-home-card operation-panel pilot-home-next" id="pilotNextActionPanel" aria-labelledby="homeNextTitle">'+
       '<div class="pilot-home-next-head"><div><span class="pilot-home-eyebrow">DEIN NÄCHSTER SCHRITT</span><h2 id="homeNextTitle">Nächste Aktion</h2></div>'+
-      (isAdmin?'<button class="btn pilot-flight-preview" id="pilotLandingPreview" type="button">✈ Flug &amp; Landung testen</button>':'')+
+      (effectiveAdmin()&&n?'<button class="btn pilot-flight-preview" id="pilotLandingPreview" type="button">✈ Flug &amp; Landung testen</button>':'')+
       '</div>'+
       (n?'<div class="command-card">'+
         '<div class="command-title">'+esc(n.title||"Nächsten Schritt bearbeiten")+'</div>'+
@@ -2064,7 +2064,7 @@ function bind(){
   document.getElementById("goalText")?.addEventListener("input",e=>{const c=document.getElementById("goalTextCount");if(c)c.textContent=String(e.target.value.length)+" / 3000"});
   document.getElementById("openActiveAction")?.addEventListener("click",()=>{
     const p=document.getElementById("pilotNextActionPanel");
-    if(p){p.scrollIntoView({behavior:"smooth",block:"center"});p.classList.add("pilot-action-landed")}
+    if(p?.querySelector("#executeAction")){p.scrollIntoView({behavior:"smooth",block:"center"});p.classList.add("pilot-action-landed")}
     else{current="goals";render()}
   });
   document.getElementById("pilotLandingPreview")?.addEventListener("click",previewPilotFlight);
