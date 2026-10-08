@@ -12,6 +12,8 @@ assert(html.includes('data-jump="market"'),"admin retains access to partner sour
 assert(html.includes("pilotShoppingCard()"),"conversation result appears with home input");
 assert(!html.includes("Kontakt@nexaro-solutions.de"),"personal registration data cannot be hardcoded in client");
 assert.equal(productShoppingIntent("Was ist das beste Smartphone?")?.key,"smartphone");
+assert.equal(productShoppingIntent("Was ist die beste Waschmaschine?")?.topic,"Waschmaschine");
+assert.equal(productShoppingIntent("Was ist die beste Versicherung?"),null,"Do not steer services to shop offers");
 assert.equal(productShoppingIntent("Welches Notebook soll ich kaufen?")?.key,"laptop");
 assert.equal(productShoppingIntent("Erstelle ein Logo für meine Smartphone-Firma"),null);
 assert.equal(productShoppingIntent("Erstelle mir einen Businessplan für Smartphonehandel"),null);
@@ -29,6 +31,7 @@ const items=[
 ];
 assert.deepEqual(shortlistOffers(items,"smartphone",{budget:700,platform:"Android"}).map(x=>x.id),["samsung"]);
 assert.deepEqual(shortlistOffers(items,"smartphone",{}).map(x=>x.id),["samsung","apple","expensive"],"filter accessories and sort by total");
+assert.deepEqual(shortlistOffers([{id:"one",name:"Bosch Waschmaschine 8kg",price_eur:400,url:"https://shop.de/1"}],"generic",{product_topic:"Waschmaschine"}).map(x=>x.id),["one"]);
 let persisted=null,marketCalls=0,aiCalls=0,redraws=0;
 const sb={
  from(table){
