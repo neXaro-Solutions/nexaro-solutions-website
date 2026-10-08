@@ -135,3 +135,8 @@ Auf ausdrücklichen Nutzerwunsch wurde die bereits kompakte Admin-Oberfläche **
 - **Test:** Quellcode-Syntax und 12 Mock-/DOM-Struktur-/Berechtigungsprüfungen bestanden. Echte iPhone-Abnahme bleibt offen und ist Voraussetzung für grünen Status.
 
 Umgesetzt in `pilot/index.html`, LUMEN `2026.10.08.32`, Commit `ef0b9ae26fcea9acdfb823f5123b0860a7a58aa6`.
+
+
+## iPhone-Abnahme LUMEN 2026.10.08.32 — bestätigt
+
+Der Nutzer hat die weiter verkleinerte LUMEN-.32-Oberfläche ausdrücklich akzeptiert: „So ist das super“. Die entsprechende Design-Abnahme ist im Entwicklungsplan abgeschlossen (3/3 Prüfungen bestanden, Featurestatus `ready`). **Künftige Quellen-/KI-Funktionen dürfen keine größeren Admin-Karten, zusätzlichen Pflichtdialoge oder neue Büro-Software-Anmutung erzwingen.** Recherche-/Quellenqualität wird im Backend erweitert und durch kompakte, optionale Evidenzhinweise in bestehenden Ergebnissen erklärt.
