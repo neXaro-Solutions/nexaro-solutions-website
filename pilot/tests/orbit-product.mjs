@@ -67,7 +67,8 @@ for(const width of [320,390,768,1366]){
  assert.equal(await page.locator('[data-artifact-open="r"]').first().innerText(),'Logo ansehen');
  await page.evaluate(()=>__orbit.scene());
  await page.evaluate(()=>__orbit.flight());
- assert.equal(await page.locator('#pilotFlightLayer .pilot-aircraft').count(),1);
+ assert.equal(await page.locator('#pilotFlightLayer .pilot-plane[data-artwork="lumen-orb"]').count(),1,'Approved 3D aircraft is the only moving sprite');
+ assert.equal(await page.locator('#pilotFlightLayer .pilot-aircraft').count(),0,'No legacy aircraft SVG is flown');
  assert.equal(await page.locator('#pilotFlightLayer .pilot-worker-avatar').count(),0);
  assert.equal(await page.locator('#pilotFlightLayer .pilot-plane').evaluate(el=>el.getBoundingClientRect().width>0),true);
  await page.evaluate(()=>__orbit.park());assert.equal(await page.locator('#pilotFlightLayer .pilot-worker-avatar').count(),1);
