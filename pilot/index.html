@@ -4140,6 +4140,7 @@ function canvaView(){
 }
 
 function roadmapLegacy(){if(!effectiveAdmin())return home();const c=features.reduce((a,f)=>(a[f.status]=(a[f.status]||0)+1,a),{}),done=c.ready||0,total=features.length,pct=total?Math.round(done/total*100):0;return '<div class="card roadmap-card"><div class="section-head"><div><div class="ey">NUR ADMIN</div><h2>Entwicklungsplan</h2></div><button class="btn" data-jump="alpha">Systemtest öffnen</button></div><p class="muted">Umgesetzte Funktionen sind abgehakt. Der Status wird automatisch aus technischen Verifikationsnachweisen aktualisiert; offene oder spätere Funktionen bleiben sichtbar und werden nicht vergessen.</p><div class="roadmap-auto"><span class="dot"></span><strong>Automatische Statuspflege aktiv</strong><small>Verifiziert → automatisch grün</small></div><div class="roadmap-progress"><div><strong>'+done+' / '+total+' erledigt</strong><span>'+pct+'%</span></div><div class="progress-track"><div class="progress-bar" style="width:'+pct+'%"></div></div></div><div class="btns roadmap-summary"><span class="badge green">✓ Erledigt '+done+'</span><span class="badge">MVP '+(c.mvp||0)+'</span><span class="badge">Alpha '+(c.alpha||0)+'</span><span class="badge">Geplant '+(c.planned||0)+'</span><span class="badge orange">Zurückgestellt '+(c.deferred||0)+'</span></div><div class="roadmap-list">'+features.map(f=>{const ready=f.status==="ready";return '<div class="roadmap-item '+(ready?"done":"")+'"><span class="roadmap-check">'+(ready?"✓":"")+'</span><div><strong>'+f.workspace_number+'. '+esc(f.name)+'</strong><small>'+esc(f.priority)+'</small></div><span class="badge '+(ready?"green":"")+'">'+(ready?"Erledigt":esc(deStatus(f.status)))+'</span></div>'}).join("")+'</div></div>'}
+let pilotE2ELastReportHTML="";
 function alphaViewLegacy(){if(!effectiveAdmin())return home();const passed=readiness.filter(x=>x.status==="passed").length,total=readiness.length,last=evalRuns[0],aiCost=aiRequests.reduce((s,x)=>s+Number(x.actual_cost||0),0);return '<div class="grid"><div class="card"><h2>Bereitschaft der privaten Testphase</h2><div style="font-size:42px;font-weight:900">'+passed+' / '+total+'</div><p class="muted">Pflichtchecks bestanden</p>'+readiness.map(x=>'<div class="stat"><span class="muted">'+esc(x.description)+'</span><strong>'+esc(deStatus(x.status))+'</strong></div>').join("")+'<div class="btns"><button id="runEvals" class="btn primary">Prüfsuite ausführen</button><button id="runAlphaE2E" class="btn ai">✦ Live-Auftragskette prüfen</button></div>'+
 '<section class="pilot-admin-quicktest" aria-label="Technische Einzeltests"><div class="pilot-admin-quicktest-title"><span aria-hidden="true">✦</span> VERBINDUNGEN &amp; FUNKTIONEN</div>'+
 '<div class="pilot-admin-quicktest-grid">'+
@@ -4148,7 +4149,7 @@ function alphaViewLegacy(){if(!effectiveAdmin())return home();const passed=readi
 '<button id="diagnoseSafety" class="btn" type="button">🛡 Verbindung prüfen</button>'+
 '<button id="pilotLandingPreview" class="btn" type="button">✈ Flug, Avatar &amp; Landung testen</button>'+
 '</div><p class="pilot-admin-quicktest-note">Einzeltests verändern deinen Auftrag nicht.</p></section>'+
-'<div id="e2eStatus" class="muted" style="margin-top:12px">Der Admin-Test prüft echte Backend-Aufrufe, Ergebnisverifikation, Projektfortsetzung und Entscheidungsschutz. Das isolierte Testprojekt wird anschließend gelöscht.</div></div><div><div class="card"><h3>Prüfung</h3>'+(last?'<div class="stat"><span class="muted">Status</span><strong>'+esc(last.status)+'</strong></div><div class="stat"><span class="muted">Bewertung</span><strong>'+Math.round(Number(last.score||0)*100)+'%</strong></div><div class="stat"><span class="muted">Fälle</span><strong>'+last.passed_cases+' / '+last.total_cases+'</strong></div>':'<p class="muted">Noch kein Eval-Run.</p>')+'</div><div class="card" style="margin-top:20px"><h3>KI-Kostenmonitor</h3><div class="stat"><span class="muted">Anfragen</span><strong>'+aiRequests.length+'</strong></div><div class="stat"><span class="muted">Aktuelle Kosten</span><strong>'+aiCost.toFixed(4)+'</strong></div><div class="stat"><span class="muted">Ausweichrouten</span><strong>'+aiRequests.filter(x=>x.fallback_used).length+'</strong></div></div><div class="card" style="margin-top:20px"><h3>Hinweise</h3>'+(notifications.map(n=>'<div class="item"><span class="badge">'+esc(n.priority)+'</span><strong>'+esc(n.title)+'</strong><div class="muted">'+esc(n.body)+'</div></div>').join("")||'<p class="muted">Keine offenen Hinweise.</p>')+'</div></div></div>'}
+''<div id="e2eStatus" class="muted" style="margin-top:12px">'+(pilotE2ELastReportHTML||'Der Admin-Test prüft echte Backend-Aufrufe, Ergebnisverifikation, Projektfortsetzung und Entscheidungsschutz. Das isolierte Testprojekt wird anschließend gelöscht.')+'</div>'</div><div><div class="card"><h3>Prüfung</h3>'+(last?'<div class="stat"><span class="muted">Status</span><strong>'+esc(last.status)+'</strong></div><div class="stat"><span class="muted">Bewertung</span><strong>'+Math.round(Number(last.score||0)*100)+'%</strong></div><div class="stat"><span class="muted">Fälle</span><strong>'+last.passed_cases+' / '+last.total_cases+'</strong></div>':'<p class="muted">Noch kein Eval-Run.</p>')+'</div><div class="card" style="margin-top:20px"><h3>KI-Kostenmonitor</h3><div class="stat"><span class="muted">Anfragen</span><strong>'+aiRequests.length+'</strong></div><div class="stat"><span class="muted">Aktuelle Kosten</span><strong>'+aiCost.toFixed(4)+'</strong></div><div class="stat"><span class="muted">Ausweichrouten</span><strong>'+aiRequests.filter(x=>x.fallback_used).length+'</strong></div></div><div class="card" style="margin-top:20px"><h3>Hinweise</h3>'+(notifications.map(n=>'<div class="item"><span class="badge">'+esc(n.priority)+'</span><strong>'+esc(n.title)+'</strong><div class="muted">'+esc(n.body)+'</div></div>').join("")||'<p class="muted">Keine offenen Hinweise.</p>')+'</div></div></div>'}
 
 async function loadAdminConsole(force=false){
   if(!isAdmin)return;
@@ -5035,7 +5036,37 @@ async function completeAction(withOutcome,blocked){
   }catch(e){PS.textContent="Pilot bereit";await telemetry("incident",{goal_id:goals[0]?.id||null,source:"progress",severity:"error",error_code:"PROGRESS_FAILED",message:e.message||String(e)});pilotNotice(e.message||String(e),"error");}
 }
 async function sendFeedback(v){const [id,rating]=v.split(":");let reason=null;if(rating==="down")reason=await pilotAskText("Was sollte verbessert werden?",{title:"Dein Feedback",placeholder:"Was soll Pilot verbessern?"});if(reason===null)return;await telemetry("feedback",{goal_id:goals[0]?.id||null,target_type:"result",target_id:id,rating,reason});await telemetry("event",{goal_id:goals[0]?.id||null,event_name:"result_feedback",event_category:"feedback",properties:{rating}});pilotNotice("Danke – Feedback gespeichert.")}
-async function runAlphaE2E(){const btn=document.getElementById("runAlphaE2E"),s=document.getElementById("e2eStatus");if(btn)btn.disabled=true;if(s)s.textContent="Systemtest läuft: Ausführung → Pilot-Synthese → Ergebnis → Prüfung → Fortschritt …";PS.textContent="Pilot prüft das System …";try{const r=await sb.functions.invoke("alpha-e2e-selftest",{body:{}});if(r.error)throw Object.assign(new Error(r.data?.error||r.error.message||"E2E-Test fehlgeschlagen"),{detail:r.data});const checks=r.data?.checks||[];if(s)s.innerHTML='<strong>Systemtest bestanden ✓</strong><br>'+checks.map(c=>(c.passed?'✓ ':'✕ ')+esc(c.check)).join('<br>');await load();render();PS.textContent="Pilot bereit"}catch(e){const d=e.detail||{};const checks=d.checks||[];if(s)s.innerHTML='<strong>Systemtest fehlgeschlagen</strong><br>'+esc(d.error||e.message||String(e))+(checks.length?'<br>'+checks.map(c=>(c.passed?'✓ ':'✕ ')+esc(c.check)).join('<br>'):'');PS.textContent="Prüfung erforderlich";await load();render()}finally{if(btn)btn.disabled=false}}
+async function runAlphaE2E(){
+ const button=document.getElementById("runAlphaE2E");
+ if(button)button.disabled=true;
+ const slot=document.getElementById("e2eStatus");
+ if(slot)slot.textContent="Live-Prüfung: Auftrag → Ergebnis → Verifikation → Projektfortsetzung → Wiederholungsschutz …";
+ PS.textContent="Pilot prüft die Auftragskette …";
+ try{
+  const response=await sb.functions.invoke("alpha-e2e-selftest",{body:{}});
+  if(response.error)throw Object.assign(
+   new Error(response.data?.error||response.error.message||"E2E-Test fehlgeschlagen"),
+   {detail:response.data});
+  const checks=response.data?.checks||[];
+  pilotE2ELastReportHTML='<strong>Live-Prüfung bestanden ✓</strong><p>'+checks.length+
+   ' Prüfungen · isoliertes Testprojekt entfernt</p>'+
+   checks.map(c=>(c.passed?'✓ ':'✕ ')+esc(c.check)).join('<div style="margin-top:4px"></div>');
+  await load();
+  render();
+  PS.textContent="Pilot bereit";
+ }catch(error){
+  const result=error.detail||{},checks=result.checks||[];
+  pilotE2ELastReportHTML='<strong>Live-Prüfung fehlgeschlagen</strong><p>'+
+   esc(result.error||error.message||String(error))+'</p>'+
+   checks.map(c=>(c.passed?'✓ ':'✕ ')+esc(c.check)).join('<div style="margin-top:4px"></div>');
+  PS.textContent="Prüfung erforderlich";
+  try{await load()}catch{}
+  render();
+ }finally{
+  const refreshed=document.getElementById("runAlphaE2E");
+  if(refreshed)refreshed.disabled=false;
+ }
+}
 async function runEvals(){PS.textContent="Prüfung läuft …";try{const r=await sb.functions.invoke("evaluation-runner",{body:{suite:"alpha-core"}});if(r.error)throw r.error;await load();render();PS.textContent="Pilot bereit"}catch(e){PS.textContent="Pilot bereit";await telemetry("incident",{source:"evaluation",severity:"error",error_code:"EVAL_FAILED",message:e.message||String(e)});pilotNotice(e.message||String(e))}}
 async function connectCanva(){pilotNotice("Das Gestaltungsmodul wird zentral durch Pilot verwaltet.")}
 async function designWithCanva(v){const [id,type]=v.split(":");const r=results.find(x=>x.id===id);if(!r)return;const brief=["Create a professional neXaro-branded "+type+" based on this approved result. Use a light, premium layout with neon green and neon orange accents, high readability, and restrained visual energy. Preserve facts and wording accuracy.","","Title: "+r.title,"","Content:",String(r.content||"").slice(0,4200)].join("\\n");PS.textContent="Gestaltung wird vorbereitet …";try{const x=await sb.functions.invoke("canva-execution",{body:{action:"generate",goal_id:goals[0]?.id||null,source_result_id:r.id,design_type:type,brief}});if(x.error&&x.data?.status!=="canva_connection_required")throw x.error;if(x.data?.status==="canva_connection_required"){pilotNotice("Das Gestaltungsmodul wird aktuell vorbereitet. Pilot führt dich nicht zu externen Diensten weiter.");return}await load();current="canva";render();PS.textContent="Pilot bereit"}catch(e){PS.textContent="Pilot bereit";pilotNotice(e.message||String(e))}}
