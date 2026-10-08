@@ -2141,6 +2141,121 @@ body{background:radial-gradient(ellipse 72vw 60vw at 92% -10%,rgba(145,255,62,.1
 .pilot-home #executeAction:disabled,.pilot-decision-go:disabled{cursor:progress;filter:brightness(.98);opacity:.75}
 #pilotNextActionPanel:not(.pilot-action-landed) .pilot-home-action-start{transition:filter .2s ease}
 
+
+/* LUMEN 2.6 — compact mobile command center. One visual hierarchy, no Office dashboard overload. */
+.pilot-admin-screen,.pilot-admin-screen *{box-sizing:border-box}
+.pilot-admin-screen{width:100%;max-width:1080px;min-width:0}
+.pilot-admin-screen .admin-command-center{display:grid;gap:12px;width:100%;min-width:0;max-width:100%}
+.pilot-admin-screen .admin-command-center>*{min-width:0;max-width:100%}
+.pilot-admin-screen .admin-command-strip{
+ position:relative;isolation:isolate;overflow:hidden!important;display:flex;align-items:center;
+ justify-content:space-between;gap:16px;min-width:0;
+ padding:17px 20px!important;border-radius:22px!important;
+ background:radial-gradient(ellipse at 95% 5%,rgba(144,255,88,.17),transparent 58%),
+ linear-gradient(120deg,rgba(255,255,255,.99),rgba(246,255,240,.95))!important;
+ border:1px solid rgba(156,223,137,.3)!important;
+ box-shadow:0 12px 33px rgba(47,98,37,.05),inset 0 1px rgba(255,255,255,.9)!important
+}
+.pilot-admin-screen .admin-command-strip:after{content:"";position:absolute;right:-32px;top:-58px;width:128px;height:128px;border-radius:50%;border:1px solid rgba(115,224,58,.19);box-shadow:0 0 0 23px rgba(143,253,68,.035);pointer-events:none}
+.pilot-admin-screen .admin-hero-heading{flex:1 1 auto;min-width:0;position:relative;z-index:1}
+.pilot-admin-screen .admin-console-kicker{display:inline-flex;align-items:center;gap:8px;font-size:10px;letter-spacing:.14em;font-weight:950;color:#679058}
+.pilot-admin-screen .admin-console-kicker i{width:7px;height:7px;flex:0 0 7px;background:#85f42c;border-radius:50%;box-shadow:0 0 0 4px rgba(155,247,95,.16),0 0 14px rgba(124,228,52,.25)}
+.pilot-admin-screen .admin-command-strip h2{margin:5px 0 3px!important;font-size:clamp(21px,2.3vw,27px)!important;letter-spacing:-.052em!important;line-height:1.12!important;overflow-wrap:anywhere}
+.pilot-admin-screen .admin-command-strip p{font-size:12px!important;line-height:1.45!important;color:#718371!important;max-width:410px}
+.pilot-admin-screen .admin-hero-actions{position:relative;z-index:1;flex:0 1 auto;display:flex;gap:7px;min-width:0;flex-wrap:wrap;align-items:center}
+.pilot-admin-screen .admin-hero-actions .btn{font-size:12px!important;font-weight:850!important;min-height:38px!important;padding:8px 12px!important;max-width:100%;white-space:nowrap}
+.pilot-admin-screen .admin-kpis{min-width:0;width:100%;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px!important}
+.pilot-admin-screen .admin-kpis>div{
+ min-width:0;padding:12px 13px!important;border-radius:17px!important;
+ background:linear-gradient(140deg,rgba(255,255,255,.96),rgba(247,255,244,.94))!important;
+ border:1px solid rgba(155,218,137,.24)!important;box-shadow:0 7px 19px rgba(54,118,34,.035)!important
+}
+.pilot-admin-screen .admin-kpis>div>span{font-size:11px!important;color:#637d67;font-weight:750;line-height:1.25}
+.pilot-admin-screen .admin-kpis>div>strong{font-size:clamp(21px,2.8vw,28px)!important;line-height:1!important;margin:6px 0 4px!important;color:#244126}
+.pilot-admin-screen .admin-kpis>div>small{font-size:10px!important;line-height:1.3;overflow-wrap:anywhere;color:#819084}
+.pilot-admin-screen .admin-drilldown{
+ min-width:0;width:100%;border:1px solid rgba(161,218,146,.31);
+ border-radius:18px;background:linear-gradient(130deg,#fff,#fafff7);
+ box-shadow:0 6px 23px rgba(53,97,43,.038);overflow:hidden
+}
+.pilot-admin-screen .admin-drilldown summary{
+ display:flex;align-items:center;gap:11px;list-style:none;cursor:pointer;
+ min-height:66px;padding:12px 15px;color:#304a30
+}
+.pilot-admin-screen .admin-drilldown summary::-webkit-details-marker{display:none}
+.pilot-admin-screen .admin-drilldown summary:focus-visible{outline:3px solid #fca345;outline-offset:-3px}
+.pilot-admin-screen .admin-drilldown summary:after{
+ content:"⌄";font-size:20px;font-weight:700;flex:0 0 auto;
+ color:#639455;margin-left:2px;transition:transform .18s ease
+}
+.pilot-admin-screen .admin-drilldown[open] summary:after{transform:rotate(180deg)}
+.pilot-admin-screen .admin-drilldown-icon{
+ display:grid;place-items:center;width:34px;height:34px;flex:0 0 34px;
+ border-radius:12px;border:1px solid #d1f2bf;color:#569034;font-size:19px;
+ background:radial-gradient(circle at 25% 10%,#fff,#e6ffda);
+ box-shadow:0 5px 16px rgba(101,207,52,.08)
+}
+.pilot-admin-screen .admin-drilldown-copy{display:grid;min-width:0;flex:1 1 auto;gap:3px}
+.pilot-admin-screen .admin-drilldown-copy strong{font-size:13px!important;line-height:1.3;letter-spacing:-.012em;color:#315033;overflow-wrap:anywhere}
+.pilot-admin-screen .admin-drilldown-copy small{font-size:11px;line-height:1.3;color:#879486}
+.pilot-admin-screen .admin-drilldown-meta{font-size:10px;white-space:nowrap;color:#668b62;font-weight:800}
+.pilot-admin-screen .admin-drilldown>.admin-grid,.pilot-admin-screen .admin-drilldown>.card{margin:0 12px 13px!important}
+.pilot-admin-screen .admin-drilldown>.admin-grid{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:12px}
+.pilot-admin-screen .admin-drilldown .card{min-width:0;padding:15px!important;border-radius:15px!important}
+.pilot-admin-screen .admin-drilldown .section-head h3{font-size:17px!important;line-height:1.2}
+.pilot-admin-screen .admin-user-table{width:100%;max-width:100%;overflow-x:auto!important;overscroll-behavior-x:contain}
+.pilot-admin-screen .admin-side{min-width:0;gap:11px}
+.pilot-admin-screen .admin-activity{overflow-wrap:anywhere}
+@media(max-width:900px){
+ .pilot-admin-screen .admin-drilldown>.admin-grid{grid-template-columns:minmax(0,1fr)}
+ .pilot-admin-screen .admin-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:680px){
+ .pilot-admin-compact{gap:11px!important}
+ .pilot-admin-screen .admin-command-center{gap:10px}
+ .pilot-admin-screen .admin-command-strip{flex-direction:column;align-items:stretch;gap:12px;padding:15px 16px!important;border-radius:19px!important}
+ .pilot-admin-screen .admin-console-kicker{font-size:9px}
+ .pilot-admin-screen .admin-command-strip h2{font-size:23px!important}
+ .pilot-admin-screen .admin-command-strip p{font-size:11px!important}
+ .pilot-admin-screen .admin-hero-actions{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1.25fr);gap:7px;width:100%}
+ .pilot-admin-screen .admin-hero-actions .btn{min-width:0;width:100%;white-space:normal;text-align:center;font-size:11px!important;line-height:1.25;padding:8px 5px!important;min-height:42px!important}
+ .pilot-admin-screen .admin-kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px!important}
+ .pilot-admin-screen .admin-kpis>div{padding:10px 11px!important;border-radius:15px!important;min-height:65px}
+ .pilot-admin-screen .admin-kpis>div>span{font-size:10px!important}
+ .pilot-admin-screen .admin-kpis>div>strong{font-size:22px!important;margin:5px 0 2px!important}
+ .pilot-admin-screen .admin-kpis>div>small{font-size:9px!important}
+ .pilot-admin-screen .admin-kpis>div:last-child{grid-column:1/-1;min-height:58px;display:grid;grid-template-columns:1fr auto;column-gap:10px;align-items:center}
+ .pilot-admin-screen .admin-kpis>div:last-child strong{grid-column:2;grid-row:1/span 2;font-size:23px!important}
+ .pilot-admin-screen .admin-kpis>div:last-child small{grid-column:1}
+ .pilot-admin-screen .admin-drilldown summary{padding:10px 12px;min-height:62px;gap:9px}
+ .pilot-admin-screen .admin-drilldown-copy strong{font-size:12px!important}
+ .pilot-admin-screen .admin-drilldown-copy small{font-size:10px}
+ .pilot-admin-screen .admin-drilldown-meta{font-size:9px}
+ .pilot-admin-screen .admin-drilldown>.admin-grid,.pilot-admin-screen .admin-drilldown>.card{margin:0 8px 9px!important}
+ .pilot-admin-screen .admin-drilldown .card{padding:12px!important}
+ /* User management is a card list, not a 650px sideways-scrolling desktop table. */
+ .pilot-admin-screen .admin-user-row{min-width:0!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:9px;padding:11px;font-size:11px}
+ .pilot-admin-screen .admin-user-head{display:none}
+ .pilot-admin-screen .admin-user-row>div:first-child{grid-column:1/-1;overflow-wrap:anywhere}
+ .pilot-admin-screen .admin-user-row>div:nth-child(2){grid-column:1/-1}
+ .pilot-admin-screen .admin-role{min-height:43px;font-size:13px}
+ .pilot-admin-screen .admin-user-row>span{min-width:0;font-size:10px;color:#8a958a}
+ .pilot-admin-screen .admin-bars{height:120px}
+ .pilot-admin-screen .admin-bar-col{grid-template-rows:80px auto auto}
+ .pilot-admin-screen .admin-bar{height:80px}
+ .pilot-admin-screen .admin-activity>div{grid-template-columns:minmax(0,1fr);gap:3px}
+ .pilot-admin-screen:not(.pilot-admin-compact) .pilot-screen-head{padding:16px 18px;min-height:99px;border-radius:20px;gap:10px}
+ .pilot-admin-screen:not(.pilot-admin-compact) .pilot-screen-head h2{font-size:clamp(22px,5.5vw,27px);margin:5px 0!important}
+ .pilot-admin-screen:not(.pilot-admin-compact) .pilot-screen-head p{font-size:11px;line-height:1.45}
+ .pilot-admin-screen:not(.pilot-admin-compact) .pilot-intel-core{flex:0 0 65px;width:65px;height:65px}
+ .pilot-admin-screen:not(.pilot-admin-compact) .pilot-intel-core::before{inset:3px}
+ .pilot-admin-screen:not(.pilot-admin-compact) .pilot-intel-core::after{inset:12px}
+ .pilot-admin-screen:not(.pilot-admin-compact) .pilot-intel-core span{width:34px;height:34px;font-size:20px}
+}
+@media(prefers-reduced-motion:reduce){
+ .pilot-admin-screen .admin-drilldown summary:after{transition:none}
+}
+
 </style></head>
 <body>
 <section id="auth" class="auth"><div class="box">
@@ -2627,8 +2742,15 @@ function adminViewLegacy(){
   if(!effectiveAdmin())return home();
   if(!adminData)return '<div class="card admin-loading"><h2>Admin-Cockpit</h2><p class="muted">Nutzer, Rollen und Analysen werden geladen …</p><button id="loadAdmin" class="btn primary">Daten laden</button></div>';
   const m=adminData.metrics||{},users=adminData.users||[],activity=adminData.recent_activity||[];
-  return '<div class="admin-page">'+
-    '<section class="admin-hero"><div><div class="ey">NUR ADMIN</div><h2>Betreiber-Cockpit</h2><p>Nutzer verwalten, Rollen vergeben und sehen, wie Pilot tatsächlich genutzt wird.</p></div><div class="admin-hero-actions"><button class="btn" data-jump="roadmap">Entwicklungsplan</button><button class="btn" data-jump="alpha">Systemtest</button><button id="refreshAdmin" class="btn primary">Aktualisieren</button></div></section>'+
+  return '<div class="admin-page admin-command-center">'+
+    '<header class="admin-hero admin-command-strip">'+
+      '<div class="admin-hero-heading"><span class="admin-console-kicker"><i aria-hidden="true"></i> PILOT · SYSTEMSTEUERUNG</span>'+
+        '<h2>Admin-Cockpit</h2><p>Alles Wesentliche im Blick. Details öffnest du bei Bedarf.</p></div>'+
+      '<div class="admin-hero-actions" aria-label="Administrationsfunktionen">'+
+        '<button type="button" class="btn" data-jump="roadmap" aria-label="Entwicklungsplan öffnen">◫ Plan</button>'+
+        '<button type="button" class="btn" data-jump="alpha" aria-label="Systemtest öffnen">✓ Tests</button>'+
+        '<button type="button" id="refreshAdmin" class="btn primary" aria-label="Admin-Daten aktualisieren">↻ Aktualisieren</button>'+
+      '</div></header>'+
     '<section class="admin-kpis">'+
       '<div><span>Nutzer</span><strong>'+esc(m.users||0)+'</strong><small>'+esc(m.confirmed_users||0)+' bestätigt</small></div>'+
       '<div><span>Aktiv · 7 Tage</span><strong>'+esc(m.active_7d||0)+'</strong><small>letzte Anmeldung</small></div>'+
@@ -2636,7 +2758,7 @@ function adminViewLegacy(){
       '<div><span>Ausführungen</span><strong>'+esc(m.executions||0)+'</strong><small>'+esc(m.completed_executions||0)+' abgeschlossen</small></div>'+
       '<div><span>Ergebnisse</span><strong>'+esc(m.results||0)+'</strong><small>erzeugt</small></div>'+
     '</section>'+
-    '<div class="admin-grid">'+
+    '<details class="admin-drilldown admin-drilldown-accounts"><summary><span class="admin-drilldown-icon" aria-hidden="true">◎</span><span class="admin-drilldown-copy"><strong>Nutzer & Auswertungen</strong><small>Konten, Rollen und Aktivitätstrends</small></span><span class="admin-drilldown-meta">'+users.length+' Konten</span></summary><div class="admin-grid">'+
       '<section class="card"><div class="section-head"><div><div class="ey">NUTZER & ROLLEN</div><h3>Registrierungen</h3></div><span class="badge">'+users.length+' Konten</span></div>'+
         '<div class="admin-user-table"><div class="admin-user-row admin-user-head"><span>Nutzer</span><span>Rolle</span><span>Registriert</span><span>Letzter Login</span></div>'+
         users.map(u=>'<div class="admin-user-row"><div><strong>'+esc(u.display_name||u.email)+'</strong><small>'+esc(u.email)+'</small><em class="'+(u.confirmed_at?'ok-dot':'wait-dot')+'">'+(u.confirmed_at?'Bestätigt':'Offen')+'</em></div><div><select class="admin-role" data-role-user="'+esc(u.id)+'"><option value="customer" '+(u.role==="customer"?'selected':'')+'>Kunde</option><option value="support" '+(u.role==="support"?'selected':'')+'>Support</option><option value="analyst" '+(u.role==="analyst"?'selected':'')+'>Analyst</option><option value="admin" '+(u.role==="admin"?'selected':'')+'>Admin</option></select></div><span>'+fmtDate(u.created_at)+'</span><span>'+fmtDate(u.last_sign_in_at)+'</span></div>').join("")+
@@ -2645,9 +2767,10 @@ function adminViewLegacy(){
         '<section class="card"><div class="ey">REGISTRIERUNGEN · 7 TAGE</div>'+adminTrend(adminData.registrations_by_day)+'</section>'+
         '<section class="card"><div class="ey">ANMELDUNGEN · 7 TAGE</div>'+adminTrend(adminData.logins_by_day)+'</section>'+
       '</div>'+
-    '</div>'+
+    '</div></details>'+
+    '<details class="admin-drilldown admin-drilldown-activity"><summary><span class="admin-drilldown-icon" aria-hidden="true">↗</span><span class="admin-drilldown-copy"><strong>Letzte Ereignisse</strong><small>Ausführungen und Systemaktivität</small></span><span class="admin-drilldown-meta">'+esc(m.analytics_events||0)+' Einträge</span></summary>'+
     '<section class="card"><div class="section-head"><div><div class="ey">AKTIVITÄT</div><h3>Letzte Ereignisse</h3></div><span class="badge">'+esc(m.analytics_events||0)+' Ereignisse</span></div>'+
-      '<div class="admin-activity">'+(activity.slice(0,20).map(a=>'<div><span>'+fmtDate(a.created_at)+'</span><strong>'+esc(a.event_name||"Ereignis")+'</strong><small>'+esc(a.event_category||"")+'</small></div>').join("")||'<p class="muted">Noch keine Aktivitätsdaten vorhanden.</p>')+'</div></section>'+
+      '<div class="admin-activity">'+(activity.slice(0,20).map(a=>'<div><span>'+fmtDate(a.created_at)+'</span><strong>'+esc(a.event_name||"Ereignis")+'</strong><small>'+esc(a.event_category||"")+'</small></div>').join("")||'<p class="muted">Noch keine Aktivitätsdaten vorhanden.</p>')+'</div></section></details>'+
   '</div>'
 }
 async function changeAdminRole(el){
@@ -2679,8 +2802,8 @@ function alphaView(){
 }
 function adminView(){
   if(!effectiveAdmin())return home();
-  return '<div class="pilot-screen pilot-admin-screen">'+
-    pilotScene("BETRIEBSSTEUERUNG","Systemadministration","Berechtigungen, Nutzung und technische Betriebsdaten sind ausschließlich für Administratoren sichtbar.","⌘")+
+  // One compact command strip rather than two competing giant admin hero cards.
+  return '<div class="pilot-screen pilot-admin-screen pilot-admin-compact">'+
     adminViewLegacy()+'</div>';
 }
 
@@ -2905,7 +3028,7 @@ function nxOpenNext(){
   const mask=document.createElement("div");mask.className="nx-mask";
   const safe=esc;
   mask.innerHTML='<section class="nx-modal" role="dialog" aria-modal="true" aria-labelledby="nxTitle" aria-describedby="nxDesc">'+
-    '<div class="nx-top"><div class="nx-symbol" aria-hidden="true">✦</div><span class="nx-kicker">neXaro · PILOT · LUMEN 2026.10.08.30</span><button type="button" class="nx-close" aria-label="Schließen">×</button></div>'+
+    '<div class="nx-top"><div class="nx-symbol" aria-hidden="true">✦</div><span class="nx-kicker">neXaro · PILOT · LUMEN 2026.10.08.31</span><button type="button" class="nx-close" aria-label="Schließen">×</button></div>'+
     '<h2 id="nxTitle">'+safe(config.title||"Pilot fragt nach")+'</h2><p class="nx-description" id="nxDesc">'+safe(config.description||"Bitte ergänze die noch fehlenden Angaben.")+'</p>'+
     '<form novalidate><div class="nx-fields">'+fields.map((f,i)=>'<div class="nx-field"><label for="nxInput'+i+'">'+safe(f.label)+'</label>'+
       (f.short?'<input id="nxInput'+i+'" type="text" name="'+safe(f.key)+'" maxlength="500" placeholder="'+safe(f.placeholder||"")+'" data-required="'+(f.required?"1":"0")+'">':
