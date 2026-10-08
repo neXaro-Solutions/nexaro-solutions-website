@@ -6740,7 +6740,9 @@ function pilotPositionWorker(worker,plane){
  const xCandidates=[12,Math.round(w-workerWidth-12),Math.round((w-workerWidth)/2),
   Math.round(w*.24-workerWidth/2),Math.round(w*.76-workerWidth/2)]
   .map(x=>Math.max(8,Math.min(w-workerWidth-8,x)));
- const uniqueX=[...new Set(xCandidates)];
+ // When a bubble cannot fit, the 50px figure can still walk at the far edge.
+ const compactX=[12,w-68,Math.round((w-60)/2)];
+ const uniqueX=[...new Set([...xCandidates,...compactX].map(x=>Math.max(8,Math.min(w-64,x))))];
  const floors=Array.from({length:9},(_,i)=>baseFloor-i*14)
   .filter(y=>y>Math.max(visibleTop+100,visibleTop+(h-visibleTop)*.54));
  let best=null;
@@ -6754,7 +6756,7 @@ function pilotPositionWorker(worker,plane){
      const bubble={left:left+36,right:left+36+speechWidth,top:top+34-speechHeight,bottom:top+34};
      const bubbleFits=bubble.left>=4&&bubble.right<=w-4&&bubble.top>=42;
      const bubbleSafe=bubbleFits&&!obstacles.some(rect=>pilotWorkerOverlaps(bubble,rect));
-     const candidate={left,top,floor,bubbleSafe,score:(baseFloor-floor)+(bubbleSafe?0:280)+(Math.abs(left-w/2)*.002)};
+     const candidate={left,top,floor,bubbleSafe,score:(baseFloor-floor)+(bubbleSafe?0:24)+(Math.abs(left-w/2)*.002)};
      if(!best||candidate.score<best.score)best=candidate;
    }
    // Prefer ground-level over elevated positions when a complete cue fits.
@@ -6768,6 +6770,7 @@ function pilotPositionWorker(worker,plane){
    return false;
  }
  worker.hidden=false;worker.dataset.groundSafe=best.bubbleSafe?"full":"figure";
+ worker.style.setProperty("width",best.bubbleSafe?"168px":"60px","important");
  worker.classList.toggle("pilot-worker--quiet",!best.bubbleSafe);
  worker.style.left=Math.round(best.left)+"px";
  worker.style.top=Math.round(best.top)+"px";
