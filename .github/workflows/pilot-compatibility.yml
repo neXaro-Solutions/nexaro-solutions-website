@@ -66,3 +66,5 @@ jobs:
         run: node pilot/tests/lumen-depth-contract.mjs
       - name: Check JavaScript syntax and responsive UI
         run: node pilot/tests/platform-smoke.mjs --browser=${{ matrix.browser }}
+      - name: Check 3D flight and worker motion
+        run: node pilot/tests/flight-motion.mjs --browser=${{ matrix.browser }}
