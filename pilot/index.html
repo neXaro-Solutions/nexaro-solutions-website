@@ -3785,7 +3785,7 @@ async function processPendingAttachments(goalId,taskText){
 function bind(){
   document.querySelectorAll("[data-view]").forEach(b=>b.onclick=async()=>{current=b.dataset.view;if(current==="admin"&&isAdmin){try{await loadAdminConsole()}catch(e){pilotNotice(e.message||String(e))}}render()});
   document.querySelectorAll("[data-jump]").forEach(b=>b.onclick=()=>{current=b.dataset.jump;render()});
-   document.querySelectorAll("[data-open-goal]").forEach(b=>b.onclick=async()=>{activeGoalId=b.dataset.openGoal;try{localStorage.setItem("nexaro_pilot_goal_"+user.id,activeGoalId)}catch{}await load();current="home";render()});
+   document.querySelectorAll("[data-open-goal]").forEach(b=>b.onclick=async()=>{if(activePilotFlight&&pilotFlightState.goalId&&pilotFlightState.goalId!==b.dataset.openGoal){pilotDestroyFlight(activePilotFlight);pilotSetFlightState(null,"idle","")}activeGoalId=b.dataset.openGoal;try{localStorage.setItem("nexaro_pilot_goal_"+user.id,activeGoalId)}catch{}await load();current="home";render()});
   document.querySelectorAll("details[data-project]").forEach(project=>project.addEventListener("toggle",()=>{
    if(!project.open||project.dataset.project===goals[0]?.id)return;
    const node=project.querySelector("[data-project-results]");
@@ -3868,21 +3868,29 @@ function nxOpenNext(){
     mask.removeEventListener("keydown",keyHandler);
     mask.classList.add("nx-finishing");
     mask.querySelectorAll("button,input,textarea").forEach(x=>x.disabled=true);
-    // If the user responds before touchdown, let the same aircraft land before boarding.
-    if(attentionLanding)try{await attentionLanding}catch{}
-    mask.remove();document.body.style.overflow=prevOverflow;
-    try{prev?.focus?.({preventScroll:true})}catch{}
-    nxDialogActive=false;
-    if(flightQuestion){
-      if(value===null){
-        pilotSetFlightState(null,"idle","Auftrag pausiert");
-        finishPilotFlight();
-      }else{
-        await pilotAvatarReboard(flightGoalId);
-        pilotSetFlightState(flightGoalId,"flying","Pilot arbeitet weiter");
+    try{
+      // If the user replies immediately, wait for touchdown before boarding.
+      if(attentionLanding)await attentionLanding;
+      if(flightQuestion){
+        if(value===null){
+          pilotSetFlightState(null,"idle","Auftrag pausiert");
+          finishPilotFlight();
+        }else{
+          await pilotAvatarReboard(flightGoalId);
+          pilotSetFlightState(flightGoalId,"flying","Pilot arbeitet weiter");
+        }
       }
+    }catch(e){
+      // UI and the confirmed answer must never be blocked by a failed animation.
+      console.warn("Pilot-Animation nicht vollständig",String(e?.message||e));
+      finishPilotFlight();
+      pilotSetFlightState(value===null?null:flightGoalId,value===null?"idle":"flying","");
+    }finally{
+      mask.remove();document.body.style.overflow=prevOverflow;
+      try{prev?.focus?.({preventScroll:true})}catch{}
+      nxDialogActive=false;
+      resolve(value);queueMicrotask(nxOpenNext);
     }
-    resolve(value);queueMicrotask(nxOpenNext);
   };
   const keyHandler=e=>{if(e.key==="Escape"&&config.cancelable!==false){e.preventDefault();finish(null)}if(e.key==="Tab"){const items=[...mask.querySelectorAll("button,input,textarea")];if(e.shiftKey&&document.activeElement===items[0]){e.preventDefault();items.at(-1).focus()}else if(!e.shiftKey&&document.activeElement===items.at(-1)){e.preventDefault();items[0].focus()}}};
   mask.addEventListener("keydown",keyHandler);
@@ -4580,6 +4588,13 @@ function pilotAvatarDisembark(f,message="Hier ist deine Handlung erforderlich.")
  pilotPositionWorker(worker,f.plane);
  f.worker=worker;
 }
+function pilotRefreshParkedAvatar(){
+ const f=activePilotFlight;
+ if(f?.phase==="parked"&&f.worker?.isConnected&&f.plane?.isConnected)
+   pilotPositionWorker(f.worker,f.plane);
+}
+window.addEventListener("resize",pilotRefreshParkedAvatar,{passive:true});
+window.visualViewport?.addEventListener?.("resize",pilotRefreshParkedAvatar,{passive:true});
 async function pilotAvatarReboard(goalId){
  const f=activePilotFlight;
  if(!f?.plane?.isConnected||(f.phase!=="parked"&&f.phase!=="boarding")||
@@ -5003,7 +5018,7 @@ async function enter(session){user=session.user;try{activeGoalId=localStorage.ge
      actions.find(a=>a.status==="ready"&&(a.owner_type==="joint"||a.recommended_mode==="together")))){}
    else void pilotLandAtAttention(goals[0].id,"Hier ist deine Handlung erforderlich");
   }telemetry("event",{event_name:"session_entered",event_category:"activation",properties:{has_goal:!!goals[0]}})}catch(e){telemetry("incident",{source:"app_load",severity:"error",error_code:"LOAD_FAILED",message:e.message||String(e)});pilotNotice(e.message)}}
-async function leave(){user=null;org=null;isAdmin=false;customerPreview=false;adminData=null;pendingAttachments=[];goalSuccessMap={};goals=[];features=[];plans=[];actions=[];contexts=[];milestones=[];documents=[];results=[];claims=[];evidence=[];completeness=[];progressEvents=[];outcomes=[];adaptations=[];pilotState=null;aiRequests=[];qualityContracts=[];consensusRuns=[];executions=[];executionSteps=[];designJobs=[];canvaStatus=null;researchBusy=false;researchAttempted.clear();notifications=[];readiness=[];evalRuns=[];APP.classList.add("hidden");A.classList.remove("hidden")}
+async function leave(){if(activePilotFlight)pilotDestroyFlight(activePilotFlight);pilotSetFlightState(null,"idle","");user=null;org=null;isAdmin=false;customerPreview=false;adminData=null;pendingAttachments=[];goalSuccessMap={};goals=[];features=[];plans=[];actions=[];contexts=[];milestones=[];documents=[];results=[];claims=[];evidence=[];completeness=[];progressEvents=[];outcomes=[];adaptations=[];pilotState=null;aiRequests=[];qualityContracts=[];consensusRuns=[];executions=[];executionSteps=[];designJobs=[];canvaStatus=null;researchBusy=false;researchAttempted.clear();notifications=[];readiness=[];evalRuns=[];APP.classList.add("hidden");A.classList.remove("hidden")}
 let authMode="login";
 const AUTHM=document.getElementById("authModal"),ME=document.getElementById("modalEmail"),MP=document.getElementById("modalPassword"),MP2=document.getElementById("modalPassword2"),MW=document.getElementById("repeatPasswordWrap"),PW=document.getElementById("privacyWrap"),AP=document.getElementById("acceptPrivacy"),SM=document.getElementById("submitAuth"),SW=document.getElementById("switchAuthMode"),RC=document.getElementById("resendConfirmation"),MM=document.getElementById("modalMessage"),CS=document.getElementById("confirmationState"),CE=document.getElementById("confirmationEmail"),CR=document.getElementById("confirmationResend"),CL=document.getElementById("confirmationLogin");
 function modalMessage(s,ok=false){MM.innerHTML='<div class="msg '+(ok?'ok':'')+'">'+esc(s)+'</div>'}
