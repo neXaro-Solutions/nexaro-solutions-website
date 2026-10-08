@@ -3492,10 +3492,33 @@ body:has(.shell[data-screen="home"]:not(.hidden)){background:radial-gradient(ell
  .pilot-focus-composer{box-shadow:0 8px 30px #3d7e3610!important}
 }
 @media(prefers-reduced-motion:reduce){.pilot-project-caret{transition:none!important}}
+
+/* The product promise stays visible, factual and below the single action surface. */
+.pilot-value-lead{display:flex;flex-direction:column;align-items:center;gap:9px;max-width:630px;margin:-12px auto 24px;text-align:center}
+.pilot-value-lead strong{font-size:clamp(14px,2.5vw,19px);font-weight:790;line-height:1.35;letter-spacing:-.025em;color:#315e37}
+.pilot-value-lead span{font-size:13px;line-height:1.62;color:#627b66;max-width:560px}
+.pilot-value-advantages{max-width:760px;margin:28px auto 0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;text-align:left}
+.pilot-value-item{padding:16px 16px 17px;border-radius:17px;border:1px solid #e1edda;background:linear-gradient(140deg,#fff,#fbfff9);box-shadow:0 4px 21px #37753a08;min-width:0}
+.pilot-value-item>span{display:grid;place-items:center;width:27px;height:27px;border-radius:9px;background:#edfade;color:#467b42;font-weight:820;font-size:11px;margin-bottom:11px}
+.pilot-value-item strong{display:block;font-size:13px;line-height:1.4;font-weight:780;color:#2a4e34}
+.pilot-value-item small{display:block;font-size:11px;line-height:1.55;color:#768978;margin-top:6px}
+.pilot-value-home{font-size:13px;line-height:1.65;color:#6e856f;max-width:585px;margin:-19px auto 24px;text-align:center}
+.pilot-value-steps{display:flex;justify-content:center;align-items:center;gap:10px;flex-wrap:wrap;margin:22px auto 0;color:#5f7c61;font-size:11px;font-weight:710;line-height:1.5}
+.pilot-value-steps span{padding:8px 10px;border:1px solid #e1eddc;border-radius:99px;background:#fbfff7}
+.pilot-value-steps i{font-style:normal;color:#8dbd72}
+@media(max-width:660px){
+ .pilot-value-lead{margin:-16px auto 19px;gap:7px}.pilot-value-lead strong{font-size:15px}.pilot-value-lead span{font-size:12px}
+ .pilot-value-advantages{grid-template-columns:1fr;gap:7px;margin:18px auto 0}
+ .pilot-value-item{display:grid;grid-template-columns:27px minmax(0,1fr);column-gap:11px;row-gap:2px;align-items:center;padding:9px 12px;border-radius:13px}
+ .pilot-value-item>span{grid-row:span 2;margin:0}.pilot-value-item strong{font-size:12px}.pilot-value-item small{font-size:10px;margin:0}
+ .pilot-value-home{font-size:12px;line-height:1.55;margin:-19px auto 19px;max-width:335px}
+ .pilot-value-steps{gap:5px;margin-top:13px;font-size:10px}.pilot-value-steps span{padding:6px 8px}.pilot-value-steps i{font-size:11px}
+}
+@media(max-height:710px) and (max-width:700px){.pilot-value-advantages{margin-top:11px;gap:5px}.pilot-value-item{padding:6px 10px}.pilot-value-item small{display:none}}
 </style><link rel="manifest" href="/pilot/manifest.webmanifest"><link rel="apple-touch-icon" href="/pilot/icon-192.png"><meta name="theme-color" content="#f2f6f3"><meta name="apple-mobile-web-app-capable" content="yes"></head>
 <body>
 <section id="auth" class="auth"><div class="box">
-<div class="pilot-focus"><section class="pilot-focus-entry" aria-labelledby="guestComposeTitle"><div class="pilot-machine-core" aria-hidden="true"><i></i><i></i><i></i><span>✦</span></div><div class="pilot-focus-brand">PILOT</div><h2 id="guestComposeTitle">Was soll ich für dich erledigen?</h2><div class="pilot-focus-composer"><textarea id="guestTask" maxlength="3000" rows="3" aria-label="Dein Auftrag" placeholder="Beschreibe dein gewünschtes Ergebnis …"></textarea><div class="pilot-focus-tools"><span></span><button id="guestStart" type="button" class="btn ai launch-primary">Starten <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 19V5m-6 6 6-6 6 6"/></svg></button></div></div></section></div><nav class="pilot-guest-dock" aria-label="Zugang"><button id="openLogin" type="button">Anmelden</button><button id="openRegister" type="button">Konto erstellen</button></nav>
+<div class="pilot-focus"><section class="pilot-focus-entry" aria-labelledby="guestComposeTitle"><div class="pilot-machine-core" aria-hidden="true"><i></i><i></i><i></i><span>✦</span></div><div class="pilot-focus-brand">PILOT</div><h2 id="guestComposeTitle">Was soll ich für dich erledigen?</h2><p class="pilot-value-lead"><strong>Ein Ziel. Ein digitaler Mitarbeiter. Ein greifbares Ergebnis.</strong><span>Pilot verbindet deinen Auftrag mit den Arbeitsschritten und hält die Ergebnisse an einem Ort.</span></p><div class="pilot-focus-composer"><textarea id="guestTask" maxlength="3000" rows="3" aria-label="Dein Auftrag" placeholder="Beschreibe dein gewünschtes Ergebnis …"></textarea><div class="pilot-focus-tools"><span></span><button id="guestStart" type="button" class="btn ai launch-primary">Starten <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 19V5m-6 6 6-6 6 6"/></svg></button></div></div><div class="pilot-value-advantages" aria-label="Was Pilot für dich einfacher macht"><div class="pilot-value-item"><span aria-hidden="true">01</span><strong>Einfach sagen, was du brauchst</strong><small>Ein Auftrag statt komplizierter Prompt-Ketten.</small></div><div class="pilot-value-item"><span aria-hidden="true">02</span><strong>Pilot klärt und arbeitet</strong><small>Rückfragen nur, wenn wichtige Angaben fehlen.</small></div><div class="pilot-value-item"><span aria-hidden="true">03</span><strong>Ergebnisse bleiben bei dir</strong><small>Fertige Inhalte und Folgeschritte direkt im Auftrag.</small></div></div></section></div><nav class="pilot-guest-dock" aria-label="Zugang"><button id="openLogin" type="button">Anmelden</button><button id="openRegister" type="button">Konto erstellen</button></nav>
 </div></section>
 <div id="authModal" class="auth-modal hidden" role="dialog" aria-modal="true" aria-labelledby="authModalTitle">
   <button class="auth-modal-backdrop" id="closeAuthBackdrop" aria-label="Fenster schließen"></button>
@@ -4238,14 +4261,14 @@ function home(){
 
  return '<div class="pilot-focus'+(pilotShoppingAssistant?.getState()?' pilot-focus--conversation':'')+'"><section class="pilot-focus-entry" aria-labelledby="homeComposeTitle">'+
  '<div class="pilot-machine-core" aria-hidden="true"><i></i><i></i><i></i><span>'+pilotAircraftSVG()+'</span></div>'+
- '<div class="pilot-focus-brand">PILOT</div><h2 id="homeComposeTitle">Was soll ich für dich erledigen?</h2>'+
+ '<div class="pilot-focus-brand">PILOT</div><h2 id="homeComposeTitle">Was soll ich für dich erledigen?</h2>'+ '<p class="pilot-value-home">Beschreibe dein Ziel. Pilot kümmert sich um die Schritte und hält deine Ergebnisse im Auftrag zusammen.</p>'+
  '<div class="pilot-focus-composer">'+
  (pilotForceNewGoal?'<div class="pilot-context-hint"><span>Neuer Auftrag</span><button id="pilotCancelNewProject" type="button">Zurück</button></div>':pilotPinnedGoalId&&g?.id===pilotPinnedGoalId?'<div class="pilot-context-hint"><span>Ergänzung zu <strong>'+esc(g.title)+'</strong></span><button id="pilotNewProject" type="button">Neuer Auftrag</button></div>':'')+
  '<textarea id="goalText" maxlength="3000" rows="3" placeholder="Beschreibe dein gewünschtes Ergebnis …" aria-label="Dein Auftrag">'+esc(pilotComposerDraft)+'</textarea>'+
  '<div class="pilot-focus-tools"><div class="command-attachments"><button class="attach-btn" type="button" data-attach-kind="file" aria-label="Datei hinzufügen">'+
  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>'+attach+'</div>'+
  '<button id="createGoal" type="button" class="btn ai launch-primary" aria-label="Auftrag starten"><span class="pilot-send-label">Starten</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 19V5m-6 6 6-6 6 6"/></svg></button></div>'+
- '<div id="attachmentTray" class="attachment-tray" aria-live="polite"></div></div></section>'+pilotShoppingCard()+'</div>';
+ '<div id="attachmentTray" class="attachment-tray" aria-live="polite"></div></div>'+ '<div class="pilot-value-steps" aria-label="So hilft Pilot"><span>Ein Auftrag</span><i aria-hidden="true">→</i><span>Pilot übernimmt Schritte</span><i aria-hidden="true">→</i><span>Fertige Ergebnisse im Auftrag</span></div></section>'+pilotShoppingCard()+'</div>';
 }
 function pilotNextMove(){
  const g=goals[0],n=pilotNextQueuedAction(),approval=pilotReviewContext(),interrupt=pilotRelevantInterruption();
