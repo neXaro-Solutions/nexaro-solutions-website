@@ -141,7 +141,7 @@ body:has(.shell[data-screen="home"]:not(.hidden)){background:
 #pilotFlightLayer .pilot-plane:after{content:none!important;display:none!important}
 #pilotFlightLayer .pilot-plane--parked{background:transparent url("/pilot/lumen-orb.svg") center/contain no-repeat!important}
 /* The figure (not the optional explanatory speech bubble) measures approx.
-   58 px tall at its animated scale: visibly smaller than the 76 px aircraft. */
+   50 px tall at its animated scale: visibly smaller than the 76 px aircraft. */
 #pilotFlightLayer .pilot-worker-avatar{
  width:177px!important;height:105px!important;min-height:105px!important;
  gap:4px!important;filter:none!important;backface-visibility:hidden;
@@ -149,8 +149,8 @@ body:has(.shell[data-screen="home"]:not(.hidden)){background:
 }
 #pilotFlightLayer .pilot-worker-avatar .pilot-worker-figure{
  width:46px!important;min-width:46px!important;flex:0 0 46px!important;
- height:100px!important;--pilot-worker-scale:.58!important;
- transform:translate3d(0,0,0) scale(.58);transform-origin:18% 8%!important;
+ height:100px!important;--pilot-worker-scale:.50!important;
+ transform:translate3d(0,0,0) scale(.50);transform-origin:18% 8%!important;
 }
 #pilotFlightLayer .pilot-worker-avatar .pilot-worker-speech{
  max-width:124px!important;font-size:10px!important;padding:6px 8px!important;
@@ -183,10 +183,10 @@ body:has(.shell[data-screen="home"]:not(.hidden)){background:
  animation:none!important;
 }
 @keyframes pilotLumenPace{
- 0%,100%{transform:translate3d(0,0,0) scale(.58)}
- 25%{transform:translate3d(6px,-1px,0) scale(.58)}
- 50%{transform:translate3d(11px,0,0) scale(.58)}
- 75%{transform:translate3d(5px,-1px,0) scale(.58)}
+ 0%,100%{transform:translate3d(0,0,0) scale(.50)}
+ 25%{transform:translate3d(6px,-1px,0) scale(.50)}
+ 50%{transform:translate3d(11px,0,0) scale(.50)}
+ 75%{transform:translate3d(5px,-1px,0) scale(.50)}
 }
 @keyframes pilotLumenStep{0%,100%{transform:rotate(-10deg)}50%{transform:rotate(10deg)}}
 @keyframes pilotLumenArm{0%,100%{transform:rotate(9deg)}50%{transform:rotate(-9deg)}}
@@ -200,7 +200,7 @@ body:has(.shell[data-screen="home"]:not(.hidden)){background:
  transition:transform .75s cubic-bezier(.37,0,.33,1),opacity .45s ease!important;
 }
 .pilot-demo-scene .pilot-demo-avatar .pilot-worker-figure{
- transform:translate3d(0,0,0) scale(.58);transform-origin:18% 8%!important;
+ transform:translate3d(0,0,0) scale(.50);transform-origin:18% 8%!important;
 }
 .pilot-demo-scene .pilot-demo-avatar.pilot-worker--patrol .pilot-worker-figure{
  animation:pilotLumenPace 4.8s ease-in-out infinite!important;
