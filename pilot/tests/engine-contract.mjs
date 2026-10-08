@@ -112,8 +112,22 @@ function createScenario({actions,executions=[],failSteps=false,goalDomain="gener
     createClient(){return sb},
     fetch:async url=>{
       state.fetchCount++;
-      if(!String(url).includes("/functions/v1/safety-gate"))throw Error("UNEXPECTED NETWORK: "+url);
-      return Response.json({allowed:true});
+      const endpoint=String(url);
+      if(endpoint.includes("/functions/v1/safety-gate"))
+        return Response.json({allowed:true});
+      if(endpoint.includes("/functions/v1/best-of-ai"))
+        return Response.json({
+          consensus_run_id:newId(),decision:"accepted",scores:{},
+          providers:{openai:{cost:0}},synthesis:{cost:0},
+          final_output:{
+            deliverable:"Dieser geprüfte Testentwurf bereitet die Entscheidung des Nutzers ausführlich und nachvollziehbar vor. Die Entscheidung selbst trifft ausschließlich der Nutzer im Freigabeschritt.",
+            verification:"Der Entwurf wurde auf Struktur und Vollständigkeit geprüft.",
+            next_recommendation:"Bitte den fertigen Vorschlag prüfen und ausdrücklich bestätigen."
+          }
+        });
+      if(endpoint.includes("/functions/v1/progress-engine"))
+        return Response.json({stage:"updated",progress:50});
+      throw Error("UNEXPECTED NETWORK: "+url);
     },
     setTimeout,clearTimeout,AbortController
   };
@@ -232,4 +246,19 @@ await scenario("High-risk medical joint work never auto-starts",{
  assert.equal(state.records.executions.length,0);
 });
 
-console.log("PASS All 13 live-handler policy and recovery simulations; no real accounts or network writes.");
+
+await scenario("Joint low-risk proposal is prepared before asking for approval",{
+ actions:[{...a,owner_type:"joint",recommended_mode:"together"}]
+},{operation:"next",goal_id:GOAL},({status,payload},state)=>{
+ assert.equal(status,200);
+ assert.equal(payload.status,"review_required");
+ assert.equal(state.records.executions.length,1);
+ assert.equal(state.records.executions[0].status,"review_required");
+ assert.equal(state.records.actions[0].status,"ready",
+   "Drafting must not complete or approve a user decision");
+ assert.equal(state.records.results.length,1);
+ assert.equal(state.records.results[0].approval_status,"review_required");
+ assert(!state.records.execution_approvals.some(x=>x.decision==="approved"));
+});
+
+console.log("PASS All 14 live-handler policy and recovery simulations; no real accounts or network writes.");
