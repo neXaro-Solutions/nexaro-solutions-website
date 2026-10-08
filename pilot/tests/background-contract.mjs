@@ -130,4 +130,71 @@ r=await s.request({operation:"resume",goal_id:GOAL});
 assert.equal(r.status,409);
 assert.equal(s.calls(),0);
 console.log("PASS Exhausted background budgets cannot be silently restarted");
+
+const calls=[];
+const example={deliverable:("Neon-grüne Markenwelt mit klarer typografischer Hierarchie, orangefarbenem Akzent, flexibler Bildsprache, verständlichem Nutzenversprechen und konsistenter Textführung. ").repeat(3),
+ verification:"Umfang, Struktur, Klarheit und Inhaltsmoderation technisch geprüft.",
+ next_recommendation:"Die bereits freigegebenen Gestaltungsvorgaben für das nächste Material übernehmen."};
+const creativeEnv={
+  Request,Response,Headers,URL,AbortSignal,
+  console:{log(){},error(){},warn(){}},
+  Deno:{env:{get:()=>""},serve(){}},
+  createClient(){return {}},
+  fetch:async(url,options)=>{
+   calls.push({url:String(url),body:JSON.parse(options.body)});
+   if(String(url).endsWith("/moderations"))return Response.json({results:[{flagged:false}]});
+   if(String(url).endsWith("/responses"))return Response.json({
+    output:[{content:[{type:"output_text",text:JSON.stringify(example)}]}],
+    usage:{input_tokens:300,output_tokens:450}
+   });
+   throw Error("Unexpected external service in offline tests");
+  }
+};
+vm.runInNewContext(js.outputText+";globalThis.__backgroundFunctions={createDraft,stageJob,eligible};",creativeEnv,{timeout:5000});
+const fn=creativeEnv.__backgroundFunctions;
+const prior=[{result_id:"77777777-7777-4777-8777-777777777777",
+  title:"Bestätigtes Marken-Konzept",
+  creative_excerpt:"Frühere Textgestaltung mit Neon-Grün, Orange und heller Oberfläche."}];
+const doc=await fn.createDraft("mock_key",
+ {title:"Floristikstudio",desired_outcome:"Einheitliche Gestaltung"},
+ {title:"Erstelle ein Social-Media-Konzept",objective:"Erstelle passende Werbetexte"},
+ [{key:"brand_style",value:"hell, Neon-Grün und Orange"}],prior);
+assert.equal(calls.filter(x=>x.url.endsWith("/moderations")).length,2);
+assert.equal(calls.filter(x=>x.url.endsWith("/responses")).length,1);
+const sent=calls.find(x=>x.url.endsWith("/responses")).body;
+const creativeInput=JSON.parse(sent.input[0].content[0].text);
+assert.equal(creativeInput.prior_project_deliverables[0].result_id,prior[0].result_id);
+assert.equal(creativeInput.confirmed_decisions[0].value,"hell, Neon-Grün und Orange");
+assert(doc.cost>0&&doc.cost<0.02);
+console.log("PASS Follow-up drafts reuse prior project outputs and confirmed decisions within cost cap");
+
+assert.equal(fn.eligible({status:"active",domain:{primary:"marketing"}},
+ {title:"Erstelle ein Logo-Konzept",objective:"Gestalte Markenauftritt",
+  status:"ready",owner_type:"pilot",recommended_mode:"do_it",blocking:false}),true);
+assert.equal(fn.eligible({status:"active",domain:{primary:"marketing"}},
+ {title:"Veröffentliche Newsletter",objective:"Sende E-Mail an Kunden",
+  status:"ready",owner_type:"pilot",recommended_mode:"do_it",blocking:false}),false);
+assert.equal(fn.eligible({status:"active",domain:{primary:"business"}},
+ {title:"Finanzplan",objective:"Investitionen ermitteln",
+  status:"ready",owner_type:"pilot",recommended_mode:"do_it",blocking:false}),false);
+console.log("PASS Creative tasks are eligible; external sends and financial operations still require user approval");
+
+const stageWrites=[];
+const fakeDb={from(table){
+ assert.equal(table,"pilot_background_jobs");
+ return {update(payload){stageWrites.push(payload);return this},
+  eq(){return this},select(){return this},
+  maybeSingle:async()=>({data:{id:"job"},error:null})};
+}};
+for(const stage of ["preparing","drafting","verifying","saving"]){
+ const wrote=await fn.stageJob(fakeDb,{id:"job",lease_token:"lease"},stage,{id:"action",title:"Flyer texten"});
+ assert.equal(wrote,true);
+}
+assert.deepEqual(stageWrites.map(x=>x.stage),["preparing","drafting","verifying","saving"]);
+assert(stageWrites.every(x=>x.current_action_title==="Flyer texten"));
+console.log("PASS Durable stage transitions are tied to the current action and worker lease");
+assert(ui.includes("pilotBgProgressHTML(pilotBackgroundJob)"),"Mobile UI must render actual persisted stages");
+assert(ui.includes("keine unabhängige Quellenprüfung"),"Project results must not claim external verification");
+console.log("PASS Project view reports creative results honestly and compactly");
+
 console.log("PASS All background contract and authorization scenarios");
