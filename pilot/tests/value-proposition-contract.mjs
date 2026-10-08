@@ -20,4 +20,14 @@ assert(!pilot.includes('data-view="market"'),"Shopping remains a behind-the-scen
 assert(pilot.includes("pilotShoppingAsk(text)"),"Product research uses the shared task entry");
 assert(pilot.includes("pilotProjectResultsHTML"),"Deliverables remain attached to projects");
 assert(!site.includes("aktiver Affiliate-Partner"),"Never claim unverified partnerships");
+assert(pilot.includes('const expanded=pilotProjectExpanded.get(goal.id)===true;'),"All projects begin collapsed unless the user has expanded them");
+assert(pilot.includes('if(b.dataset.view==="goals"&&current!=="goals")pilotProjectExpanded.clear()'),"Reopening orders starts from a clean collapsed overview");
+assert(pilot.includes('function pilotReadinessStatus(status)'),"System test statuses must be human-readable");
+assert(pilot.includes('class="pilot-readiness-status '),"Readiness values use readable mobile labels, not narrow overflowing raw codes");
+assert(pilot.includes('class="pilot-readiness-passed"'),"Passed checks are collapsed separately from unfinished checks");
+assert(pilot.includes('class="pilot-neon-keyword"'),"Central task keywords use orange emphasis");
+assert(pilot.includes('--nx-neon-orange:#ff7214'),"Orange accent token must remain part of the neXaro daylight visual system");
+assert(pilot.includes('.pilot-admin-screen .admin-hero-actions{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important'),"Mobile admin actions remain two-column with readable labels");
+assert(pilot.includes('.pilot-readiness-row{grid-template-columns:minmax(0,1fr)!important'),"Mobile system check status must not be squashed into narrow columns");
+
 console.log("PASS Pilot identity: outcome-first marketing, honest limitations, customer simplicity, responsive styling and hidden affiliate machinery");
