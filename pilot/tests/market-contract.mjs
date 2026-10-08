@@ -33,7 +33,7 @@ assert(adminApi.view().includes("Noch nicht eingereicht"),"Prepared accounts are
 assert(!html.includes("Sebastian Pötschke"),"Personal publisher profile must never be hardcoded in public Pilot HTML");
 assert(html.includes("sb.from(\"pilot_partner_profiles\")"),"Profile must be fetched from an authenticated table");
 assert(html.includes("application_status:\"submitted\""),"Explicit user confirmation is required for submissions");
-assert(adminApi.view().includes("Registrierungsdaten"),"Admin-only profile panel available");
+assert(script.includes("function pilotPartnerProfileHTML()")&&script.includes("pilotPartnerProfileHTML()+"),"Private registration panel is wired into admin-only view");
 assert(affiliate.includes("103,00"),"Known total displayed");
 assert(affiliate.includes('rel="sponsored noopener noreferrer"'),"Affiliate disclosure in link");
 assert(affiliate.includes("Werbelink"),"Visible affiliate label");
