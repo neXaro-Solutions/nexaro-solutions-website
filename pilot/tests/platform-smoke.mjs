@@ -109,16 +109,41 @@ try{
    });
    if(picker.position!=="fixed"||picker.left<0||picker.right>picker.screenWidth+2||(picker.screenWidth-picker.right)>40||picker.top<0||picker.top>90||picker.bottom>picker.screenHeight+2)
     throw Error("Pilot language choice must stay accessible top-right: "+JSON.stringify(picker));
-   await languagePicker.locator("#pilotLanguageToggle").click();
+   const toggle=languagePicker.locator("#pilotLanguageToggle");
+   const options=languagePicker.locator("#pilotLanguageOptions");
+   await toggle.click();
+   if(await toggle.getAttribute("aria-expanded")!=="true"||!await options.isVisible())
+    throw Error("Language dropdown must actually open after tap");
    await languagePicker.locator('[data-pilot-locale="en"]').click();
    await page.waitForFunction(()=>document.documentElement.lang==="en"&&document.getElementById("guestComposeTitle")?.textContent.includes("What can"),null,{timeout:4000});
-   await languagePicker.locator("#pilotLanguageToggle").click();
+   if(await languagePicker.locator("#pilotLanguageCurrent").innerText()!=="EN"||await options.isVisible()||
+      await page.evaluate(()=>localStorage.getItem("nexaro-language"))!=="en")
+    throw Error("EN selection must update the label, close options, and persist");
+   await toggle.click();
+   await page.keyboard.press("Escape");
+   if(await options.isVisible())throw Error("Escape must close the language dropdown");
+   await toggle.click();
    await languagePicker.locator('[data-pilot-locale="de"]').click();
    await page.waitForFunction(()=>document.documentElement.lang==="de"&&document.getElementById("guestComposeTitle")?.textContent.includes("Was soll"),null,{timeout:4000});
+   if(await languagePicker.locator("#pilotLanguageCurrent").innerText()!=="DE"||await options.isVisible())
+    throw Error("DE selection must update its visible indicator");
+   await toggle.click();
+   await page.locator("#guestComposeTitle").click();
+   if(await options.isVisible())throw Error("Outside tap must close the dropdown");
    if(await page.locator(".pilot-value-item").count()!==3)throw Error("Pilot advantages must be visible on the first screen");
    if(!await page.locator(".pilot-value-lead").isVisible())throw Error("Clear customer value proposition missing");
    if(await page.locator("#guestTask").count()!==1)throw Error("Landing must retain exactly one task composer");
    if(await page.locator("#app").isVisible())throw Error("Signed-out page must not expose the authenticated shell");
+   const access=await page.evaluate(()=>{
+    const dock=document.querySelector(".pilot-guest-dock");
+    const lastCard=[...document.querySelectorAll("#auth .pilot-value-item")].at(-1);
+    const a=dock.getBoundingClientRect(),b=lastCard.getBoundingClientRect();
+    return {position:getComputedStyle(dock).position,top:a.top,bottom:a.bottom,cardBottom:b.bottom,
+      viewport:innerWidth,left:a.left,right:a.right,scrollWidth:document.documentElement.scrollWidth};
+   });
+   if(access.position==="fixed"||access.top<access.cardBottom+8||
+      access.left<0||access.right>access.viewport+2||access.scrollWidth>access.viewport+2)
+    throw Error("Sign-in and account creation must sit below, not over, the benefit cards: "+JSON.stringify(access));
    await page.locator("#openLogin").click();
    if(await page.locator("#authModal").evaluate(el=>el.classList.contains("hidden")))
     throw Error("Login modal does not open");
