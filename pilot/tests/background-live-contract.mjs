@@ -21,7 +21,7 @@ for(const token of [
  'goal.error.code==="23505"', 'const start=await call("start")',
  'check_key:KEY', 'verification_records',
  'background_worker===true','cost_capped','defer_initial_dispatch:true',
- 'test_goal_removed','worker_status:j.status',
+ 'test_goal_removed','worker_status:j?.status||"missing"',
  'if(!j||["queued","running"].includes(j.status))'
 ].filter(x=>x!=='if(!j||["queued","running"].includes(j.status))'))
  assert(source.includes(token),"Missing live-test safety: "+token);
