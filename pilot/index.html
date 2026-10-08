@@ -2765,6 +2765,98 @@ body{background:radial-gradient(ellipse 72vw 60vw at 92% -10%,rgba(145,255,62,.1
 .pilot-worker-avatar[data-context="dialog"] .pilot-worker-figure{transform:scale(.84);transform-origin:15% 8%;flex-basis:47px;width:47px}
 .pilot-worker-avatar[data-context="dialog"] .pilot-worker-speech{max-width:118px;font-size:10px;padding:5px 6px}
 .pilot-worker-avatar[data-context="dialog"] .pilot-worker-speech strong{font-size:10px}
+
+/* Compact worker, subtle back-and-forth steps only while the aircraft is parked.
+   The aircraft/bubble stay stationary so neither obscures the action buttons. */
+.pilot-worker-avatar{width:180px;height:108px;gap:3px;--pilot-worker-scale:.79}
+.pilot-worker-avatar .pilot-worker-figure{
+ flex:0 0 47px;width:55px;height:110px;
+ transform:scale(var(--pilot-worker-scale));transform-origin:15% 8%;
+}
+.pilot-worker-avatar .pilot-worker-speech{max-width:126px;padding:6px 7px;font-size:10px}
+.pilot-worker-avatar .pilot-worker-speech strong{font-size:10px}
+.pilot-worker-avatar.pilot-worker--patrol .pilot-worker-figure{
+ animation:pilotWorkerPace 3.6s ease-in-out infinite;
+}
+.pilot-worker-avatar.pilot-worker--patrol .pilot-worker-leg--left{
+ transform-origin:top center;animation:pilotWorkerLeftStep 3.6s ease-in-out infinite;
+}
+.pilot-worker-avatar.pilot-worker--patrol .pilot-worker-leg--right{
+ transform-origin:top center;animation:pilotWorkerRightStep 3.6s ease-in-out infinite;
+}
+.pilot-worker-avatar.pilot-worker--patrol .pilot-worker-boot--left{
+ animation:pilotWorkerLeftStep 3.6s ease-in-out infinite;transform-origin:top center;
+}
+.pilot-worker-avatar.pilot-worker--patrol .pilot-worker-boot--right{
+ animation:pilotWorkerRightStep 3.6s ease-in-out infinite;transform-origin:top center;
+}
+.pilot-worker-avatar.pilot-worker--patrol .pilot-worker-arm--wave{
+ animation:pilotWorkerGesture 3.6s ease-in-out infinite;
+}
+.pilot-worker-avatar.pilot-worker--patrol .pilot-worker-arm--rest{
+ animation:pilotWorkerOppositeArm 3.6s ease-in-out infinite;
+}
+@keyframes pilotWorkerPace{
+ 0%,9%,90%,100%{transform:translateX(0) scale(var(--pilot-worker-scale))}
+ 28%,36%{transform:translateX(8px) scale(var(--pilot-worker-scale))}
+ 55%,63%{transform:translateX(-5px) scale(var(--pilot-worker-scale))}
+ 78%{transform:translateX(3px) scale(var(--pilot-worker-scale))}
+}
+@keyframes pilotWorkerLeftStep{
+ 0%,10%,36%,53%,65%,90%,100%{transform:rotate(0deg)}
+ 20%,45%{transform:rotate(13deg)}
+ 28%,58%,78%{transform:rotate(-11deg)}
+}
+@keyframes pilotWorkerRightStep{
+ 0%,10%,36%,53%,65%,90%,100%{transform:rotate(0deg)}
+ 20%,45%{transform:rotate(-12deg)}
+ 28%,58%,78%{transform:rotate(12deg)}
+}
+@keyframes pilotWorkerGesture{
+ 0%,10%,90%,100%{transform:rotate(20deg)}
+ 24%,53%{transform:rotate(-10deg)}
+ 65%{transform:rotate(-30deg)}
+ 78%{transform:rotate(12deg)}
+}
+@keyframes pilotWorkerOppositeArm{
+ 0%,10%,90%,100%{transform:rotate(-18deg)}
+ 24%,53%{transform:rotate(8deg)}
+ 65%{transform:rotate(-12deg)}
+ 78%{transform:rotate(6deg)}
+}
+@media(max-width:420px){
+ .pilot-worker-avatar,.pilot-worker-avatar[data-context="dialog"]{
+   width:157px!important;height:99px!important;min-height:99px!important;
+   --pilot-worker-scale:.73;
+ }
+ .pilot-worker-avatar .pilot-worker-figure,
+ .pilot-worker-avatar[data-context="dialog"] .pilot-worker-figure{
+   flex:0 0 41px!important;width:55px!important;
+   transform:scale(var(--pilot-worker-scale));transform-origin:15% 8%;
+ }
+ .pilot-worker-avatar .pilot-worker-speech,
+ .pilot-worker-avatar[data-context="dialog"] .pilot-worker-speech{
+   max-width:111px!important;padding:5px 6px!important;font-size:10px!important;
+ }
+}
+@media(min-width:421px){
+ .pilot-worker-avatar[data-context="dialog"]{
+   width:180px!important;height:108px;min-height:108px!important;
+   --pilot-worker-scale:.79;
+ }
+ .pilot-worker-avatar[data-context="dialog"] .pilot-worker-figure{
+   flex:0 0 47px!important;width:55px!important;transform:scale(var(--pilot-worker-scale));
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ .pilot-worker-avatar.pilot-worker--patrol .pilot-worker-figure,
+ .pilot-worker-avatar.pilot-worker--patrol .pilot-worker-leg,
+ .pilot-worker-avatar.pilot-worker--patrol .pilot-worker-boot,
+ .pilot-worker-avatar.pilot-worker--patrol .pilot-worker-arm{
+   animation:none!important;
+ }
+}
+
 </style></head>
 <body>
 <section id="auth" class="auth"><div class="box">
@@ -4587,6 +4679,22 @@ function pilotAvatarDisembark(f,message="Hier ist deine Handlung erforderlich.")
  layer.appendChild(worker);
  pilotPositionWorker(worker,f.plane);
  f.worker=worker;
+ // Let the avatar finish disembarking before pacing; the exit and walk
+ // animate different phases so the speech bubble stays readable.
+ const allowPatrol=()=>f.worker===worker&&worker.isConnected&&f.phase==="parked";
+ if(window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches){
+   worker.classList.remove("pilot-worker--exit");
+   if(allowPatrol())worker.classList.add("pilot-worker--patrol");
+ }else{
+   const arrived=e=>{
+     if(e.target!==worker||e.animationName!=="pilotWorkerExit")return;
+     worker.removeEventListener("animationend",arrived);
+     if(!allowPatrol())return;
+     worker.classList.remove("pilot-worker--exit");
+     worker.classList.add("pilot-worker--patrol");
+   };
+   worker.addEventListener("animationend",arrived);
+ }
 }
 function pilotRefreshParkedAvatar(){
  const f=activePilotFlight;
@@ -4604,7 +4712,7 @@ async function pilotAvatarReboard(goalId){
  f.boardingPromise=(async()=>{
    const reduced=!!window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
    if(f.worker?.isConnected){
-     f.worker.classList.remove("pilot-worker--exit");
+     f.worker.classList.remove("pilot-worker--patrol","pilot-worker--exit");
      f.worker.classList.add("pilot-worker--boarding");
    }
    setPilotFlightPhase("✈ Entscheidung übernommen · Pilot hebt wieder ab");
