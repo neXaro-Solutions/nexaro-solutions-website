@@ -151,7 +151,7 @@ export function makeShoppingAssistant({sb,getUser,getOrg,redraw,safeLink,escape,
     note("user",t);
     if(needsShoppingClarification(t)){
      state.stage="clarify";
-     note("assistant","Damit ich das für dich passende "+intent.topic+" auswählen kann: Welches Budget hast du und was ist dir am wichtigsten – Kamera, Akku, Leistung oder Preis-Leistung? Du kannst auch einfach „egal“ antworten.");
+     note("assistant","Damit ich das für dich passende "+intent.topic+" auswählen kann: Was ist dein Budget"+(intent.key==="smartphone"?", bevorzugst du Android oder iPhone":"")+" und was zählt am meisten – Kamera, Akku, Leistung oder Preis-Leistung? Ein Satz genügt, oder antworte „egal“.");
      await save();redraw();return true;
     }
    }else if(state.stage==="clarify"){
