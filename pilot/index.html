@@ -2327,6 +2327,8 @@ function pilotDecisionRefreshCard(){
  document.querySelectorAll("#pilotDecisionShell [data-decision-part]").forEach(el=>{
    const index=Number(el.dataset.decisionPart);
    if(d.sections[index]&&el.value!==d.sections[index].value)el.value=d.sections[index].value;
+   // Recompute preview heights after an edit so the entire edited text remains scrollable.
+   pilotDecisionAutoSize(el);
  });
  const counter=document.getElementById("pilotDecisionCount");
  if(counter)counter.textContent=d.text.length+" / 2500";
