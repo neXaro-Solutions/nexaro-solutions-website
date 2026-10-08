@@ -5932,7 +5932,7 @@ function pilotShowLoadError(err){
  });
 }
 async function enter(session){
- user=session.user;
+ user=session.user;pilotPinnedGoalId=null;
  try{activeGoalId=localStorage.getItem("nexaro_pilot_goal_"+user.id)||null}catch{}
  A.classList.add("hidden");APP.classList.remove("hidden");
  // A failed or slow data request may not prevent the start page from showing.
@@ -5961,7 +5961,7 @@ async function enter(session){
    pilotShowLoadError(e);
  }
 }
-async function leave(){if(activePilotFlight)pilotDestroyFlight(activePilotFlight);pilotSetFlightState(null,"idle","");user=null;org=null;isAdmin=false;customerPreview=false;adminData=null;pendingAttachments=[];goalSuccessMap={};goals=[];features=[];plans=[];actions=[];contexts=[];milestones=[];documents=[];results=[];claims=[];evidence=[];completeness=[];progressEvents=[];outcomes=[];adaptations=[];pilotState=null;aiRequests=[];qualityContracts=[];consensusRuns=[];executions=[];executionSteps=[];designJobs=[];canvaStatus=null;researchBusy=false;researchAttempted.clear();notifications=[];readiness=[];evalRuns=[];APP.classList.add("hidden");A.classList.remove("hidden")}
+async function leave(){pilotPinnedGoalId=null;if(activePilotFlight)pilotDestroyFlight(activePilotFlight);pilotSetFlightState(null,"idle","");user=null;org=null;isAdmin=false;customerPreview=false;adminData=null;pendingAttachments=[];goalSuccessMap={};goals=[];features=[];plans=[];actions=[];contexts=[];milestones=[];documents=[];results=[];claims=[];evidence=[];completeness=[];progressEvents=[];outcomes=[];adaptations=[];pilotState=null;aiRequests=[];qualityContracts=[];consensusRuns=[];executions=[];executionSteps=[];designJobs=[];canvaStatus=null;researchBusy=false;researchAttempted.clear();notifications=[];readiness=[];evalRuns=[];APP.classList.add("hidden");A.classList.remove("hidden")}
 let authMode="login";
 const AUTHM=document.getElementById("authModal"),ME=document.getElementById("modalEmail"),MP=document.getElementById("modalPassword"),MP2=document.getElementById("modalPassword2"),MW=document.getElementById("repeatPasswordWrap"),PW=document.getElementById("privacyWrap"),AP=document.getElementById("acceptPrivacy"),SM=document.getElementById("submitAuth"),SW=document.getElementById("switchAuthMode"),RC=document.getElementById("resendConfirmation"),MM=document.getElementById("modalMessage"),CS=document.getElementById("confirmationState"),CE=document.getElementById("confirmationEmail"),CR=document.getElementById("confirmationResend"),CL=document.getElementById("confirmationLogin");
 function modalMessage(s,ok=false){MM.innerHTML='<div class="msg '+(ok?'ok':'')+'">'+esc(s)+'</div>'}

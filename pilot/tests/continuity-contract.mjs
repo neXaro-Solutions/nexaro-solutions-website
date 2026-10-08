@@ -279,7 +279,11 @@ assert(frontend.includes('id="pilotNewProject"'),
   "A visible one-tap new-project escape must always be available");
 assert(frontend.includes('body:{input:text,...(pinnedGoalId?{existing_goal_id:pinnedGoalId}:{})}'),
   "Pinned project must be passed to the backend before unnecessary goal resolution");
-console.log("PASS Explicit goal continuation is one tap, visible, and never pins new projects");
+assert(frontend.includes("user=session.user;pilotPinnedGoalId=null;"),
+  "A new authenticated session must clear any previous explicit project pin");
+assert(frontend.includes("async function leave(){pilotPinnedGoalId=null;"),
+  "Logging out must clear project context");
+console.log("PASS Explicit goal continuation is one tap, visible, and session-safe");
 
 const alternatives=scenario([],OWNER,[],[legalEntry]);
 const comparison=await alternatives.invoke({input:"Bitte Rechtsform GmbH oder Einzelunternehmen vergleichen"});
