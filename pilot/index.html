@@ -3411,6 +3411,87 @@ body:has(.shell[data-screen="home"]:not(.hidden))::before{display:none!important
 #app .hidden,#app.hidden,#auth.hidden{display:none!important}
 #auth::before,#auth::after,#auth>.box::before,#auth>.box::after{display:none!important}
 body:has(#auth:not(.hidden))::before{display:none!important}
+
+/* neXaro DAYLIGHT: soft white + lime + warm orange. Customer first, machinery behind it. */
+:root{--bg:#fcfefa;--s:#fff;--t:#203729;--m:#607566;--l:#e0e9dd;--g:#b0fa69;--g2:#6dbb47;--o:#f7a157;
+ --sh:0 20px 65px rgba(42,79,45,.045);--sh2:0 6px 20px rgba(43,79,45,.04)}
+body{background:radial-gradient(ellipse at 72% -15%,rgba(174,248,126,.20) 0%,transparent 48%),linear-gradient(180deg,#fff,#f9fcf7 70%)!important;color:#24392d!important}
+body::before{opacity:.08!important}
+.main{color:#263b2d}
+.side{background:rgba(255,255,255,.97)!important;border-color:#dbe7d8!important;box-shadow:0 14px 45px rgba(28,67,34,.09)!important}
+.side .nav.active{background:linear-gradient(135deg,#ebffd9,#e9f8e5)!important;color:#285c34!important}
+.side .nav:hover,.side .pilot-nav-more>summary:hover{background:#f5fcf0!important}
+.pilot-nav-more-content{border-color:#dfeada!important;background:#fff!important}
+.shell[data-screen="home"] .main{background:transparent!important}
+body:has(.shell[data-screen="home"]:not(.hidden)){background:radial-gradient(ellipse at 50% 32%,rgba(213,249,200,.52),transparent 46%),linear-gradient(180deg,#fff,#fbfef8)!important}
+.pilot-machine-core::before{background:radial-gradient(circle,rgba(158,239,127,.28),transparent 70%)!important}
+.pilot-machine-core i:nth-child(3){background:radial-gradient(circle at 28% 20%,#fff,#edfae7 56%,#c8ecd1)!important;border-color:#dcebd9!important}
+.pilot-focus-brand{color:#65956a!important}
+.pilot-focus #homeComposeTitle{color:#203b2d!important;font-weight:620!important}
+.pilot-focus-composer{border-color:#dce7d8!important;background:#fff!important;box-shadow:0 18px 60px rgba(60,100,54,.065),0 1px 3px rgba(60,100,54,.04)!important}
+.pilot-focus-composer:focus-within{border-color:#9ace91!important;box-shadow:0 15px 55px rgba(106,173,92,.10),0 0 0 3px #def5d0!important}
+.pilot-focus .launch-primary{background:linear-gradient(125deg,#c8ff88,#a4ed60)!important;border-color:#a4e46b!important;color:#24472b!important;font-weight:780!important}
+.pilot-focus .launch-primary:hover{background:linear-gradient(125deg,#d5ff9c,#b4f26f)!important;color:#22452c!important}
+.pilot-focus :is(#goalText,#guestTask)::placeholder{color:#889a8a!important}
+.pilot-project-list{max-width:760px!important;gap:12px!important;padding-top:5px!important}
+.pilot-project-intro{margin:0 0 8px!important;padding:2px 2px 10px!important}
+.pilot-project-intro h2{font-size:clamp(23px,3.2vw,30px)!important;letter-spacing:-.045em!important;color:#25442f!important;margin-bottom:10px!important}
+.pilot-project-intro p{font-size:13px!important;line-height:1.65!important;max-width:620px;color:#738275!important}
+.pilot-project-card{background:#fff!important;border:1px solid #deeadb!important;box-shadow:0 8px 32px rgba(28,63,30,.035)!important;border-radius:22px!important}
+.pilot-project-card--active{border-color:#cae4c4!important;background:linear-gradient(145deg,#fff,#fdfffb)!important}
+.pilot-project-card>summary{padding:19px 20px!important;min-height:79px!important;gap:13px!important}
+.pilot-project-caret{font-size:15px!important;color:#65a85a!important;transition:transform .18s ease}
+.pilot-project-heading strong{font-size:15px!important;font-weight:780!important;color:#294432!important}
+.pilot-project-heading small{font-size:11px!important;margin-top:5px!important;color:#839188!important}
+.pilot-project-state{font-size:11px!important;padding:7px 10px!important;border-radius:999px!important;background:#ecf8e9!important;color:#467641!important;white-space:nowrap}
+.pilot-project-state--working{background:#e7f8df!important;color:#35743b!important}
+.pilot-project-state--attention{background:#fff3e8!important;color:#9a602c!important}
+.pilot-project-body{padding:17px 20px 20px!important;border-top-color:#e9f1e6!important}
+.pilot-project-card .pilot-mission-focus{padding:18px 20px!important;margin:0 0 16px!important;border:1px solid #e3eddc!important;border-radius:17px!important;background:linear-gradient(135deg,#f7fff3,#fff)!important}
+.pilot-project-card .pilot-mission-focus>h2{font-size:18px!important;margin:10px 0 8px!important;line-height:1.35!important}
+.pilot-project-card .pilot-mission-focus>p{font-size:13px!important;color:#6a796a!important}
+.pilot-project-card .pilot-mission-heading{font-size:11px!important;color:#638165!important}
+.pilot-project-results{margin:4px 0 13px}
+.pilot-project-results-title{display:flex!important;align-items:center!important;gap:9px!important;margin:3px 0 13px!important;font-size:12px!important;font-weight:780!important;color:#66846a!important;letter-spacing:.015em}
+.pilot-project-results-title span{font-size:11px!important;background:#e9f7e3!important;color:#468149!important;border-radius:99px;padding:3px 8px}
+.pilot-deliverable{padding:15px 17px;background:#fff;border:1px solid #e5eee0;border-radius:16px;margin:0 0 9px;overflow:hidden}
+.pilot-deliverable-title{display:flex;align-items:flex-start;gap:11px}
+.pilot-deliverable-title>span{width:25px;height:25px;display:grid;place-items:center;border-radius:9px;background:#edfae7;color:#3d9548;flex:none;font-size:12px}
+.pilot-deliverable-title div{min-width:0;flex:1}
+.pilot-deliverable-title strong{display:block;font-size:14px;color:#26452e;line-height:1.45;overflow-wrap:anywhere}
+.pilot-deliverable-title small{display:block;margin:5px 0 0;font-size:11px;color:#7c897b;line-height:1.5}
+.pilot-deliverable-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:15px}
+.pilot-deliverable-actions .btn{font-size:12px!important;min-height:40px!important;border-radius:11px!important;padding:9px 13px!important}
+.pilot-deliverable-actions .btn.ai{background:#c4f99a!important;border-color:#b6ea8b!important;color:#2b5634!important}
+.pilot-deliverable-text{margin-top:13px;border:1px solid #e1ebdd;border-radius:12px;padding:11px 13px;background:#fcfffa}
+.pilot-deliverable-text>summary{cursor:pointer;font-size:12px;font-weight:800;color:#376c45;min-height:24px}
+.pilot-deliverable-text .pilot-project-document-body{border-top:1px solid #e3eee0;margin-top:10px;max-height:52vh;overflow:auto;line-height:1.7}
+.pilot-deliverable-link{margin:12px 0 0;cursor:pointer;font-size:12px;font-weight:740;color:#3d7040;border:0;background:transparent;text-decoration:underline;padding:7px 0}
+.pilot-more-results{border:1px solid #e5ecdf;border-radius:13px;padding:0 13px;margin-top:12px;background:#fff}
+.pilot-more-results>summary{cursor:pointer;list-style:none;color:#58785c;font-size:12px;font-weight:750;padding:13px 1px}
+.pilot-more-results>summary::before{content:"▸";color:#63a05c;margin-right:8px}
+.pilot-more-results[open]>summary::before{content:"▾"}
+.pilot-more-results .pilot-deliverable{margin:7px 0 12px}
+.pilot-project-controls{display:flex;align-items:center;margin-top:12px}
+.pilot-project-continue{background:#effbdf!important;border:1px solid #e1f1d5!important;color:#365e3c!important;padding:11px 14px!important;min-height:44px!important;border-radius:12px!important;font-size:12px!important;font-weight:780!important}
+.pilot-project-continue:hover{background:#e2f9d0!important}
+.pilot-project-empty{font-size:12px!important;color:#7c8c7c!important;line-height:1.7!important}
+.pilot-project-card .pilot-journal{margin-top:15px!important;border-top:1px solid #e9eee6!important;padding-top:13px!important}
+.pilot-project-card .pilot-journal>summary{font-size:11px!important;color:#8b988a!important;cursor:pointer}
+.pilot-shopping-card{border-color:#e2eddf!important;background:#fff!important}
+@media(max-width:600px){
+ .pilot-project-list{gap:9px!important;padding-left:0!important;padding-right:0!important}
+ .pilot-project-card{border-radius:17px!important}
+ .pilot-project-card>summary{min-height:68px!important;padding:14px 13px!important;gap:8px!important}
+ .pilot-project-heading strong{font-size:13px!important}
+ .pilot-project-state{font-size:10px!important;padding:6px 7px!important;max-width:114px!important;text-align:center;white-space:normal}
+ .pilot-project-body{padding:12px 12px 15px!important}
+ .pilot-deliverable{padding:12px!important}
+ .pilot-project-card .pilot-mission-focus{padding:15px!important}
+ .pilot-focus{padding-bottom:20px}
+ .pilot-focus-composer{box-shadow:0 8px 30px #3d7e3610!important}
+}
+@media(prefers-reduced-motion:reduce){.pilot-project-caret{transition:none!important}}
 </style><link rel="manifest" href="/pilot/manifest.webmanifest"><link rel="apple-touch-icon" href="/pilot/icon-192.png"><meta name="theme-color" content="#f2f6f3"><meta name="apple-mobile-web-app-capable" content="yes"></head>
 <body>
 <section id="auth" class="auth"><div class="box">
