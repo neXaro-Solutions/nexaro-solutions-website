@@ -3550,7 +3550,7 @@ async function processPendingAttachments(goalId,taskText){
 function bind(){
   document.querySelectorAll("[data-view]").forEach(b=>b.onclick=async()=>{current=b.dataset.view;if(current==="admin"&&isAdmin){try{await loadAdminConsole()}catch(e){pilotNotice(e.message||String(e))}}render()});
   document.querySelectorAll("[data-jump]").forEach(b=>b.onclick=()=>{current=b.dataset.jump;render()});
-   document.querySelectorAll("[data-open-goal]").forEach(b=>b.onclick=async()=>{activeGoalId=b.dataset.openGoal;await load();current="home";render()});
+   document.querySelectorAll("[data-open-goal]").forEach(b=>b.onclick=async()=>{activeGoalId=b.dataset.openGoal;try{localStorage.setItem("nexaro_pilot_goal_"+user.id,activeGoalId)}catch{}await load();current="home";render()});
   document.getElementById("createGoal")?.addEventListener("click",createGoal);
   document.getElementById("goalText")?.addEventListener("input",e=>{const c=document.getElementById("goalTextCount");if(c)c.textContent=String(e.target.value.length)+" / 3000"});
   document.getElementById("openActiveAction")?.addEventListener("click",()=>{
@@ -3849,7 +3849,7 @@ async function createGoal(){
     if(data.stage!=="ready")throw new Error("Pilot konnte den Plan nicht abschließen.");
 
     setPilotFlightPhase("Pilot öffnet deinen Arbeitsbereich …");
-    if(data.goal?.id)activeGoalId=data.goal.id;
+    if(data.goal?.id){activeGoalId=data.goal.id;try{localStorage.setItem("nexaro_pilot_goal_"+user.id,activeGoalId)}catch{}}
     await load();
     const targetGoalId=data.goal?.id||goals[0]?.id;
     const targetGoal=goals.find(g=>g.id===targetGoalId)||goals[0];
@@ -4169,7 +4169,7 @@ async function previewPilotFlight(){
 }
 /* A client-initiated, bounded Autopilot batch. Every iteration is separately authorized by the
    backend; it can never override a joint decision, external approval, or quality review. */
-async function pilotContinueSafely(goalId,maxSteps=3){
+async function pilotContinueSafely(goalId,maxSteps=8){
  if(!goalId||pilotAutoSession?.active)return;
  const session={active:true,cancelRequested:false,count:0,max:maxSteps,label:"Pilot prüft den nächsten sicheren Schritt …"};
  pilotAutoSession=session;pilotAutoSummary=null;render();
@@ -4222,6 +4222,9 @@ async function pilotContinueSafely(goalId,maxSteps=3){
    pilotAutoSummary={completed:session.count,kind:stopKind,text:doneNote+stopped};
    if(pilotAutoSession===session)pilotAutoSession=null;
    render();
+   if(launchCreated && !session.cancelRequested && goals[0]?.id===goalId){
+     setTimeout(()=>{if(!pilotAutoSession?.active && goals[0]?.id===goalId)void pilotContinueSafely(goalId,8)},250);
+   }
  }
 }
 async function confirmPilotResult(){
@@ -4260,7 +4263,7 @@ async function confirmPilotResult(){
    // Land the aircraft for the completed user decision; continue follow-up jobs independently.
    finishPilotFlight();
    PS.textContent="Pilot startet die nächsten sicheren Schritte …";
-   void pilotContinueSafely(ctx.ex.goal_id,3);
+   void pilotContinueSafely(ctx.ex.goal_id,8);
  }catch(e){
    PS.textContent="Pilot benötigt eine Prüfung";
    await load().catch(()=>{});
@@ -4465,7 +4468,7 @@ async function executeAction(){
    if(shouldAutoContinue){
      finishPilotFlight();
      PS.textContent="Pilot führt die nächsten sicheren Schritte selbstständig aus …";
-     void pilotContinueSafely(n.goal_id||goals[0]?.id,3);
+     void pilotContinueSafely(n.goal_id||goals[0]?.id,8);
    }
  }catch(e){
    PS.textContent="Pilot benötigt eine Prüfung";
@@ -4484,7 +4487,7 @@ async function executeAction(){
  }
 }
 async function decideExecution(v,approved){const [execution_id,step_id]=v.split(":");const reason=approved?null:await pilotAskText("Warum möchtest du diese Aktion ablehnen?",{title:"Freigabe ablehnen",placeholder:"Optionaler Grund …"});if(!approved&&reason===null)return;PS.textContent=approved?"Freigabe wird verarbeitet …":"Aktion wird abgebrochen …";try{const r=await sb.functions.invoke("execution-engine",{body:{operation:"approve",execution_id,step_id,approved,reason}});if(r.error&&r.data?.status!=="blocked")throw r.error;await load();render();PS.textContent="Pilot bereit";if(r.data?.status==="blocked")pilotNotice("Freigabe wurde erfasst. Die externe Capability ist noch nicht verbunden; Pilot hat deshalb nicht ausgeführt.")}catch(e){PS.textContent="Pilot bereit";pilotNotice(e.message||String(e))}}
-async function enter(session){user=session.user;A.classList.add("hidden");APP.classList.remove("hidden");try{await load();await pilotEnsureJourney();render();if(goals[0])void startGoalResearch(goals[0].id);telemetry("event",{event_name:"session_entered",event_category:"activation",properties:{has_goal:!!goals[0]}})}catch(e){telemetry("incident",{source:"app_load",severity:"error",error_code:"LOAD_FAILED",message:e.message||String(e)});pilotNotice(e.message)}}
+async function enter(session){user=session.user;try{activeGoalId=localStorage.getItem("nexaro_pilot_goal_"+user.id)||null}catch{}A.classList.add("hidden");APP.classList.remove("hidden");try{await load();await pilotEnsureJourney();render();if(goals[0])void startGoalResearch(goals[0].id);telemetry("event",{event_name:"session_entered",event_category:"activation",properties:{has_goal:!!goals[0]}})}catch(e){telemetry("incident",{source:"app_load",severity:"error",error_code:"LOAD_FAILED",message:e.message||String(e)});pilotNotice(e.message)}}
 async function leave(){user=null;org=null;isAdmin=false;customerPreview=false;adminData=null;pendingAttachments=[];goalSuccessMap={};goals=[];features=[];plans=[];actions=[];contexts=[];milestones=[];documents=[];results=[];claims=[];evidence=[];completeness=[];progressEvents=[];outcomes=[];adaptations=[];pilotState=null;aiRequests=[];qualityContracts=[];consensusRuns=[];executions=[];executionSteps=[];designJobs=[];canvaStatus=null;researchBusy=false;researchAttempted.clear();notifications=[];readiness=[];evalRuns=[];APP.classList.add("hidden");A.classList.remove("hidden")}
 let authMode="login";
 const AUTHM=document.getElementById("authModal"),ME=document.getElementById("modalEmail"),MP=document.getElementById("modalPassword"),MP2=document.getElementById("modalPassword2"),MW=document.getElementById("repeatPasswordWrap"),PW=document.getElementById("privacyWrap"),AP=document.getElementById("acceptPrivacy"),SM=document.getElementById("submitAuth"),SW=document.getElementById("switchAuthMode"),RC=document.getElementById("resendConfirmation"),MM=document.getElementById("modalMessage"),CS=document.getElementById("confirmationState"),CE=document.getElementById("confirmationEmail"),CR=document.getElementById("confirmationResend"),CL=document.getElementById("confirmationLogin");
