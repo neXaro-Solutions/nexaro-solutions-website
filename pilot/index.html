@@ -3117,6 +3117,20 @@ body{max-width:100%;overflow-x:clip}
  html{scroll-behavior:auto!important}
  .side .nav,.auth-modal-card,.pilot-home .btn{transition:none!important}
 }
+
+/* Project decision journal - quiet, compact, touch-friendly. */
+.pilot-journal{margin:12px 0;border:1px solid #d7ebce;border-radius:13px;background:#fcfff9}
+.pilot-journal>summary{cursor:pointer;padding:12px;color:#416438;font-weight:800;font-size:12px}
+.pilot-journal-body{padding:10px 12px 14px;border-top:1px solid #e1eedd}
+.pilot-journal-entry{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid #edf3e9}
+.pilot-journal-entry>div:first-child{min-width:0;flex:1;overflow-wrap:anywhere}
+.pilot-journal-entry strong{font-size:12px;color:#34552c}
+.pilot-journal-entry p{font-size:12px;margin:3px 0}
+.pilot-journal-entry small{font-size:10px;color:#8a9783}
+.pilot-journal-actions{display:flex;gap:5px;flex-wrap:wrap}
+.pilot-journal-actions button,.pilot-journal-add{border:1px solid #c9e8b8;background:#fff;border-radius:9px;color:#396725;padding:9px;font-size:11px;font-weight:750;cursor:pointer}
+.pilot-journal-add{margin-top:10px;background:#eaffde}
+@media(max-width:460px){.pilot-journal-entry{align-items:flex-start;flex-direction:column}}
 </style></head>
 <body>
 <section id="auth" class="auth"><div class="box">
@@ -3760,7 +3774,10 @@ function pilotProjectCard(goal){
  '<small>Erstellt am '+esc(pilotProjectDate(goal.created_at))+'</small></span>'+
  (active?'<span class="pilot-project-state">Aktiv</span>':'')+'</summary>'+
  '<div class="pilot-project-body"><button class="pilot-project-continue" data-open-goal="'+esc(goal.id)+'" type="button">✈ '+(active?"Weiterarbeiten":"Auftrag fortsetzen")+'</button>'+
- '<div data-project-results="'+esc(goal.id)+'">'+(active?pilotProjectResultsHTML(results,actions):'<p class="pilot-project-empty">Ergebnisse werden beim Öffnen geladen.</p>')+'</div></div></details>';
+ '<div data-project-results="'+esc(goal.id)+'">'+(active?pilotProjectResultsHTML(results,actions):'<p class="pilot-project-empty">Ergebnisse werden beim Öffnen geladen.</p>')+'</div>'+
+ '<details class="pilot-journal" data-journal-project="'+esc(goal.id)+'"><summary>🧠 Bestätigte Entscheidungen</summary>'+
+ '<div class="pilot-journal-body" data-journal-list="'+esc(goal.id)+'">Zum Anzeigen aufklappen.</div></details>'+
+ '</div></details>';
 }
 async function pilotLoadProjectResults(id,node){
  if(!node||node.dataset.loading==="1"||node.dataset.loaded==="1"||!goals.some(g=>g.id===id))return;
@@ -4184,6 +4201,18 @@ function bind(){
    if(node)void pilotLoadProjectResults(project.dataset.project,node);
   }));
 
+  document.querySelectorAll("[data-journal-project]").forEach(panel=>{
+    panel.addEventListener("toggle",()=>{
+      if(panel.open)void pilotJournalLoad(panel.dataset.journalProject,panel.querySelector("[data-journal-list]"));
+    });
+    panel.addEventListener("click",e=>{
+      const b=e.target.closest?.("[data-jadd],[data-jedit],[data-jrevoke]");
+      if(!b)return;e.stopPropagation();
+      if(b.dataset.jadd)void pilotJournalEdit(b.dataset.jadd);
+      else if(b.dataset.jedit){const [id,key]=b.dataset.jedit.split(":");void pilotJournalEdit(id,key)}
+      else if(b.dataset.jrevoke){const [id,key]=b.dataset.jrevoke.split(":");void pilotJournalRevoke(id,key)}
+    });
+  });
   document.getElementById("createGoal")?.addEventListener("click",createGoal);
   document.getElementById("goalText")?.addEventListener("input",e=>{const c=document.getElementById("goalTextCount");if(c)c.textContent=String(e.target.value.length)+" / 3000"});
   document.getElementById("openActiveAction")?.addEventListener("click",()=>{
