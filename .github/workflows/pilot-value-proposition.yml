@@ -7,6 +7,7 @@ on:
       - 'nx-language.js'
       - 'b2b-handel.html'
       - 'pilot/index.html'
+      - 'pilot/pilot-language.js'
       - 'pilot/tests/value-proposition-contract.mjs'
       - '.github/workflows/pilot-value-proposition.yml'
   pull_request:
@@ -16,6 +17,7 @@ on:
       - 'nx-language.js'
       - 'b2b-handel.html'
       - 'pilot/index.html'
+      - 'pilot/pilot-language.js'
       - 'pilot/tests/value-proposition-contract.mjs'
 jobs:
   product-integrity:
