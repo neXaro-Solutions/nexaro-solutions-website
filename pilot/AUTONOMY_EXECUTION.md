@@ -129,3 +129,11 @@ Der echte iPhone-Lauf `34849feb-abeb-40e1-8417-83fc972a79ef` (ca. 32 Sekunden, S
 - `pilot/index.html` LUMEN .29: verständliche, getrennte Meldung bei nicht verfügbaren Modellantworten, unverändertes Zielgedächtnis, Flugfunktion und Ein-Klick-Sperre gegen doppelte Ausführung.
 
 **Prüfstatus:** Alle acht Quellcode-/Konfigurationsprüfungen sowie JavaScript-Syntax bestanden, Edge-Funktionen aktiv mit JWT; tatsächliche Modellantwort und End-to-End-Artefakt auf iPhone **noch nicht geprüft**. Bestehende Aufgabe `ready`, keine parallele Ausführung, vier protokollierte Fehlversuche, null Ergebnisse. Der Block bleibt Alpha und darf erst nach erfolgreicher Live-Durchführung auf Grün.
+
+### Diagnose 10:34 – OpenAI JSON-Ausgabemodus (Backend v25)
+
+Beim erneuten iPhone-Test brach die Recherche **nicht** ab: zwei Quellen gefunden, ausreichender Evidence Gate. Die anschließende Generierung scheiterte mit `MODEL_OUTPUT_NOT_READY`. Der OpenAI-Log dokumentierte wörtlich: `Response input messages must contain the word 'json' in some form to use 'text.format' of type 'json_object'.` Claude scheiterte separat am Anbieter-Timeout. **Root Cause:** Die Systemanweisungen erwähnten JSON, die eigentliche Responses-API-Nutzernachricht enthielt diese Zeichenfolge aber nicht.
+
+**Fix aktiv in `ai-gateway v25`:** Der Textkörper jeder normalen OpenAI-Anfrage mit `text.format=json_object` beginnt jetzt mit `JSON output required.` und enthält anschließend den ursprünglichen Aufgabeninhalt. Die Ausgabevalidierung, das Safety-Gate, die Zuordnung zum angemeldeten Benutzer sowie die Hochrisiko-Route bleiben unverändert. `best-of-ai v19` läuft mit OpenAI und bedingtem Claude-Fallback.
+
+**Status:** Deployment und Prüfung des tatsächlich erzeugten Request-Bodys bestanden. Noch kein durchgeführter authentifizierter Provider-Retest nach v25, daher kein belegtes fertiges Ergebnis. Pilot-LUMEN-.29-Frontend ist unverändert kompatibel; der Qualitäts-/Performancepunkt bleibt Alpha.
