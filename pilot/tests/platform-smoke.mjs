@@ -78,6 +78,9 @@ try{
    if(!first.landingVisible||first.docWidth>first.viewport+2||first.boxLeft< -2||first.boxRight>first.viewport+2){
     throw Error("Landing overflow or hidden: "+JSON.stringify(first));
    }
+   if(await page.locator(".pilot-value-item").count()!==3)throw Error("Pilot advantages must be visible on the first screen");
+   if(!await page.locator(".pilot-value-lead").isVisible())throw Error("Clear customer value proposition missing");
+   if(await page.locator("#guestTask").count()!==1)throw Error("Landing must retain exactly one task composer");
    if(await page.locator("#app").isVisible())throw Error("Signed-out page must not expose the authenticated shell");
    await page.locator("#openLogin").click();
    if(await page.locator("#authModal").evaluate(el=>el.classList.contains("hidden")))
