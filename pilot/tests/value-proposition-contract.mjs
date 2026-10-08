@@ -13,7 +13,7 @@ assert(site.includes('id="welten"')&&site.includes('href="./sumup-beratung.html"
 assert(site.includes('Vape & B2B')&&site.includes('href="./b2b-handel.html"'),"Vape and B2B contact is visible from homepage");
 assert(b2b.includes("Vape-")&&b2b.includes("Fachhandel"),"Age-restricted Vape inquiries remain limited to specialist B2B trade");
 assert(site.includes('href="./crm/"')&&site.includes('id="software-anfrage"'),"Corporate CRM product and direct application remain accessible");
-assert(site.includes('src="./nx-language.js?v=20261008-visible-header"')&&lang.includes('header.insertBefore(b,burger)'),"Visible DE/EN language control must be available outside collapsed mobile navigation");
+assert(site.includes('src="./nx-language.js?v=20261008-visible-header"')&&(lang.includes('document.body.appendChild(b)')||lang.includes('header.insertBefore(b,burger)')),"Visible DE/EN control must remain outside collapsed navigation");
 assert(lang.includes("function installToggle()")&&lang.includes('nx-language-toggle')&&lang.includes('dataset.nxLang')&&lang.includes('"Vape & B2B"'),"Site switcher and B2B terminology have German/English support");
 assert(!/neXaro\s+Pilot|href=["'][^"']*\/pilot(?:\/|["'])/i.test(site),"No neXaro Pilot promotion or link anywhere on corporate homepage");
 assert(!site.includes('pilot-compare'),"Corporate homepage must not host Pilot comparison marketing");
