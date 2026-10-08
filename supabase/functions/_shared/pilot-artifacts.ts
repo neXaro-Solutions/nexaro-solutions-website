@@ -12,7 +12,7 @@ export function validateArtifactText(kind:string,raw:string){
  const t=String(raw||'').trim().replace(/^```(?:html|svg|json)?\s*/i,'').replace(/\s*```$/,'');
  if(t.length<100||t.length>90000)throw Error('ARTIFACT_SIZE_INVALID');
  if(kind==='image'){
-  if(!/^<svg\b/i.test(t)||!/<\/svg>\s*$/i.test(t)||!/[\s]viewBox=/i.test(t)||!/<(?:path|rect|circle|polygon|ellipse)\b/i.test(t)||/<(?:script|foreignObject|image|iframe|use|animate|set)\b|\bon\w+\s*=|(?:href|src)\s*=|<!|javascript:|url\s*\(/i.test(t))throw Error('SVG_ARTIFACT_INVALID');
+  if(!/^<svg\b/i.test(t)||!/<\/svg>\s*$/i.test(t)||!/[\s]viewBox=/i.test(t)||!/<(?:path|rect|circle|polygon|ellipse)\b/i.test(t)||/<(?:script|style|foreignObject|image|iframe|use|animate|set)\b|\bon\w+\s*=|(?:href|src)\s*=|<!|javascript:|url\s*\(/i.test(t))throw Error('SVG_ARTIFACT_INVALID');
   return t;
  }
  if(kind==='website'){

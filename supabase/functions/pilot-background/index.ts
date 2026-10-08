@@ -52,7 +52,7 @@ function eligible(goal:any,action:any){
  return permittedCreative.test(txt)&&!unsafe.test(txt);
 }
 /* Read-only authorization-aware routing. Prevents announcing a durable
-   background run for work that the text-only worker cannot safely execute.
+   background run for work that the bounded creative worker cannot safely execute.
    The interactive execution engine handles those tasks with its own gates. */
 async function inspectNextWork(sb:any,goal:any){
  if(goal.status!=="active")return {mode:"attention",reason:"GOAL_NOT_ACTIVE"};
@@ -98,9 +98,9 @@ async function moderate(key:string,text:string){
 async function createDraft(key:string,goal:any,action:any,decisions:any[],priorWork:any[]){
  const configured=Deno.env.get("PILOT_INTERACTIVE_OPENAI_MODEL")||"gpt-4.1-mini";
  const model=["gpt-4.1-mini","gpt-4o-mini"].includes(configured)?configured:"gpt-4.1-mini";
- // The output is text only; never promise graphics, outside research or registrations.
+ // Return an actual artifact payload; external research and registrations remain separate.
  const instruction=[
-  "Du bist neXaro Pilot. Erstelle ein sofort nutzbares deutsches TEXT-Arbeitsergebnis für einen risikoarmen Kreativauftrag.",
+  "Du bist neXaro Pilot. Erstelle das fertige nutzbare deutsche Lieferobjekt für einen risikoarmen Kreativauftrag.",
   "Kein Rechts-, Finanz-, Medizin- oder Sicherheitsrat. Keine externen Aktionen.",
   "Kein erfundenes Faktenwissen, keine Preise, Quellen, Zulassungen oder überprüften Geschäftsbehauptungen.",
   artifactInstruction(action),

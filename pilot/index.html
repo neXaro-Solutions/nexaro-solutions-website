@@ -4023,7 +4023,7 @@ function home(){
  '<input id="attachmentFileInput" class="hidden-file" type="file" accept="image/*,.pdf,.docx,.txt,.md,.csv,.json,.xml" multiple>';
  const entry='<section class="pilot-simple-card pilot-simple-entry" aria-labelledby="homeComposeTitle">'+
  '<div class="pilot-simple-heading"><span class="pilot-simple-orb" aria-hidden="true">'+pilotAircraftSVG()+'</span><div><span class="pilot-simple-kicker">DEIN AUFTRAG. PILOTS ARBEIT.</span><h2 id="homeComposeTitle">Was möchtest du erledigt haben?</h2>'+
- '<p>Beschreibe dein Ziel. Pilot recherchiert, erarbeitet die Lösung und zeigt dir, was noch fehlt.</p></div></div>'+
+ '<p>Beschreibe dein Ziel. Pilot recherchiert, erstellt dein fertiges Ergebnis und meldet sich, sobald es bereitliegt.</p></div></div>'+
  (pilotForceNewGoal?'<div class="pilot-context-hint" role="status"><span><strong>Neues Projekt</strong> · Der nächste Auftrag wird unabhängig angelegt.</span><button id="pilotCancelNewProject" type="button">Bestehendes Projekt</button></div>':
    pilotPinnedGoalId&&g?.id===pilotPinnedGoalId?'<div class="pilot-context-hint" role="status"><span>Du setzt fort: <strong>'+esc(g.title||"Dein Projekt")+'</strong></span><button id="pilotNewProject" type="button">Neues Projekt</button></div>':'')+
  '<textarea id="goalText" maxlength="3000" rows="3" placeholder="'+"Zum Beispiel: Finde einen günstigen Flug von Berlin nach Paris am 20.11.2026, zurück am 22.11.2026, für 2 Personen."+'" aria-label="Dein Auftrag">'+esc(pilotComposerDraft)+'</textarea>'+
