@@ -4426,6 +4426,17 @@ async function pilotOpenArtifact(id,download=false){
 .pilot-partner-feed-toggle{border-top:1px solid #dce9de;margin:18px 0 10px;padding-top:8px}
 .pilot-partner-feed-toggle>summary{cursor:pointer;font-size:12px;font-weight:780;min-height:44px;display:flex;align-items:center;color:#42654b}
 @media(max-width:500px){.pilot-partner-enroll-item a{width:100%;justify-content:flex-start}}
+
+.pilot-partner-profile{margin:14px 0 17px;padding:8px 13px 14px;border:1px solid #cfe1cf;border-radius:16px;background:linear-gradient(135deg,#f6fff0,#fff)}
+.pilot-partner-profile>summary{cursor:pointer;font-size:13px;font-weight:780;min-height:44px;display:flex;align-items:center;color:#325836}
+.pilot-partner-profile-lines{display:grid;gap:1px;margin:12px 0;background:#e8eee6;border-radius:13px;overflow:hidden}
+.pilot-partner-profile-line{background:white;padding:9px 10px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.pilot-partner-profile-line div{min-width:0}
+.pilot-partner-profile-line small{display:block;font-size:10px;color:#728071}
+.pilot-partner-profile-line span{display:block;font-size:12px;color:#233a2b;white-space:pre-wrap;overflow-wrap:anywhere}
+.pilot-partner-profile-line button,.pilot-partner-submitted{border:1px solid #cae0c9;background:#fff;border-radius:10px;min-height:41px;padding:7px 11px;font-size:11px;font-weight:740;color:#365e3d;cursor:pointer}
+.pilot-partner-submitted{flex:0 0 auto}
+@media(max-width:520px){.pilot-partner-enroll-item{align-items:stretch}.pilot-partner-submitted{width:100%}}
 </style></head><body>'+await d.data.text()+'</body></html>':await d.data.text();node.replaceChildren(frame);
  }catch{pilotNotice('Die Ergebnisdatei konnte nicht geöffnet werden. Bitte erneut versuchen.')}
 }
@@ -4792,24 +4803,115 @@ function pilotMarketView(){
  '<p class="pilot-market-disclosure">Hinweis: Preise, Versandkosten und Verfügbarkeit können sich beim Händler ändern. Werbelinks sind gekennzeichnet. Pilot kann bei qualifizierten Käufen eine Provision erhalten; die Sortierung richtet sich nicht nach der Provision. Ein Kauf erfolgt ausschließlich beim jeweiligen Anbieter.</p></div>';
 }
 
+/* Publisher registration data is stored only in an authenticated RLS-protected table. */
+let pilotPartnerState={loaded:false,busy:false,profile:null,applications:[],error:""};
+const pilotPartnerFields=[
+ ["company_name","Unternehmen"],["legal_form","Rechtsform"],["proprietor_name","Inhaber"],
+ ["street_address","Straße"],["postal_code","Postleitzahl"],["city","Ort"],["country","Land"],
+ ["contact_email","E-Mail"],["phone","Telefon"],["website","Website"],["vat_id","USt-IdNr."],
+ ["publisher_description","Beschreibung für Partnerprogramme"]
+];
+function pilotPartnerCopyText(field){
+ const p=pilotPartnerState.profile||{};
+ if(field==="all")return pilotPartnerFields.map(([key,label])=>label+": "+String(p[key]||"")).join("\n");
+ return String(p[field]||"");
+}
+async function pilotPartnerCopy(field){
+ if(!pilotPartnerState.profile)return;
+ const text=pilotPartnerCopyText(field);
+ if(!text)return;
+ try{
+  await navigator.clipboard.writeText(text);
+  pilotNotice("Registrierungsangaben kopiert.");
+ }catch{
+  pilotNotice("Kopieren im Browser nicht erlaubt. Öffne die Registrierungsangaben und markiere den Text.", "error");
+ }
+}
+async function pilotPartnerLoad(){
+ if(!effectiveAdmin()||!user||pilotPartnerState.loaded||pilotPartnerState.busy)return;
+ pilotPartnerState.busy=true;
+ try{
+  const [p,a]=await Promise.all([
+   sb.from("pilot_partner_profiles").select("company_name,legal_form,proprietor_name,contact_email,phone,website,street_address,postal_code,city,country,vat_id,publisher_description").eq("user_id",user.id).maybeSingle(),
+   sb.from("pilot_partner_applications").select("source_id,application_status,submitted_at").eq("user_id",user.id)
+  ]);
+  if(p.error||a.error)throw p.error||a.error;
+  pilotPartnerState.profile=p.data||null;
+  pilotPartnerState.applications=a.data||[];
+  pilotPartnerState.loaded=true;
+  pilotPartnerState.error="";
+ }catch(e){
+  pilotPartnerState.error="Die privaten Registrierungsdaten konnten nicht geladen werden.";
+  console.warn("Partnerprofil:",String(e?.message||e).slice(0,130));
+ }finally{
+  pilotPartnerState.busy=false;
+  if(current==="market"){
+   const isOpen=document.getElementById("pilotMarketFeedAdmin")?.open;
+   const detailsOpen=document.querySelector(".pilot-partner-profile")?.open;
+   render();
+   if(isOpen)document.getElementById("pilotMarketFeedAdmin").open=true;
+   if(detailsOpen)document.querySelector(".pilot-partner-profile").open=true;
+  }
+ }
+}
+function pilotPartnerProfileHTML(){
+ if(pilotPartnerState.busy&&!pilotPartnerState.loaded)return '<p role="status">Registrierungsangaben werden geladen …</p>';
+ if(pilotPartnerState.error)return '<p role="alert">'+esc(pilotPartnerState.error)+'</p>';
+ const p=pilotPartnerState.profile;
+ if(!p)return '<p>Für diesen Pilot-Adminzugang ist noch kein persönliches Publisher-Profil eingerichtet. Bitte erst die Kontozuordnung prüfen.</p>';
+ return '<details class="pilot-partner-profile">'+
+ '<summary>Registrierungsdaten ansehen und kopieren</summary>'+
+ '<p>Diese Angaben werden ausschließlich aus deinem geschützten Pilot-Konto geladen, nicht aus dem öffentlichen Website-Code.</p>'+
+ '<div class="pilot-partner-profile-lines">'+pilotPartnerFields.map(([key,label])=>
+  '<div class="pilot-partner-profile-line"><div><small>'+esc(label)+'</small><span>'+esc(p[key]||"Nicht eingetragen")+'</span></div>'+
+  '<button type="button" data-partner-copy="'+esc(key)+'" aria-label="'+esc(label)+' kopieren">Kopieren</button></div>'
+ ).join("")+'</div>'+
+ '<button type="button" class="btn ai" id="pilotPartnerCopyAll">Alle Registrierungsangaben kopieren</button>'+
+ '</details>';
+}
+async function pilotPartnerSubmitted(sourceId){
+ if(!effectiveAdmin()||!user||!pilotPartnerState.loaded)return;
+ if(!["adcell","ebay","awin","impact","webgains"].includes(sourceId))return;
+ const existing=pilotPartnerState.applications.find(x=>x.source_id===sourceId);
+ if(existing?.application_status!=="prepared")return;
+ const approved=await nxDialog({
+  title:"Wurde der Antrag wirklich eingereicht?",
+  description:"Bestätige nur eine tatsächlich abgeschickte Registrierung auf der offiziellen Partnerwebsite. Eine Freischaltung ist damit noch nicht bestätigt.",
+  buttons:[{value:"submit",label:"Ja, Antrag eingereicht",primary:true}]
+ });
+ if(approved!=="submit")return;
+ const r=await sb.from("pilot_partner_applications").update({application_status:"submitted",submitted_at:new Date().toISOString(),updated_at:new Date().toISOString()})
+  .eq("user_id",user.id).eq("source_id",sourceId).eq("application_status","prepared").select("source_id,application_status,submitted_at").maybeSingle();
+ if(r.error||!r.data){pilotNotice("Status konnte nicht gespeichert werden.","error");return}
+ pilotPartnerState.applications=pilotPartnerState.applications.map(a=>a.source_id===sourceId?r.data:a);
+ const open=document.getElementById("pilotMarketFeedAdmin")?.open;
+ render();
+ if(open)document.getElementById("pilotMarketFeedAdmin").open=true;
+ pilotNotice("Antrag als eingereicht dokumentiert. Freigabe und technische Verbindung bleiben offen.");
+}
+
 /* Customer surfaces stay calm. Licensed partner feed onboarding is admin-only. */
 let pilotMarketFeedState={busy:false,message:"",error:false};
 function pilotMarketFeedPanel(){
  const sources=[["awin","Awin"],["adcell","ADCELL"],["impact","impact.com"],["cj","CJ Affiliate"],["tradedoubler","Tradedoubler"],["webgains","Webgains"],["rakuten","Rakuten Advertising"],["partnerize","Partnerize"],["belboon","belboon"],["amazon","Amazon PartnerNet"],["ebay","eBay"],["comparison","Lizenzierter Vergleichspartner"]];
  const publishers=[
-  ["ADCELL","https://www.adcell.de/affiliates","Kostenlose Publisher-Anmeldung"],
-  ["eBay Partner Network","https://partnernetwork.ebay.com/solutions/joining-the-ebay-partner-network","eBay-Konto und Programmfreigabe"],
-  ["Awin","https://www.awin.com/de/affiliate-marketing/publisher-werden","Publisher-Antrag, Identitätsprüfung"],
-  ["impact.com","https://impact.com/get-started/","Partnerkonto und Medienprüfung"],
-  ["Webgains","https://webgains.com/de/publishers/","Publisher-Antrag und Websiteprüfung"]
+  ["adcell","ADCELL","https://www.adcell.de/affiliates","Kostenlose Publisher-Anmeldung"],
+  ["ebay","eBay Partner Network","https://partnernetwork.ebay.com/solutions/joining-the-ebay-partner-network","eBay-Konto und Programmfreigabe"],
+  ["awin","Awin","https://www.awin.com/de/affiliate-marketing/publisher-werden","Publisher-Antrag, Identitätsprüfung"],
+  ["impact","impact.com","https://impact.com/get-started/","Partnerkonto und Medienprüfung"],
+  ["webgains","Webgains","https://webgains.com/de/publishers/","Publisher-Antrag und Websiteprüfung"]
  ];
- const applicationLinks='<div class="pilot-partner-enroll">'+publishers.map(([name,url,hint])=>
-   '<div class="pilot-partner-enroll-item"><div><strong>'+esc(name)+'</strong><small>'+esc(hint)+' · Zugang noch nicht bestätigt</small></div>'+
-   '<a href="'+esc(url)+'" target="_blank" rel="noopener noreferrer" aria-label="Offizielle Publisher-Anmeldung '+esc(name)+' öffnen">Anmeldung öffnen ↗</a></div>'
- ).join('')+'</div>';
+ const applicationLinks='<div class="pilot-partner-enroll">'+publishers.map(([id,name,url,hint])=>{
+  const status=pilotPartnerState.applications.find(x=>x.source_id===id)?.application_status||"prepared";
+  const label=status==="submitted"?"Antrag eingereicht · Freigabe offen":"Vorbereitet · Noch nicht eingereicht";
+  return '<div class="pilot-partner-enroll-item"><div><strong>'+esc(name)+'</strong><small>'+esc(hint)+' · '+esc(label)+'</small></div>'+
+   '<a href="'+esc(url)+'" target="_blank" rel="noopener noreferrer" aria-label="Offizielle Publisher-Anmeldung '+esc(name)+' öffnen">Anmeldung öffnen ↗</a>'+
+   (status==="prepared"?'<button type="button" class="pilot-partner-submitted" data-partner-submitted="'+esc(id)+'">Einreichung dokumentieren</button>':'')+'</div>';
+ }).join('')+'</div>';
  return '<details class="pilot-market-feeds" id="pilotMarketFeedAdmin">'+
   '<summary>Partnerprogramme verbinden · Admin</summary>'+
-  '<p>1. Als Publisher beim offiziellen Anbieter registrieren und Unternehmensangaben bestätigen. 2. Aktivierung und Freigabe abschließen. 3. Erst danach verifizierte Trackinglinks und genehmigte Feeds in Pilot übernehmen.</p>'+
+  '<p>1. Registrierungsangaben kopieren. 2. Über den offiziellen Anmeldelink als Publisher registrieren. 3. Nach deiner tatsächlichen Einreichung den Status dokumentieren. 4. Erst nach Freischaltung genehmigte Feeds und Trackinglinks verbinden.</p>'+
+  pilotPartnerProfileHTML()+
   applicationLinks+
   '<p><strong>Wichtig:</strong> Ein geöffneter Anmeldelink ist noch kein aktives Partnerkonto. Persönliche Daten und Zugangsschlüssel gehören nicht in den GitHub-Quellcode.</p>'+
   '<details class="pilot-partner-feed-toggle"><summary>Offiziellen Produktfeed importieren</summary>'+
@@ -4990,6 +5092,10 @@ async function processPendingAttachments(goalId,taskText){
 }
 
 function bind(){
+  if(current==="market"&&effectiveAdmin()&&!pilotPartnerState.loaded&&!pilotPartnerState.busy)void pilotPartnerLoad();
+  document.querySelectorAll("[data-partner-copy]").forEach(b=>b.addEventListener("click",()=>void pilotPartnerCopy(b.dataset.partnerCopy)));
+  document.getElementById("pilotPartnerCopyAll")?.addEventListener("click",()=>void pilotPartnerCopy("all"));
+  document.querySelectorAll("[data-partner-submitted]").forEach(b=>b.addEventListener("click",()=>void pilotPartnerSubmitted(b.dataset.partnerSubmitted)));
   document.getElementById("pilotMarketFeedForm")?.addEventListener("submit",event=>{event.preventDefault();void pilotMarketImportFile();});
   document.getElementById("pilotMarketForm")?.addEventListener("submit",e=>{e.preventDefault();void pilotMarketSearch(document.getElementById("pilotMarketInput")?.value||"")});
   document.querySelectorAll("[data-view]").forEach(b=>b.onclick=async()=>{current=b.dataset.view;const menu=b.closest(".pilot-nav-more");if(menu)menu.open=false;if(current==="admin"&&isAdmin){try{await loadAdminConsole()}catch(e){pilotNotice(e.message||String(e))}}render();if(current==="alpha")void pilotBackgroundLiveCall("status")});
