@@ -124,3 +124,102 @@ body:has(.shell[data-screen="home"]:not(.hidden)){background:
  .side,.pilot-lumen-network,#pilotFlightLayer,#pilotLanguageSwitcher,.pilot-focus-tools{display:none!important}
  .pilot-screen-head,.card,.pilot-project-card{break-inside:avoid;box-shadow:none!important;border:1px solid #dce9dc!important}
 }
+
+/* PILOT FLIGHT LUMEN V6 — one approved airplane graphic, one compositor-owned
+   motion layer. No legacy CSS flight, trailing light, emoji or nested SVG. */
+#pilotFlightLayer .pilot-plane{
+ width:76px!important;height:76px!important;box-sizing:border-box;
+ display:block!important;position:fixed!important;
+ border:0!important;border-radius:50%!important;padding:0!important;
+ background:transparent url("/pilot/lumen-orb.svg") center center/contain no-repeat!important;
+ box-shadow:none!important;filter:none!important;backdrop-filter:none!important;
+ animation:none!important;transition:none!important;pointer-events:none!important;
+ will-change:transform,opacity!important;backface-visibility:hidden;
+ transform-origin:50% 50%!important;contain:layout style paint;
+}
+#pilotFlightLayer .pilot-plane:before,
+#pilotFlightLayer .pilot-plane:after{content:none!important;display:none!important}
+#pilotFlightLayer .pilot-plane--parked{background:transparent url("/pilot/lumen-orb.svg") center/contain no-repeat!important}
+/* The figure (not the optional explanatory speech bubble) measures approx.
+   58 px tall at its animated scale: visibly smaller than the 76 px aircraft. */
+#pilotFlightLayer .pilot-worker-avatar{
+ width:177px!important;height:105px!important;min-height:105px!important;
+ gap:4px!important;filter:none!important;backface-visibility:hidden;
+ transform-origin:18% 76%!important;
+}
+#pilotFlightLayer .pilot-worker-avatar .pilot-worker-figure{
+ width:46px!important;min-width:46px!important;flex:0 0 46px!important;
+ height:100px!important;--pilot-worker-scale:.58!important;
+ transform:translate3d(0,0,0) scale(.58);transform-origin:18% 8%!important;
+}
+#pilotFlightLayer .pilot-worker-avatar .pilot-worker-speech{
+ max-width:124px!important;font-size:10px!important;padding:6px 8px!important;
+}
+#pilotFlightLayer .pilot-worker-avatar.pilot-worker--exit{
+ animation:pilotWorkerExit .7s cubic-bezier(.24,.65,.3,1) both!important;
+ will-change:transform,opacity;
+}
+#pilotFlightLayer .pilot-worker-avatar.pilot-worker--boarding{
+ animation:pilotWorkerBoard .46s cubic-bezier(.45,0,.9,.5) both!important;
+ will-change:transform,opacity;
+}
+#pilotFlightLayer .pilot-worker-avatar.pilot-worker--patrol .pilot-worker-figure{
+ animation:pilotLumenPace 4.8s ease-in-out infinite!important;
+ transform-origin:18% 8%!important;will-change:transform;
+}
+#pilotFlightLayer .pilot-worker-avatar.pilot-worker--patrol .pilot-worker-leg--left{
+ animation:pilotLumenStep 1.2s ease-in-out infinite!important;will-change:transform;
+}
+#pilotFlightLayer .pilot-worker-avatar.pilot-worker--patrol .pilot-worker-leg--right{
+ animation:pilotLumenStep 1.2s ease-in-out -.6s infinite reverse!important;will-change:transform;
+}
+#pilotFlightLayer .pilot-worker-avatar.pilot-worker--patrol .pilot-worker-arm--wave{
+ animation:pilotLumenArm 1.2s ease-in-out -.6s infinite!important;will-change:transform;
+}
+#pilotFlightLayer .pilot-worker-avatar.pilot-worker--patrol .pilot-worker-arm--rest{
+ animation:pilotLumenArm 1.2s ease-in-out infinite reverse!important;will-change:transform;
+}
+#pilotFlightLayer .pilot-worker-avatar.pilot-worker--patrol .pilot-worker-boot{
+ animation:none!important;
+}
+@keyframes pilotLumenPace{
+ 0%,100%{transform:translate3d(0,0,0) scale(.58)}
+ 25%{transform:translate3d(6px,-1px,0) scale(.58)}
+ 50%{transform:translate3d(11px,0,0) scale(.58)}
+ 75%{transform:translate3d(5px,-1px,0) scale(.58)}
+}
+@keyframes pilotLumenStep{0%,100%{transform:rotate(-10deg)}50%{transform:rotate(10deg)}}
+@keyframes pilotLumenArm{0%,100%{transform:rotate(9deg)}50%{transform:rotate(-9deg)}}
+/* The contained admin preview shows the SAME artwork, never a second aircraft. */
+.pilot-demo-scene .pilot-demo-plane{
+ display:block!important;width:76px!important;height:76px!important;
+ border:0!important;border-radius:50%!important;
+ background:transparent url("/pilot/lumen-orb.svg") center/contain no-repeat!important;
+ box-shadow:none!important;filter:none!important;font-size:0!important;
+ animation:none!important;will-change:transform,opacity;backface-visibility:hidden;
+ transition:transform .75s cubic-bezier(.37,0,.33,1),opacity .45s ease!important;
+}
+.pilot-demo-scene .pilot-demo-avatar .pilot-worker-figure{
+ transform:translate3d(0,0,0) scale(.58)!important;transform-origin:18% 8%!important;
+}
+.pilot-demo-scene .pilot-demo-avatar.pilot-worker--patrol .pilot-worker-figure{
+ animation:pilotLumenPace 4.8s ease-in-out infinite!important;
+}
+@media(max-width:420px){
+ #pilotFlightLayer .pilot-worker-avatar{width:153px!important;height:98px!important;min-height:98px!important}
+ #pilotFlightLayer .pilot-worker-avatar .pilot-worker-speech{max-width:105px!important;padding:5px 6px!important;font-size:9px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ #pilotFlightLayer .pilot-worker-avatar.pilot-worker--exit{
+  animation:none!important;opacity:1!important;will-change:auto!important
+ }
+ #pilotFlightLayer .pilot-worker-avatar.pilot-worker--boarding{
+  animation:none!important;opacity:0!important;will-change:auto!important
+ }
+ #pilotFlightLayer .pilot-worker-avatar.pilot-worker--patrol :is(.pilot-worker-figure,.pilot-worker-leg,.pilot-worker-arm){
+  animation:none!important;will-change:auto!important
+ }
+ .pilot-demo-scene .pilot-demo-plane,.pilot-demo-scene .pilot-demo-avatar .pilot-worker-figure{
+  animation:none!important;transition:none!important;will-change:auto!important
+ }
+}
