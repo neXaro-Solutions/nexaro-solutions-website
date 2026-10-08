@@ -1530,6 +1530,45 @@ input,textarea{border-radius:var(--radius-input)}.btn{border-radius:var(--radius
 @keyframes nx-rise{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
 @media(max-width:660px){.nx-mask{align-items:flex-end;padding:8px 8px max(8px,env(safe-area-inset-bottom))}.nx-modal{width:100%;max-height:calc(100dvh - env(safe-area-inset-top) - 16px);padding:25px 20px 22px;border-radius:26px 26px 19px 19px}}
 @media(prefers-reduced-motion:reduce){.nx-modal{animation:none}}
+
+/* neXaro Pilot: the aircraft remains in motion for the entire in-flight workflow.
+   Higher than custom dialogs so it stays visible during questions; never blocks interaction. */
+#pilotFlightLayer{z-index:15100!important;pointer-events:none!important;isolation:isolate}
+.pilot-plane{z-index:2;width:54px;height:54px;border:1px solid rgba(134,232,67,.55);background:linear-gradient(145deg,rgba(255,255,255,.97),rgba(236,255,216,.96));box-shadow:0 10px 30px rgba(27,54,18,.18),0 0 20px rgba(143,255,38,.20);font-size:27px;color:#24391e;pointer-events:none}
+.pilot-plane::after{width:110px;height:5px;right:42px;background:linear-gradient(90deg,transparent,rgba(136,255,37,.75),rgba(255,116,23,.93));box-shadow:0 0 12px rgba(141,255,47,.22)}
+.pilot-plane--launch{animation:pilotLaunchExtended .96s cubic-bezier(.21,.73,.25,1) both!important}
+.pilot-plane--cruise{left:0!important;top:0!important;animation:pilotCruiseExtended 5.8s linear infinite!important}
+.pilot-plane--exit{animation:pilotExitExtended .7s cubic-bezier(.45,0,.9,.3) forwards!important}
+.pilot-flight-status{position:fixed;top:max(13px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);max-width:min(86vw,360px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;z-index:3;border-radius:999px;border:1px solid rgba(169,228,141,.85);background:rgba(255,255,255,.94);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:0 5px 22px rgba(30,54,19,.11);color:#32472a;font-size:12px;font-weight:800;letter-spacing:.02em;padding:8px 13px;pointer-events:none}
+.pilot-flight-status::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:#83ee22;box-shadow:0 0 0 3px rgba(141,255,47,.20);margin-right:8px;vertical-align:middle}
+@keyframes pilotLaunchExtended{
+  0%{opacity:.12;transform:translate(0,0) rotate(-8deg) scale(.65)}
+  30%{opacity:1;transform:translate(12vw,-5vh) rotate(-17deg) scale(1)}
+  100%{opacity:1;transform:translate(27vw,-19vh) rotate(-20deg) scale(1.08)}
+}
+@keyframes pilotCruiseExtended{
+  0%{opacity:0;transform:translate(-75px,38dvh) rotate(-18deg) scale(.92)}
+  9%{opacity:1;transform:translate(8vw,34dvh) rotate(-17deg) scale(1)}
+  28%{opacity:1;transform:translate(37vw,21dvh) rotate(-15deg) scale(1)}
+  47%{opacity:1;transform:translate(76vw,12dvh) rotate(-12deg) scale(1.04)}
+  61%{opacity:1;transform:translate(calc(100vw - 32px),22dvh) rotate(160deg) scale(1)}
+  80%{opacity:1;transform:translate(35vw,31dvh) rotate(163deg) scale(.94)}
+  95%{opacity:1;transform:translate(-10px,38dvh) rotate(160deg) scale(.92)}
+  100%{opacity:0;transform:translate(-75px,38dvh) rotate(160deg) scale(.92)}
+}
+@keyframes pilotExitExtended{
+  0%{opacity:1;transform:translate(0,0) rotate(-15deg) scale(1)}
+  100%{opacity:0;transform:translate(46vw,-28vh) rotate(-22deg) scale(.55)}
+}
+@media(max-width:640px){
+ .pilot-plane{width:47px;height:47px;font-size:24px}
+ .pilot-flight-status{top:max(8px,env(safe-area-inset-top));font-size:11px;padding:7px 11px}
+}
+@media(prefers-reduced-motion:reduce){
+ .pilot-plane--launch,.pilot-plane--cruise{animation:none!important;opacity:1!important;left:calc(100vw - 70px)!important;top:max(52px,env(safe-area-inset-top))!important;transform:none!important}
+ .pilot-plane--exit{animation:none!important;opacity:0!important}
+}
+
 </style></head>
 <body>
 <section id="auth" class="auth"><div class="box">
@@ -1911,7 +1950,7 @@ function nxOpenNext(){
   const mask=document.createElement("div");mask.className="nx-mask";
   const safe=esc;
   mask.innerHTML='<section class="nx-modal" role="dialog" aria-modal="true" aria-labelledby="nxTitle" aria-describedby="nxDesc">'+
-    '<div class="nx-top"><div class="nx-symbol" aria-hidden="true">✦</div><span class="nx-kicker">neXaro · PILOT · Alpha 2026.10.08.10</span><button type="button" class="nx-close" aria-label="Schließen">×</button></div>'+
+    '<div class="nx-top"><div class="nx-symbol" aria-hidden="true">✦</div><span class="nx-kicker">neXaro · PILOT · Alpha 2026.10.08.11</span><button type="button" class="nx-close" aria-label="Schließen">×</button></div>'+
     '<h2 id="nxTitle">'+safe(config.title||"Pilot fragt nach")+'</h2><p class="nx-description" id="nxDesc">'+safe(config.description||"Bitte ergänze die noch fehlenden Angaben.")+'</p>'+
     '<form novalidate><div class="nx-fields">'+fields.map((f,i)=>'<div class="nx-field"><label for="nxInput'+i+'">'+safe(f.label)+'</label>'+
       (f.short?'<input id="nxInput'+i+'" type="text" name="'+safe(f.key)+'" maxlength="500" placeholder="'+safe(f.placeholder||"")+'" data-required="'+(f.required?"1":"0")+'">':
@@ -2100,6 +2139,7 @@ async function createGoal(){
 
     if(data.stage==="goal_resolution"){
       PS.textContent="Pilot prüft den Zusammenhang …";
+      setPilotFlightPhase("Pilot ordnet dein Ziel zu …");
       const choice=await askGoalResolution(data.candidate_goal);
        if(choice===null){PS.textContent="Pilot bereit";btn.disabled=false;btn.textContent="✈ Pilot jetzt starten";btn.classList.remove("launching");return;}
 
@@ -2116,9 +2156,11 @@ async function createGoal(){
     }
 
     if(data.stage==="clarification"){
+      setPilotFlightPhase("Pilot klärt die nächsten Schritte …");
       const answers=await pilotAskQuestions(data.questions);
       if(!answers){PS.textContent="Pilot bereit";btn.disabled=false;btn.textContent="✈ Pilot jetzt starten";btn.classList.remove("launching");return;}
       PS.textContent="Pilot plant …";
+      setPilotFlightPhase("Pilot erstellt deinen Plan …");
       r=await sb.functions.invoke("pilot-intelligence",{body:{input:text,intent:data.intent,answers,...resolutionPayload}});
       if(r.error)throw await pilotApiError(r,"Pilot konnte den Plan nicht erstellen.");
       data=r.data;
@@ -2126,12 +2168,14 @@ async function createGoal(){
 
     if(data.stage!=="ready")throw new Error("Pilot konnte den Plan nicht abschließen.");
 
+    setPilotFlightPhase("Pilot öffnet deinen Arbeitsbereich …");
     await load();
     const targetGoalId=data.goal?.id||goals[0]?.id;
     const targetGoal=goals.find(g=>g.id===targetGoalId)||goals[0];
     if(!targetGoal)throw new Error("Das Ziel konnte nicht geladen werden.");
 
     if(pendingAttachments.length){
+      setPilotFlightPhase("Pilot verarbeitet deine Anhänge …");
       await processPendingAttachments(targetGoal.id,text);
       await load();
     }
@@ -2162,6 +2206,9 @@ async function createGoal(){
     btn.disabled=false;
     btn.textContent="✈ Pilot jetzt starten";
     btn.classList.remove("launching");
+  }finally{
+    finishPilotFlight();
+    if(btn.isConnected){btn.classList.remove("launching");btn.disabled=false;if(btn.textContent==="✈ Pilot startet …")btn.textContent="✈ Pilot jetzt starten →";}
   }
 }
 async function completeAction(withOutcome,blocked){
@@ -2193,8 +2240,57 @@ async function runEvals(){PS.textContent="Prüfung läuft …";try{const r=await
 async function connectCanva(){pilotNotice("Das Gestaltungsmodul wird zentral durch Pilot verwaltet.")}
 async function designWithCanva(v){const [id,type]=v.split(":");const r=results.find(x=>x.id===id);if(!r)return;const brief=["Create a professional neXaro-branded "+type+" based on this approved result. Use a light, premium layout with neon green and neon orange accents, high readability, and restrained visual energy. Preserve facts and wording accuracy.","","Title: "+r.title,"","Content:",String(r.content||"").slice(0,4200)].join("\\n");PS.textContent="Gestaltung wird vorbereitet …";try{const x=await sb.functions.invoke("canva-execution",{body:{action:"generate",goal_id:goals[0]?.id||null,source_result_id:r.id,design_type:type,brief}});if(x.error&&x.data?.status!=="canva_connection_required")throw x.error;if(x.data?.status==="canva_connection_required"){pilotNotice("Das Gestaltungsmodul wird aktuell vorbereitet. Pilot führt dich nicht zu externen Diensten weiter.");return}await load();current="canva";render();PS.textContent="Pilot bereit"}catch(e){PS.textContent="Pilot bereit";pilotNotice(e.message||String(e))}}
 async function pollCanva(id){PS.textContent="Designauftrag wird geprüft …";try{const x=await sb.functions.invoke("canva-execution",{body:{action:"poll",design_job_id:id}});if(x.error)throw x.error;await load();render();PS.textContent="Pilot bereit"}catch(e){PS.textContent="Pilot bereit";pilotNotice(e.message||String(e))}}
-function startPilotFlight(btn){const layer=document.getElementById("pilotFlightLayer");if(!layer||!btn)return;const reduced=window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;if(reduced)return;const rect=btn.getBoundingClientRect();const plane=document.createElement("div");plane.className="pilot-plane";plane.textContent="✈";plane.style.left=(rect.left+rect.width*.58-23)+"px";plane.style.top=(rect.top+rect.height*.16-10)+"px";layer.appendChild(plane);plane.addEventListener("animationend",()=>plane.remove(),{once:true});setTimeout(()=>{if(plane.isConnected)plane.remove()},2000)}
-async function executeAction(){const n=actions.find(a=>a.status==="ready")||actions.find(a=>a.status==="pending");if(!n)return;const btn=document.getElementById("executeAction");btn?.classList.add("launching");startPilotFlight(btn);PS.textContent="Pilot hebt ab …";setTimeout(()=>{if(PS.textContent==="Pilot hebt ab …")PS.textContent="Pilot arbeitet …"},650);try{const r=await sb.functions.invoke("execution-engine",{body:{operation:"start",action_id:n.id}});if(r.error)throw await pilotApiError(r,"Ausführung wurde beendet.");await load();render();PS.textContent=r.data?.status==="waiting_approval"?"Freigabe erforderlich":"Pilot bereit";if(r.data?.status==="waiting_approval")pilotNotice("Pilot hat die Arbeit vorbereitet. Die externe Aktion wartet auf deine Freigabe.");if(r.data?.status==="review_required")pilotNotice("Pilot hat das Resultat erstellt. Aufgrund des Risikoprofils ist eine menschliche Prüfung erforderlich.")}catch(e){PS.textContent="Pilot bereit";await telemetry("incident",{goal_id:goals[0]?.id||null,source:"execution",severity:"error",error_code:"EXECUTION_FAILED",message:e.message||String(e)});pilotNotice(e.message||String(e))}finally{setTimeout(()=>btn?.classList.remove("launching"),700)}}
+let activePilotFlight=null;
+function startPilotFlight(btn){
+  const layer=document.getElementById("pilotFlightLayer");
+  if(!layer||!btn)return;
+  if(activePilotFlight?.plane?.isConnected)return;
+  // The flight layer lives outside #view, so rendering new panels cannot interrupt the aircraft.
+  layer.replaceChildren();
+  const rect=btn.getBoundingClientRect();
+  const plane=document.createElement("div");
+  plane.className="pilot-plane pilot-plane--launch";
+  plane.textContent="✈";
+  plane.style.left=Math.max(0,Math.min(window.innerWidth-50,rect.left+rect.width*.55-25))+"px";
+  plane.style.top=Math.max(0,Math.min(window.innerHeight-50,rect.top+rect.height*.16-15))+"px";
+  const label=document.createElement("div");
+  label.className="pilot-flight-status";
+  label.textContent="Pilot startet …";
+  layer.append(plane,label);
+  const flight={plane,label};
+  activePilotFlight=flight;
+  const cruise=()=>{
+    if(activePilotFlight!==flight||!plane.isConnected||plane.classList.contains("pilot-plane--exit"))return;
+    plane.classList.remove("pilot-plane--launch");
+    plane.classList.add("pilot-plane--cruise");
+  };
+  plane.addEventListener("animationend",event=>{
+    if(event.animationName==="pilotLaunchExtended")cruise();
+  });
+  // iOS WebKit can suppress animationend during page/layout changes.
+  setTimeout(cruise,1050);
+}
+function setPilotFlightPhase(message){
+  if(activePilotFlight?.label?.isConnected)activePilotFlight.label.textContent=message;
+}
+function finishPilotFlight(){
+  const flight=activePilotFlight;
+  if(!flight)return;
+  activePilotFlight=null;
+  const {plane,label}=flight;
+  label?.remove();
+  if(!plane?.isConnected)return;
+  const rect=plane.getBoundingClientRect();
+  // Depart from the aircraft's last visible location, then vanish after the screen transition.
+  plane.classList.remove("pilot-plane--launch","pilot-plane--cruise");
+  plane.style.left=rect.left+"px";
+  plane.style.top=rect.top+"px";
+  plane.classList.add("pilot-plane--exit");
+  const cleanup=()=>plane.remove();
+  plane.addEventListener("animationend",cleanup,{once:true});
+  setTimeout(cleanup,850);
+}
+async function executeAction(){const n=actions.find(a=>a.status==="ready")||actions.find(a=>a.status==="pending");if(!n)return;const btn=document.getElementById("executeAction");btn?.classList.add("launching");startPilotFlight(btn);PS.textContent="Pilot hebt ab …";setTimeout(()=>{if(PS.textContent==="Pilot hebt ab …")PS.textContent="Pilot arbeitet …"},650);try{const r=await sb.functions.invoke("execution-engine",{body:{operation:"start",action_id:n.id}});if(r.error)throw await pilotApiError(r,"Ausführung wurde beendet.");await load();render();PS.textContent=r.data?.status==="waiting_approval"?"Freigabe erforderlich":"Pilot bereit";if(r.data?.status==="waiting_approval")pilotNotice("Pilot hat die Arbeit vorbereitet. Die externe Aktion wartet auf deine Freigabe.");if(r.data?.status==="review_required")pilotNotice("Pilot hat das Resultat erstellt. Aufgrund des Risikoprofils ist eine menschliche Prüfung erforderlich.")}catch(e){PS.textContent="Pilot bereit";await telemetry("incident",{goal_id:goals[0]?.id||null,source:"execution",severity:"error",error_code:"EXECUTION_FAILED",message:e.message||String(e)});pilotNotice(e.message||String(e))}finally{finishPilotFlight();setTimeout(()=>btn?.classList.remove("launching"),700)}}
 async function decideExecution(v,approved){const [execution_id,step_id]=v.split(":");const reason=approved?null:await pilotAskText("Warum möchtest du diese Aktion ablehnen?",{title:"Freigabe ablehnen",placeholder:"Optionaler Grund …"});if(!approved&&reason===null)return;PS.textContent=approved?"Freigabe wird verarbeitet …":"Aktion wird abgebrochen …";try{const r=await sb.functions.invoke("execution-engine",{body:{operation:"approve",execution_id,step_id,approved,reason}});if(r.error&&r.data?.status!=="blocked")throw r.error;await load();render();PS.textContent="Pilot bereit";if(r.data?.status==="blocked")pilotNotice("Freigabe wurde erfasst. Die externe Capability ist noch nicht verbunden; Pilot hat deshalb nicht ausgeführt.")}catch(e){PS.textContent="Pilot bereit";pilotNotice(e.message||String(e))}}
 async function enter(session){user=session.user;A.classList.add("hidden");APP.classList.remove("hidden");try{await load();render();if(goals[0])void startGoalResearch(goals[0].id);telemetry("event",{event_name:"session_entered",event_category:"activation",properties:{has_goal:!!goals[0]}})}catch(e){telemetry("incident",{source:"app_load",severity:"error",error_code:"LOAD_FAILED",message:e.message||String(e)});pilotNotice(e.message)}}
 async function leave(){user=null;org=null;isAdmin=false;customerPreview=false;adminData=null;pendingAttachments=[];goalSuccessMap={};goals=[];features=[];plans=[];actions=[];contexts=[];milestones=[];documents=[];results=[];claims=[];evidence=[];completeness=[];progressEvents=[];outcomes=[];adaptations=[];pilotState=null;aiRequests=[];qualityContracts=[];consensusRuns=[];executions=[];executionSteps=[];designJobs=[];canvaStatus=null;researchBusy=false;researchAttempted.clear();notifications=[];readiness=[];evalRuns=[];APP.classList.add("hidden");A.classList.remove("hidden")}
