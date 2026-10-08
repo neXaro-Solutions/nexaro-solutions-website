@@ -2910,6 +2910,15 @@ body{background:radial-gradient(ellipse 72vw 60vw at 92% -10%,rgba(145,255,62,.1
  .pilot-demo-plane,.pilot-demo-avatar,.pilot-demo-message{transition:none!important}
  .pilot-demo-avatar.pilot-worker--patrol .pilot-worker-figure,.pilot-demo-avatar.pilot-worker--patrol .pilot-worker-leg{animation:none!important}
 }
+
+/* On mobile the system test appears where the user can see it, never in a floating overlay. */
+.pilot-demo-scope{display:block!important;width:100%;max-width:100%;padding:10px!important;margin:12px 0!important;overflow:hidden}
+.pilot-demo-preview-header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:9px}
+.pilot-demo-preview-header strong{font-size:11px;color:#4e7a42;line-height:1.4}
+.pilot-demo-close{appearance:none;border:1px solid #dce8d4;border-radius:9px;background:#fff;color:#56714e;font-size:11px;font-weight:750;padding:6px 8px;cursor:pointer}
+.pilot-demo-scope .pilot-demo-scene{width:100%;min-height:140px}
+.pilot-demo-finished .pilot-admin-demo-status{font-weight:850;color:#42772e}
+@media(max-width:760px){.pilot-demo-scope{margin:9px 0!important;padding:9px!important}}
 </style></head>
 <body>
 <section id="auth" class="auth"><div class="box">
@@ -3825,13 +3834,12 @@ function pilotSyncFlightScreen(){
  if(pilotFlightPreviewRunning&&!["alpha","admin"].includes(current))pilotCancelFlightPreview();
  // No worker or airplane may float over other screens.
  // The isolated Admin animation stays inside its own preview card.
- if(current!=="home"&&!document.querySelector(".nx-mask")){
+ if(current!=="home"){
+   // Do not let a previous real-job avatar or flight follow the user into tools/tests.
    if(activePilotFlight)pilotDestroyFlight(activePilotFlight);
    document.getElementById("pilotFlightLayer")?.replaceChildren();
-   if(pilotFlightState.mode==="attention"||pilotFlightState.mode==="dialog_attention")
+   if(["attention","dialog_attention","flying"].includes(pilotFlightState.mode))
      pilotSetFlightState(null,"idle","");
-   if(pilotFlightPreviewRunning && current!=="alpha" && current!=="admin")
-     pilotCancelFlightPreview();
    return;
  }
  if(pilotFlightPreviewRunning||current!=="home"||document.querySelector(".nx-mask")||
@@ -4636,18 +4644,10 @@ async function previewPilotFlight(){
  if(!button||pilotFlightPreviewRunning)return;
  const host=button.closest(".pilot-admin-quicktest")||button.parentElement;
  if(!host)return;
- if(pilotAutoSession?.active||pilotExecutionRequestActive){
-   const message=host.querySelector(".pilot-admin-demo-feedback")||document.createElement("p");
-   message.className="pilot-admin-demo-feedback";
-   message.setAttribute("role","status");
-   message.textContent="Pilot bearbeitet gerade einen echten Auftrag. Der Animationstest ist erst danach verfügbar.";
-   if(!message.isConnected)host.appendChild(message);
-   return;
- }
- // Old fixed overlays are not part of this isolated simulation.
- if(activePilotFlight)pilotDestroyFlight(activePilotFlight);
- document.getElementById("pilotFlightLayer")?.replaceChildren();
- pilotSetFlightState(null,"idle","");
+ if(!effectiveAdmin()||!["alpha","admin"].includes(current))return;
+ // The preview is independent of backend activity. It never sends an approval,
+ // changes a goal, or touches the real aircraft's state.
+ document.querySelectorAll(".pilot-demo-only").forEach(node=>node.remove());
  pilotFlightPreviewRunning=true;
  const token=++pilotFlightPreviewToken;
  button.disabled=true;
@@ -4658,7 +4658,8 @@ async function previewPilotFlight(){
  const runway=document.createElement("section");
  runway.className="pilot-admin-runway pilot-demo-only pilot-demo-scope";
  runway.setAttribute("aria-label","Animationstest");
- runway.innerHTML='<div class="pilot-demo-caption">✈ Flug, Landung, Avatar und neuer Start</div>'+
+ runway.innerHTML='<div class="pilot-demo-preview-header"><strong class="pilot-demo-caption">✈ Flug, Landung, Avatar und neuer Start</strong>'+
+   '<button type="button" class="pilot-demo-close" aria-label="Animationstest schließen">Schließen ×</button></div>'+
    '<div class="pilot-demo-scene" data-stage="takeoff">'+
      '<div class="pilot-demo-plane" aria-hidden="true">✈</div>'+
      '<div class="pilot-demo-avatar" data-job="'+esc(profile.id)+'" aria-hidden="true">'+
@@ -4670,6 +4671,8 @@ async function previewPilotFlight(){
    '</div>'+
    '<p class="pilot-admin-demo-status" role="status" aria-live="polite">Flugzeug hebt ab …</p>';
  host.insertAdjacentElement("afterend",runway);
+ runway.querySelector(".pilot-demo-close")?.addEventListener("click",()=>pilotCancelFlightPreview());
+ runway.scrollIntoView({behavior:"smooth",block:"center"});
  const scene=runway.querySelector(".pilot-demo-scene"),avatar=runway.querySelector(".pilot-demo-avatar"),
    status=runway.querySelector(".pilot-admin-demo-status");
  const stage=async(name,message,delay)=>{
@@ -4696,8 +4699,9 @@ async function previewPilotFlight(){
      feedback.textContent="Der Test wurde unterbrochen: "+String(err?.message||err);
  }finally{
    if(token===pilotFlightPreviewToken){
-     runway.remove();
+     // Keep the final frame available for inspection until user closes it or reruns.
      pilotFlightPreviewRunning=false;
+     runway.classList.add("pilot-demo-finished");
      if(button.isConnected)button.disabled=false;
    }
  }
