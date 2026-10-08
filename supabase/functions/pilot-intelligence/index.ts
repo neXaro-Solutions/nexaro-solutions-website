@@ -188,6 +188,36 @@ async function saveMemoryUpdates(sb:any,goal:any,ownerId:string,updates:any){
   }
   return {saved,errors};
 }
+// A retried command must not create a second action after a lost response.
+const PILOT_REQUEST_UUID=/^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i;
+async function recoverAcceptedFollowup(sb:any,ownerId:string,input:string,requestId:string,body:any){
+  const lookup=await sb.from("actions").select("*")
+    .eq("pilot_request_id",requestId).maybeSingle();
+  if(lookup.error)return {status:503,body:{error:"request_lookup_unavailable",retryable:true}};
+  const action=lookup.data;
+  if(!action)return null;
+  const owned=await sb.from("goals").select("*")
+    .eq("id",action.goal_id).eq("owner_id",ownerId).single();
+  if(owned.error||!owned.data)return {status:404,body:{error:"request_not_found"}};
+  // Reject a token reused for a different intention, even if the text matches.
+  if(action.objective!==input || body.force_new_goal===true ||
+    (body.existing_goal_id&&String(body.existing_goal_id)!==action.goal_id))
+    return {status:409,body:{error:"request_id_conflict",
+      message:"Diese Übertragung gehört bereits zu einem anderen Auftrag."}};
+  const pending=await sb.from("actions").select("id,goal_id,title,status,created_at")
+    .eq("goal_id",action.goal_id).in("status",["ready","pending"])
+    .order("created_at",{ascending:true}).limit(1);
+  if(pending.error)return {status:503,body:{error:"work_queue_unavailable",retryable:true}};
+  const next=pending.data?.[0]||action;
+  return {status:200,body:{
+    stage:"ready",goal:owned.data,actions:[action],recovered:true,
+    continuity:{mode:"existing_goal",goal_id:action.goal_id,confidence:"high",
+      reason:"already_received",queued_after_action_id:next.id===action.id?null:next.id},
+    next_action:{...next,reason:"Diesen Auftrag hat Pilot bereits erhalten. Es wird kein zweiter Schritt angelegt."},
+    decision_journal:{reused:0,keys:[]}
+  }};
+}
+
 /* User decisions are authoritative. Detect an explicit request to replace a prior
    choice, not ordinary background discussion of alternative options. */
 function explicitDecisionProposal(input:string,latest:Map<string,any>){
@@ -424,6 +454,9 @@ const pilotCorsHandler=async(req:Request)=>{
   let body:any={}; try{body=await req.json()}catch{return Response.json({error:"invalid_json"},{status:400,headers:cors})}
   const input=String(body.input||"").trim();
   if(!input) return Response.json({error:"input_required"},{status:400,headers:cors});
+  const requestId=body.request_id===undefined?null:String(body.request_id||"").trim();
+  if(requestId!==null&&!PILOT_REQUEST_UUID.test(requestId))
+    return Response.json({error:"request_id_invalid"},{status:400,headers:cors});
 
   const guardBase=Deno.env.get("SUPABASE_URL")!;
   const guardPub=JSON.parse(Deno.env.get("SUPABASE_PUBLISHABLE_KEYS")||"{}").default;
@@ -435,6 +468,12 @@ const pilotCorsHandler=async(req:Request)=>{
   if(!guard?.ok||verdict?.allowed!==true)
     return Response.json({error:guard?.status===403?"request_blocked_by_policy":"safety_check_unavailable",diagnostic_code:verdict?.diagnostic_code||null,reason_code:verdict?.reason_code||"safety_check_unavailable"},
       {status:guard?.status===403?403:503,headers:cors});
+  // Retry lookup comes before goal matching, planning and all new writes.
+  // Authorization uses the original action's goal owner, never the caller's claim.
+  if(requestId){
+    const recovered=await recoverAcceptedFollowup(sb,user.id,input,requestId,body);
+    if(recovered)return Response.json(recovered.body,{status:recovered.status,headers:cors});
+  }
   let intent:Intent=body.intent||intentOf(input);
   const base=Deno.env.get("SUPABASE_URL")!;
   const pub=JSON.parse(Deno.env.get("SUPABASE_PUBLISHABLE_KEYS")||"{}").default;
@@ -550,21 +589,13 @@ const pilotCorsHandler=async(req:Request)=>{
       {status:503,headers:cors});
     const predecessor=queue.data?.[0]||null;
     const followupStatus=predecessor?"pending":"ready";
-    let milestone:any=null;
-    if(currentPlan){
-      const mr=await sb.from("milestones").insert({
-        goal_id:existingGoal.id,plan_id:currentPlan.id,phase_key:"followup_"+Date.now(),
-        title:"Folgeauftrag abgeschlossen",desired_state:input,
-        success_condition:"Der Folgeauftrag ist überprüfbar abgeschlossen.",
-        status:"active",weight:1
-      }).select("*").single();
-      if(!mr.error) milestone=mr.data;
-    }
-
+    // Insert the unique action BEFORE ancillary milestones/memories. Two parallel
+    // submissions may race; only one may create the durable work item.
     const ar=await sb.from("actions").insert({
       goal_id:existingGoal.id,
       plan_id:currentPlan?.id||null,
-      milestone_id:milestone?.id||null,
+      milestone_id:null,
+      pilot_request_id:requestId,
       title:(input.split(/[.!?\n]/)[0]||"Folgeauftrag").slice(0,120),
       objective:input,
       status:followupStatus,
@@ -573,7 +604,30 @@ const pilotCorsHandler=async(req:Request)=>{
       recommended_mode:"do_it",
       blocking:false
     }).select("*").single();
-    if(ar.error) return Response.json({error:"followup_action_create_failed",detail:ar.error.message},{status:500,headers:cors});
+    if(ar.error){
+      if(ar.error.code==="23505"&&requestId){
+        const recovered=await recoverAcceptedFollowup(sb,user.id,input,requestId,body);
+        if(recovered)return Response.json(recovered.body,{status:recovered.status,headers:cors});
+      }
+      return Response.json({error:"followup_action_create_failed",retryable:true},
+        {status:503,headers:cors});
+    }
+    // Only the accepted action gets a milestone; failed duplicate attempts create
+    // neither a second milestone nor duplicate follow-up memories.
+    if(currentPlan){
+      const mr=await sb.from("milestones").insert({
+        goal_id:existingGoal.id,plan_id:currentPlan.id,
+        phase_key:"followup_"+ar.data.id,
+        title:"Folgeauftrag abgeschlossen",desired_state:input,
+        success_condition:"Der Folgeauftrag ist überprüfbar abgeschlossen.",
+        status:"active",weight:1
+      }).select("id").single();
+      if(!mr.error){
+        const linked=await sb.from("actions").update({milestone_id:mr.data.id})
+          .eq("id",ar.data.id).select("*").single();
+        if(!linked.error)ar.data=linked.data;
+      }
+    }
 
     await sb.from("context_items").insert({
       organization_id:orgId,goal_id:existingGoal.id,context_type:"followup_request",key:"followup_"+Date.now(),

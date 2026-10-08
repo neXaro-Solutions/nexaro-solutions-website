@@ -55,10 +55,19 @@ function scenario(existingActions=[],goalOwner=OWNER,otherGoals=[],confirmed=[])
   limit(n){this.take=n;return this}
   insert(payload){this.operation="insert";this.payload=payload;return this}
   upsert(payload){this.operation="upsert";this.payload=payload;return this}
+  update(payload){this.operation="update";this.payload=payload;return this}
   calculate(){
    const rows=data[this.name]||[];
+   if(this.operation==="update"){
+    const found=rows.filter(r=>this.predicates.every(p=>p(r)));
+    for(const row of found)Object.assign(row,this.payload);
+    return {data:found,error:null};
+   }
    if(this.operation!=="select"){
     const incoming=(Array.isArray(this.payload)?this.payload:[this.payload]).map(p=>({id:uuid(),...p}));
+    if(this.name==="actions"&&incoming.some(row=>row.pilot_request_id&&
+       rows.some(old=>old.pilot_request_id===row.pilot_request_id)))
+      return {data:[],error:{code:"23505",message:"duplicate key"}};
     if(this.operation==="upsert"){
      for(const row of incoming){
       const matched=rows.find(r=>r.goal_id===row.goal_id&&r.memory_key===row.memory_key);
@@ -105,6 +114,53 @@ function scenario(existingActions=[],goalOwner=OWNER,otherGoals=[],confirmed=[])
  });const result=await state.handler(request);return {http:result.status,body:await result.json()}};
  return state;
 }
+
+const token="88888888-8888-4888-8888-888888888888";
+const retried=scenario([earlier]);
+const accepted=await retried.invoke({request_id:token,input:"Erstelle ein Logo"});
+assert.equal(accepted.http,200);
+assert.equal(accepted.body.actions[0].pilot_request_id,token);
+assert.equal(retried.data.actions.length,2);
+assert.equal(retried.data.milestones.length,1);
+const repeat=await retried.invoke({request_id:token,input:"Erstelle ein Logo"});
+assert.equal(repeat.http,200);
+assert.equal(repeat.body.recovered,true);
+assert.equal(repeat.body.actions[0].id,accepted.body.actions[0].id);
+assert.equal(retried.data.actions.length,2,"Retry must not create a second action");
+assert.equal(retried.data.milestones.length,1,"Retry must not create orphan milestones");
+assert.equal(retried.data.goal_memories.filter(x=>x.memory_type==="followup").length,1);
+const conflictingToken=await retried.invoke({request_id:token,input:"Erstelle eine neue Website"});
+assert.equal(conflictingToken.http,409);
+assert.equal(conflictingToken.body.error,"request_id_conflict");
+const badToken=await retried.invoke({request_id:"not-a-uuid"});
+assert.equal(badToken.http,400);
+console.log("PASS Retried follow-up is idempotent, scoped, and creates no orphan milestones");
+
+// Simulate simultaneous retries: one unique insert wins, the other recovers it.
+const concurrent=scenario();
+const resultsConcurrent=await Promise.all([
+ concurrent.invoke({request_id:token,input:"Erstelle ein Logo"}),
+ concurrent.invoke({request_id:token,input:"Erstelle ein Logo"})
+]);
+assert(resultsConcurrent.every(x=>x.http===200));
+assert.equal(concurrent.data.actions.length,1);
+assert.equal(concurrent.data.milestones.length,1);
+assert.equal(resultsConcurrent[0].body.actions[0].id,resultsConcurrent[1].body.actions[0].id);
+console.log("PASS Concurrent duplicate delivery creates one action and one milestone");
+
+for(const content of [
+ "const requestId=pilotPendingCommandId(text)",
+ "request_id:requestId",
+ "pilotClearPendingCommand(requestId)",
+ "const id=crypto.randomUUID()",
+ "sessionStorage.setItem(key"
+])assert(frontend.includes(content),"Missing stable client request receipt: "+content);
+const migration=readFileSync(resolve(root,
+ "supabase/migrations/20261008162112_pilot_followup_request_idempotency.sql"),"utf8");
+assert(migration.includes("create unique index if not exists pilot_actions_request_once"));
+assert(migration.includes("where pilot_request_id is not null"));
+console.log("PASS Client retry token and database uniqueness contracts");
+
 const withPredecessor=scenario([earlier]);
 const older=await withPredecessor.invoke();
 assert.equal(older.http,200);

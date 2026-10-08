@@ -4794,9 +4794,33 @@ async function askGoalResolution(resolution){
   });
   return decision;
 }
+// A command keeps the same UUID across an interrupted request and an intentional
+// retry. After acceptance, the next user command always receives a fresh UUID.
+function pilotPendingCommandId(command){
+ const key="nexaro_pilot_pending_command_"+user.id;
+ const scope=pilotForceNewGoal?"new":pilotPinnedGoalId||"auto";
+ const request=String(command||"").trim();
+ let prior=null;
+ try{prior=JSON.parse(sessionStorage.getItem(key)||"null")}catch{}
+ const resumed=scope==="auto"&&prior?.scope===activeGoalId&&!pilotForceNewGoal&&!pilotPinnedGoalId;
+ if(prior?.text===request&&(prior.scope===scope||resumed)&&
+   typeof prior.id==="string"&&Date.now()-prior.at<3600000)return prior.id;
+ const id=crypto.randomUUID();
+ try{sessionStorage.setItem(key,JSON.stringify({id,scope,text:request,at:Date.now()}))}catch{}
+ return id;
+}
+function pilotClearPendingCommand(id){
+ const key="nexaro_pilot_pending_command_"+user.id;
+ try{
+  const prior=JSON.parse(sessionStorage.getItem(key)||"null");
+  if(prior?.id===id)sessionStorage.removeItem(key);
+ }catch{}
+}
+
 async function createGoal(){
   const text=document.getElementById("goalText").value.trim();
   if(!text||!org)return;
+  const requestId=pilotPendingCommandId(text);
 
   const btn=document.getElementById("createGoal");
   btn.classList.add("launching");
@@ -4812,7 +4836,7 @@ async function createGoal(){
     let resolutionPayload=forceNewGoal?{force_new_goal:true}:
       pinnedGoalId?{existing_goal_id:pinnedGoalId}:{force_new_goal:true};
     let r=await sb.functions.invoke("pilot-intelligence",{
-      body:{input:text,...(forceNewGoal?{force_new_goal:true}:
+      body:{input:text,request_id:requestId,...(forceNewGoal?{force_new_goal:true}:
         pinnedGoalId?{existing_goal_id:pinnedGoalId}:{})}
     });
     if(r.error)throw await pilotApiError(r,"Pilot konnte den Auftrag nicht einordnen.");
@@ -4829,7 +4853,7 @@ async function createGoal(){
       else if(choice==="new")resolutionPayload={force_new_goal:true};
       else throw new Error("Diese Projektauswahl ist nicht mehr verfügbar. Bitte erneut versuchen.");
 
-      r=await sb.functions.invoke("pilot-intelligence",{body:{input:text,...resolutionPayload}});
+      r=await sb.functions.invoke("pilot-intelligence",{body:{input:text,request_id:requestId,...resolutionPayload}});
       if(r.error)throw await pilotApiError(r,"Pilot konnte die Zielentscheidung nicht übernehmen.");
       data=r.data;
     }
@@ -4840,7 +4864,7 @@ async function createGoal(){
       if(!answers){PS.textContent="Pilot bereit";btn.disabled=false;btn.textContent="✈ Pilot jetzt starten";btn.classList.remove("launching");return;}
       PS.textContent="Pilot plant …";
       setPilotFlightPhase("Pilot erstellt deinen Plan …");
-      r=await sb.functions.invoke("pilot-intelligence",{body:{input:text,intent:data.intent,answers,...resolutionPayload}});
+      r=await sb.functions.invoke("pilot-intelligence",{body:{input:text,request_id:requestId,intent:data.intent,answers,...resolutionPayload}});
       if(r.error)throw await pilotApiError(r,"Pilot konnte den Plan nicht erstellen.");
       data=r.data;
     }
@@ -4895,7 +4919,7 @@ async function createGoal(){
       resolutionPayload={existing_goal_id:goalId};
       setPilotFlightPhase("Pilot übernimmt deine neue Entscheidung …");
       r=await sb.functions.invoke("pilot-intelligence",{
-        body:{input:text,intent:data.intent,...resolutionPayload}
+        body:{input:text,request_id:requestId,intent:data.intent,...resolutionPayload}
       });
       if(r.error)throw await pilotApiError(r,"Pilot konnte die neue Entscheidung nicht übernehmen.");
       data=r.data;
@@ -4904,6 +4928,7 @@ async function createGoal(){
       throw new Error("Bitte prüfe weitere widersprüchliche Angaben in deinem Auftrag.");
 
     if(data.stage!=="ready")throw new Error("Pilot konnte den Plan nicht abschließen.");
+    pilotClearPendingCommand(requestId);
 
     setPilotFlightPhase("Pilot öffnet deinen Arbeitsbereich …");
     if(data.goal?.id){activeGoalId=data.goal.id;try{localStorage.setItem("nexaro_pilot_goal_"+user.id,activeGoalId)}catch{}}
