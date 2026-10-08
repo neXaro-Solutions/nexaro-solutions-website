@@ -60,6 +60,27 @@ try{
   const context=await browser.newContext(options);
   const page=await context.newPage();
   try{
+   // Corporate root must keep a visible, working DE/EN switch even when its hamburger is closed.
+   const corporate=await context.newPage();
+   await corporate.goto(`http://127.0.0.1:${server.address().port}/index.html`,{waitUntil:"domcontentloaded"});
+   const switcher=corporate.locator(".top .top-inner > .nx-language-toggle");
+   await switcher.waitFor({state:"visible",timeout:8000});
+   const rootBounds=await corporate.evaluate(()=>{
+    const r=document.querySelector(".top .top-inner > .nx-language-toggle").getBoundingClientRect();
+    return {left:r.left,right:r.right,viewport:innerWidth,scroll:document.documentElement.scrollWidth,
+     payment:!!document.querySelector('a[href="./sumup-beratung.html"]'),
+     crm:!!document.querySelector('a[href="./crm/"]'),
+     vape:!!document.querySelector('a[href="./b2b-handel.html"]'),
+     promo:!!document.querySelector('a[href^="./pilot/"]')};
+   });
+   if(rootBounds.left<0||rootBounds.right>rootBounds.viewport+2||rootBounds.scroll>rootBounds.viewport+2||
+    !rootBounds.payment||!rootBounds.crm||!rootBounds.vape||rootBounds.promo)
+    throw Error("Corporate root language or service links broken: "+JSON.stringify(rootBounds));
+   await switcher.click();
+   await corporate.waitForFunction(()=>document.documentElement.lang==="en",{timeout:4000});
+   await switcher.click();
+   await corporate.waitForFunction(()=>document.documentElement.lang==="de",{timeout:4000});
+   await corporate.close();
    await page.route("https://esm.sh/**",route=>route.fulfill({
     status:200,contentType:"text/javascript",
     headers:{"access-control-allow-origin":"*"},body:stub
