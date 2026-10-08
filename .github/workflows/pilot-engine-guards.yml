@@ -8,13 +8,13 @@ on:
       - "supabase/functions/alpha-e2e-selftest/**"
       - "supabase/functions/pilot-decision-journal/**"
       - "supabase/functions/pilot-background/**"
-      - "supabase/functions/pilot-background/**"
+      - "supabase/functions/pilot-background-selftest/**"
       - "pilot/tests/engine-contract.mjs"
       - "pilot/tests/continuity-contract.mjs"
       - "pilot/tests/journal-contract.mjs"
       - "pilot/tests/live-e2e-contract.mjs"
       - "pilot/tests/background-contract.mjs"
-      - "pilot/tests/background-contract.mjs"
+      - "pilot/tests/background-live-contract.mjs"
       - "pilot/index.html"
       - ".github/workflows/pilot-engine-guards.yml"
   pull_request:
@@ -24,13 +24,13 @@ on:
       - "supabase/functions/alpha-e2e-selftest/**"
       - "supabase/functions/pilot-decision-journal/**"
       - "supabase/functions/pilot-background/**"
-      - "supabase/functions/pilot-background/**"
+      - "supabase/functions/pilot-background-selftest/**"
       - "pilot/tests/engine-contract.mjs"
       - "pilot/tests/continuity-contract.mjs"
       - "pilot/tests/journal-contract.mjs"
       - "pilot/tests/live-e2e-contract.mjs"
       - "pilot/tests/background-contract.mjs"
-      - "pilot/tests/background-contract.mjs"
+      - "pilot/tests/background-live-contract.mjs"
       - "pilot/index.html"
       - ".github/workflows/pilot-engine-guards.yml"
   workflow_dispatch:
@@ -58,7 +58,7 @@ jobs:
         run: node pilot/tests/journal-contract.mjs
       - name: Run background worker authorization and budget tests
         run: node pilot/tests/background-contract.mjs
-      - name: Run scheduled-background security and budget tests
-        run: node pilot/tests/background-contract.mjs
+      - name: Verify live background E2E admin authorization and evidence contract
+        run: node pilot/tests/background-live-contract.mjs
       - name: Check live mission test isolation and authorization
         run: node pilot/tests/live-e2e-contract.mjs
