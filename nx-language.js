@@ -147,14 +147,9 @@ function installToggle(){
  const b=document.createElement("button");b.type="button";b.dataset.nxLang="1";b.className="nx-language-toggle";
  renderLanguageToggle(b);
  b.addEventListener("click",()=>setLanguage(language==="de"?"en":"de"));
- // The corporate DE/EN switch belongs in the *visible* header, not inside the collapsed mobile navigation.
- const header=document.querySelector(".top .top-inner");
- const burger=header?.querySelector("#menuButton");
- const nav=document.querySelector(".top .nav,.nx-payment-nav");
- if(header&&burger)header.insertBefore(b,burger);
- else if(header)header.appendChild(b);
- else if(nav)nav.appendChild(b);
- else document.body.appendChild(b);
+ // Keep the language choice accessible on every page and every scroll position.
+ // It must never be hidden inside the mobile navigation or consume corporate header space.
+ document.body.appendChild(b);
  const st=document.createElement("style");st.textContent=`
  .nx-language-toggle{display:inline-flex;align-items:center;gap:3px;min-width:108px;height:42px;padding:4px;border:2px solid #ff6b00;border-radius:999px;background:#172015;color:#fff;font:inherit;font-size:11px;font-weight:900;letter-spacing:.08em;cursor:pointer;box-shadow:0 9px 24px rgba(23,32,21,.2),0 0 0 3px rgba(186,255,55,.18);transition:transform .18s ease,box-shadow .18s ease}
  .nx-language-toggle:hover{transform:translateY(-1px);box-shadow:0 12px 30px rgba(23,32,21,.26),0 0 0 4px rgba(186,255,55,.24)}
@@ -176,6 +171,21 @@ function installToggle(){
   .top .top-inner>.brand{width:139px!important;min-width:0}
   .top .top-inner>.menu{flex:none;padding:7px 10px}
  }
+
+ /* Always-visible corporate language selector, bottom left with safe-area protection. */
+ body>.nx-language-toggle{
+  position:fixed!important;left:max(12px,env(safe-area-inset-left))!important;
+  bottom:calc(14px + env(safe-area-inset-bottom))!important;top:auto!important;
+  z-index:1000!important;width:auto!important;max-width:calc(100vw - 24px)!important;
+  min-width:103px!important;height:44px!important;min-height:44px!important;
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  border-radius:16px!important;background:#172015!important;color:#fff!important;
+  box-shadow:0 7px 27px rgba(20,34,25,.22)!important;
+ }
+ body>.nx-language-toggle .nx-lang-option{
+  flex:none!important;min-width:37px!important;height:31px!important;padding:0 5px!important
+ }
+ @media(max-width:390px){body>.nx-language-toggle{min-width:94px!important;height:42px!important}}
  `;document.head.appendChild(st);
 }
 const observer=new MutationObserver(muts=>{if(applying)return;for(const m of muts){for(const node of m.addedNodes){if(node.nodeType===Node.TEXT_NODE)applyText(node);else if(node.nodeType===Node.ELEMENT_NODE){applyElement(node);walk(node);}}}});
