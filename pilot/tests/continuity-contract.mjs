@@ -31,9 +31,9 @@ const intent={objective:"Erstelle ein Logo für die Gründung eines Garten- und 
  desiredOutcome:"Logo für das bestehende Unternehmen",constraints:[],budget:null,timeframe:null,
  domain:{primary:"general",secondary:[],confidence:"medium"},
  unknowns:["desired_outcome_detail"],confidence:"low"};
-function scenario(existingActions=[],goalOwner=OWNER){
+function scenario(existingActions=[],goalOwner=OWNER,otherGoals=[]){
  const data={
-  goals:[{...goal,owner_id:goalOwner}],
+  goals:[{...goal,owner_id:goalOwner},...otherGoals],
   organization_members:[{organization_id:ORG,user_id:OWNER,active:true}],
   actions:existingActions.map(x=>({...x})),
   plans:[{id:PLAN,goal_id:GOAL,version:1}],
@@ -97,9 +97,9 @@ function scenario(existingActions=[],goalOwner=OWNER){
  };
  vm.runInNewContext(compiled.outputText,context,{filename:"pilot-intelligence.js",timeout:5000});
  assert.equal(typeof state.handler,"function");
- state.invoke=async()=>{const request=new Request("https://mock.supabase.co/functions/v1/pilot-intelligence",{
+ state.invoke=async(overrides={})=>{const request=new Request("https://mock.supabase.co/functions/v1/pilot-intelligence",{
   method:"POST",headers:{Authorization:"Bearer fake", "content-type":"application/json"},
-  body:JSON.stringify({input:intent.objective,intent,existing_goal_id:GOAL})
+  body:JSON.stringify({input:intent.objective,intent,existing_goal_id:GOAL,...overrides})
  });const result=await state.handler(request);return {http:result.status,body:await result.json()}};
  return state;
 }
@@ -132,4 +132,55 @@ assert.equal(denied.http,404);
 assert.equal(denied.body.error,"existing_goal_not_found");
 assert.equal(outsider.data.actions.length,0);
 console.log("PASS Ownership enforced for chosen existing goals");
+
+const automatic=scenario();
+const auto=await automatic.invoke({
+  input:"Erstelle mir ein Logo",existing_goal_id:undefined
+});
+assert.equal(auto.http,200);
+assert.equal(auto.body.stage,"ready");
+assert.equal(auto.body.continuity.mode,"existing_goal");
+assert.equal(auto.body.continuity.reason,"unique_active_followup");
+assert.equal(automatic.data.goals.length,1,"Must never create a second project");
+assert.equal(automatic.data.actions.length,1,"Only the new follow-up action is added");
+assert.equal(automatic.networkCalls.length,1,"Unique project needs no extra AI matching request");
+console.log("PASS Unique live project auto-matches a logo follow-up without prompting or AI lookups");
+
+const OTHER="77777777-7777-4777-8777-777777777777";
+const competing={...goal,id:OTHER,title:"Bäckereibetrieb gründen",
+ description:"Backwaren und Konditorei",desired_outcome:"Geschäft für Gebäck",
+ updated_at:"2026-10-07T15:00:00.000Z"};
+const multiple=scenario([],OWNER,[competing]);
+const ambiguous=await multiple.invoke({input:"Erstelle mir ein Logo",existing_goal_id:undefined});
+assert.equal(ambiguous.http,200);
+assert.equal(ambiguous.body.stage,"goal_resolution");
+assert.equal(ambiguous.body.candidate_goals.length,2);
+assert.deepEqual(new Set(ambiguous.body.candidate_goals.map(x=>x.id)),new Set([GOAL,OTHER]));
+assert.equal(multiple.data.actions.length,0,"Ambiguous input should never create a new action");
+assert.equal(multiple.networkCalls.length,1,"No unnecessary AI run for an ambiguous short follow-up");
+console.log("PASS Two plausible projects produce one named choice without guessing or creating work");
+
+const explicit=scenario([],OWNER,[competing]);
+const named=await explicit.invoke({input:"Bitte ein Logo für Gartenbaubetrieb",existing_goal_id:undefined});
+assert.equal(named.http,200);
+assert.equal(named.body.stage,"ready");
+assert.equal(named.body.goal.id,GOAL);
+assert.equal(named.body.continuity.reason,"explicit_project_name");
+assert.equal(explicit.data.goals.length,2);
+assert.equal(explicit.data.actions.length,1);
+console.log("PASS Explicit business name uniquely selects the correct project among multiple goals");
+
+const first=String(frontend.match(/async function askGoalResolution\(resolution\)\{[\s\S]*?(?=\nasync function createGoal\(\))/)?.[0]||"");
+assert(first.startsWith("async function askGoalResolution"),"Could not isolate the project-selection UI");
+const captured=[];
+const chooser=new Function("nxDialog",first+"\nreturn askGoalResolution;")(
+  async settings=>{captured.push(settings);return settings.buttons[1].value}
+);
+const choice=await chooser({candidate_goals:ambiguous.body.candidate_goals});
+assert.equal(choice,"goal:"+ambiguous.body.candidate_goals[1].id);
+assert.equal(captured[0].buttons.length,3,"Two named projects and one new-project choice");
+assert(captured[0].buttons.some(x=>x.label.includes("Bäckereibetrieb")));
+assert(captured[0].buttons.some(x=>x.value==="new"));
+console.log("PASS Choice dialog presents named projects and preserves the chosen goal ID");
+
 console.log("PASS Goal continuity handler regression suite — no real user data or writes");
