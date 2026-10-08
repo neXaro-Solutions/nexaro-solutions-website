@@ -50,6 +50,33 @@ function eligible(goal:any,action:any){
    return false;
  return permittedCreative.test(txt)&&!unsafe.test(txt);
 }
+/* Read-only authorization-aware routing. Prevents announcing a durable
+   background run for work that the text-only worker cannot safely execute.
+   The interactive execution engine handles those tasks with its own gates. */
+async function inspectNextWork(sb:any,goal:any){
+ if(goal.status!=="active")return {mode:"attention",reason:"GOAL_NOT_ACTIVE"};
+ const [actions,executions]=await Promise.all([
+  sb.from("actions")
+   .select("id,title,objective,goal_id,status,owner_type,recommended_mode,blocking,created_at")
+   .eq("goal_id",goal.id).order("created_at",{ascending:true}).limit(100),
+  sb.from("executions").select("id,status").eq("goal_id",goal.id)
+   .in("status",["running","waiting_approval","review_required"]).limit(1)
+ ]);
+ if(actions.error||executions.error)throw Error("BACKGROUND_PREFLIGHT_LOOKUP_FAILED");
+ if(executions.data?.length)return {mode:"attention",reason:"EXISTING_GOAL_EXECUTION_NEEDS_REVIEW"};
+ const sequence=actions.data||[];
+ const index=sequence.findIndex((x:any)=>["ready","pending","blocked","running"].includes(x.status));
+ if(index<0)return {mode:"finished",reason:"NO_OPEN_ACTIONS"};
+ const action=sequence[index];
+ if(["blocked","running"].includes(action.status))
+  return {mode:"attention",reason:"ACTION_BLOCKED_OR_IN_PROGRESS",action_id:action.id};
+ if(action.status==="pending"&&!sequence.slice(0,index).every((x:any)=>x.status==="completed"))
+  return {mode:"attention",reason:"PREREQUISITE_NOT_COMPLETED",action_id:action.id};
+ const safe=eligible(goal,{...action,status:"ready"});
+ return {mode:safe?"background":"interactive",
+  reason:safe?"SAFE_BACKGROUND_TEXT":"REQUIRES_INTERACTIVE_ENGINE",
+  action_id:action.id,action_title:String(action.title||"").slice(0,160)};
+}
 function extract(response:any){
  if(response?.output_text)return String(response.output_text);
  const fragments:any[]=[];
@@ -290,9 +317,13 @@ Deno.serve(async(req:Request)=>{
  const id=String(body.goal_id||"");
  if(!UUID.test(id))return respond({error:"goal_id_invalid"},400);
  const owner=identity.user.id;
- const g=await sb.from("goals").select("id,owner_id,organization_id,status")
+ const g=await sb.from("goals").select("id,owner_id,organization_id,status,domain")
   .eq("id",id).eq("owner_id",owner).single();
  if(g.error||!g.data)return respond({error:"goal_not_found"},404);
+ if(op==="preflight"){
+  try{return respond({status:"ok",...await inspectNextWork(sb,g.data)})}
+  catch{return respond({error:"background_preflight_unavailable",retryable:true},503)}
+ }
  const found=await sb.from("pilot_background_jobs").select("*").eq("goal_id",id).maybeSingle();
  if(found.error)return respond({error:"job_read_failed"},503);
  if(op==="status")return respond({status:"ok",job:found.data||null});
