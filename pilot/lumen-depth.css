@@ -223,3 +223,65 @@ body:has(.shell[data-screen="home"]:not(.hidden)){background:
   animation:none!important;transition:none!important;will-change:auto!important
  }
 }
+
+/* PILOT GROUND SAFE V7 — the person always stands on a floor, not in the air.
+   A safe position is selected by JS from measured unobstructed screen regions. */
+#pilotFlightLayer .pilot-worker-avatar{
+ width:168px!important;height:60px!important;min-height:60px!important;
+ max-width:calc(100vw - 16px)!important;
+ align-items:flex-start!important;isolation:isolate;
+ transform-origin:18% 88%!important;
+ pointer-events:none!important;
+}
+#pilotFlightLayer .pilot-worker-avatar[hidden]{display:none!important}
+#pilotFlightLayer .pilot-worker-avatar::after{
+ content:"";position:absolute;top:var(--worker-ground-y,56px);left:0;
+ width:65px;height:2px;border-radius:100%;
+ background:linear-gradient(90deg,transparent,rgba(63,115,73,.29),rgba(63,115,73,.12),transparent);
+ box-shadow:0 3px 8px rgba(62,105,69,.11);pointer-events:none;z-index:-1;
+}
+#pilotFlightLayer .pilot-worker-avatar .pilot-worker-figure{
+ flex:0 0 46px!important;width:46px!important;height:100px!important;
+ transform-origin:18% 8%!important;backface-visibility:hidden;
+}
+#pilotFlightLayer .pilot-worker-avatar .pilot-worker-speech{
+ position:absolute!important;left:36px!important;bottom:26px!important;
+ top:auto!important;right:auto!important;
+ width:124px!important;max-width:124px!important;
+ margin:0!important;pointer-events:none!important;
+}
+#pilotFlightLayer .pilot-worker-avatar.pilot-worker--quiet .pilot-worker-speech{
+ display:none!important
+}
+/* Entering and leaving are strictly horizontal motions along the ground.
+   Do not translate the person upwards from an airborne aircraft. */
+#pilotFlightLayer .pilot-worker-avatar.pilot-worker--exit{
+ animation:pilotGroundEnter .65s cubic-bezier(.22,.72,.32,1) both!important
+}
+#pilotFlightLayer .pilot-worker-avatar.pilot-worker--boarding{
+ animation:pilotGroundLeave .46s cubic-bezier(.46,0,.8,.42) both!important
+}
+@keyframes pilotGroundEnter{
+ from{opacity:0;transform:translate3d(-7px,0,0)}
+ to{opacity:1;transform:translate3d(0,0,0)}
+}
+@keyframes pilotGroundLeave{
+ from{opacity:1;transform:translate3d(0,0,0)}
+ to{opacity:0;transform:translate3d(9px,0,0)}
+}
+@media(max-width:420px){
+ #pilotFlightLayer .pilot-worker-avatar{
+  width:168px!important;height:60px!important;min-height:60px!important
+ }
+ #pilotFlightLayer .pilot-worker-avatar .pilot-worker-speech{
+  width:124px!important;max-width:124px!important;
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ #pilotFlightLayer .pilot-worker-avatar.pilot-worker--exit{
+  animation:none!important;opacity:1!important;
+ }
+ #pilotFlightLayer .pilot-worker-avatar.pilot-worker--boarding{
+  animation:none!important;opacity:0!important;
+ }
+}
