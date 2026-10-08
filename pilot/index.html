@@ -3821,6 +3821,8 @@ function pilotBindSpatialUI(){
 /* Only display the worker at an actual intervention on the active Pilot screen. */
 let pilotAttentionReconnectPending=false;
 function pilotSyncFlightScreen(){
+ // A simulation belongs only to Admin/Systemtest. Changing tabs cancels it instantly.
+ if(pilotFlightPreviewRunning&&!["alpha","admin"].includes(current))pilotCancelFlightPreview();
  // No worker or airplane may float over other screens.
  // The isolated Admin animation stays inside its own preview card.
  if(current!=="home"&&!document.querySelector(".nx-mask")){
