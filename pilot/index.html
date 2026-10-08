@@ -2570,6 +2570,29 @@ body{background:radial-gradient(ellipse 72vw 60vw at 92% -10%,rgba(145,255,62,.1
  .head h1{font-size:22px!important}
  .main{padding-top:15px!important}
 }
+
+.pilot-simple-results{max-width:735px;margin:0 auto;display:grid;gap:12px}
+.pilot-simple-results h2{font-size:clamp(20px,3vw,25px);margin:8px 0}
+.pilot-results-goal{font-weight:700;font-size:15px;line-height:1.45;margin:8px 0}
+.pilot-results-description{font-size:13px;color:#7a8777;margin-bottom:0}
+.pilot-simple-topic{padding:0;border:1px solid #e2eadc;border-radius:17px;background:#fff;overflow:hidden}
+.pilot-simple-topic>summary{display:flex;align-items:center;justify-content:space-between;gap:11px;list-style:none;cursor:pointer;padding:18px;font-weight:830}
+.pilot-simple-topic>summary::-webkit-details-marker{display:none}
+.pilot-simple-topic>summary:before{content:"▸";color:#81ac63;margin-right:5px}
+.pilot-simple-topic[open]>summary:before{content:"▾"}
+.pilot-simple-topic>summary>span{flex:1;font-size:14px}
+.pilot-simple-topic>summary>small{font-size:11px;color:#889484;line-height:1.4;font-weight:650;text-align:right}
+.pilot-simple-topic-items{padding:1px 17px 14px}
+.pilot-simple-file{border-top:1px solid #eef3e9;padding:14px 0}
+.pilot-simple-file h3{font-size:14px;line-height:1.4;margin:8px 0}
+.pilot-simple-file p{font-size:13px;color:#6d786a;line-height:1.55;margin:6px 0}
+.pilot-simple-file-detail{border:1px solid #e7f0e2;border-radius:13px;padding:10px 13px;margin-top:11px}
+.pilot-simple-file-detail summary{font-size:12px;font-weight:750;cursor:pointer}
+.pilot-simple-file-content{white-space:pre-wrap;line-height:1.55;font-size:13px;max-height:60vh;overflow:auto;padding:13px 0;color:#394435}
+.pilot-simple-file-detail .btn{font-size:12px;min-height:36px}
+.pilot-simple-technical>summary{opacity:.75}
+.pilot-simple-techrow{font-size:12px;color:#768370;border-top:1px solid #eef3e9;padding:9px 15px;margin:0}
+@media(max-width:650px){.pilot-simple-topic>summary{padding:15px 13px}.pilot-simple-topic-items{padding:0 12px 12px}}
 </style></head>
 <body>
 <section id="auth" class="auth"><div class="box">
@@ -3051,7 +3074,7 @@ async function pilotEnsureJourney(){
 function pilotShortResult(){
  const items=pilotCustomerResults();
  // Prefer a concrete prepared deliverable over pure research/old failures.
- return items.find(r=>r.quality_status==="ready")||items[0]||null;
+ return items[0]||null;
 }
 function home(){
  const g=goals[0]||null;
@@ -3194,33 +3217,36 @@ function documentsView(){
 }
 
 function resultsView(){
- const g=goals[0],groups=pilotGroupedResults();
- const technical=results.filter(r=>r.result_type==="research_analysis"||r.quality_status==="failed");
- const sections=groups.map(([category,entries])=>
-   '<section class="pilot-report-section"><div class="pilot-report-group-head"><h2>'+esc(category)+'</h2><span>'+entries.length+' Ergebnis'+(entries.length===1?"":"se")+'</span></div>'+
-   entries.map(r=>{
-      const provisional=r.quality_status==="provisional"||r.quality_status==="review_required";
-      const sources=Array.isArray(r.structured_content?.sources)?r.structured_content.sources:[];
-      const canva=r.result_type==="canva_design";
-      const state=provisional?"Vorläufig · Prüfung offen":r.quality_status==="ready"?"Erarbeitet":deStatus(r.quality_status||"draft");
-      return '<article class="pilot-report-deliverable"><span class="badge '+(provisional?"orange":"green")+'">'+esc(state)+'</span>'+
-       '<h3>'+esc(pilotFriendlyActionTitle(r.title||"Ergebnis"))+'</h3>'+
-       '<div class="pilot-report-preview">'+esc(String(r.content||"Ergebnis ohne Textvorschau").replace(/\\n/g,"\n").slice(0,290))+'</div>'+
-       '<details><summary>Vollständiges Ergebnis ansehen</summary><div class="pilot-artifact-body">'+esc(r.content||"Keine Textvorschau vorhanden.")+'</div>'+
-       (sources.length?'<details><summary>Quellen und Belege ('+sources.length+')</summary>'+
-        sources.map(a=>'<div class="item"><strong>'+esc(a.title||a.url||"Quelle")+'</strong>'+
-         (a.url?'<p><a target="_blank" rel="noopener noreferrer" href="'+esc(a.url)+'">Quelle öffnen ↗</a></p>':'')+'</div>').join("")+'</details>':'')+
-       (!canva?'<div class="btns"><button class="btn ai" data-canva="'+esc(r.id)+':presentation">Präsentation gestalten</button>'+
-       '<button class="btn" data-canva="'+esc(r.id)+':doc">Dokument gestalten</button>'+
-       '<button class="btn" data-feedback="'+esc(r.id)+':up">👍 Hilfreich</button>'+
-       '<button class="btn" data-feedback="'+esc(r.id)+':down">👎 Verbessern</button></div>':'')+
-       '</details></article>';
-   }).join("")+'</section>').join("");
- return '<div class="pilot-screen pilot-results-screen">'+
-   pilotScene("DEIN AUFTRAG","Ergebnisse zu "+(g?g.title:"deinem Ziel"),"Nutzbare Ergebnisse sind nach Themen geordnet. Technische Zwischenschritte bleiben im Hintergrund.","✧")+
-   (sections||'<section class="pilot-home-card"><h2>Noch keine Ergebnisse</h2><p>Pilot zeigt dir hier seine fertigen Arbeiten und kennzeichnet Entwürfe.</p></section>')+
-   (technical.length?'<details class="pilot-technical-results"><summary>Technischer Verlauf und ältere Entwürfe ('+technical.length+')</summary>'+
-     technical.map(r=>'<div class="item"><strong>'+esc(pilotFriendlyActionTitle(r.title||"Arbeitsschritt"))+'</strong><span class="badge orange">'+esc(deStatus(r.quality_status||"draft"))+'</span></div>').join("")+'</details>':'')+
+ const g=goals[0],groups=pilotGroupedResults(),latest=pilotShortResult();
+ const historic=results.filter(r=>r.result_type==="research_analysis"||r.quality_status==="failed");
+ const name=g?esc(g.title||"Dein Ziel"):"Dein Auftrag";
+ const start='<div class="pilot-simple-results">'+
+ '<div class="pilot-simple-card"><span class="pilot-simple-kicker">DEIN AUFTRAG</span><h2>Deine Ergebnisse</h2><p class="pilot-results-goal">'+name+'</p>'+
+ '<p class="pilot-results-description">Alles gehört zu diesem Auftrag. Öffne nur den Bereich, den du ansehen möchtest.</p></div>';
+ const topics=groups.map(([category,list])=>{
+  const provisional=list.some(r=>r.quality_status==="provisional"||r.quality_status==="review_required");
+  return '<details class="pilot-simple-topic"><summary><span>'+esc(category)+'</span>'+
+   '<small>'+list.length+' Ergebnis'+(list.length===1?"":"se")+(provisional?" · Prüfung offen":"")+'</small></summary>'+
+   '<div class="pilot-simple-topic-items">'+list.map(r=>{
+    const provisionalItem=r.quality_status==="provisional"||r.quality_status==="review_required";
+    const sources=Array.isArray(r.structured_content?.sources)?r.structured_content.sources:[];
+    const content=String(r.content||"Keine Textvorschau vorhanden.").replace(/\\n/g,"\n");
+    const name=pilotFriendlyActionTitle(r.title||"Ergebnis");
+    return '<article class="pilot-simple-file">'+
+      '<span class="pilot-simple-tag '+(provisionalItem?"pending":"")+'">'+(provisionalItem?"Vorläufig":"Erarbeitet")+'</span>'+
+      '<h3>'+esc(name)+'</h3>'+
+      '<p>'+esc(content.slice(0,195))+(content.length>195?" …":"")+'</p>'+
+      '<details class="pilot-simple-file-detail"><summary>Ergebnis vollständig lesen</summary><div class="pilot-simple-file-content">'+esc(content)+'</div>'+
+      (sources.length?'<details><summary>Quellen ('+sources.length+')</summary>'+sources.map(s=>
+        '<p>'+esc(s.title||"Quelle")+' '+(s.url?'<a target="_blank" rel="noopener noreferrer" href="'+esc(s.url)+'">Ansehen ↗</a>':'')+'</p>').join("")+'</details>':'')+
+      '<div class="btns"><button class="btn" data-feedback="'+esc(r.id)+':up">👍 Hilfreich</button><button class="btn" data-feedback="'+esc(r.id)+':down">Verbessern</button>'+
+      (r.result_type!=="canva_design"?'<button class="btn" data-canva="'+esc(r.id)+':doc">Als Dokument gestalten</button>':'')+'</div></details></article>';
+   }).join("")+'</div></details>';
+ }).join("");
+ return start+
+ (topics||'<div class="pilot-simple-card"><h3>Hier entsteht dein Ergebnis</h3><p>Pilot arbeitet die nötigen Schritte für deinen Auftrag ab.</p></div>')+
+ (historic.length?'<details class="pilot-simple-topic pilot-simple-technical"><summary><span>Ältere Entwürfe und Recherche</span><small>'+historic.length+' technische Einträge</small></summary>'+
+ historic.map(r=>'<p class="pilot-simple-techrow">'+esc(pilotFriendlyActionTitle(r.title||"Arbeitsstand"))+'</p>').join("")+'</details>':'')+
  '</div>';
 }
 async function uploadDocument(){const f=document.getElementById("fileInput")?.files?.[0];if(!f)return;if(!goals[0])return pilotNotice("Bitte zuerst ein aktives Ziel anlegen.");const btn=document.getElementById("uploadDoc");btn.disabled=true;btn.textContent="Verarbeitung läuft …";PS.textContent="Pilot verarbeitet Anhang …";try{await processCommandAttachment({file:f},goals[0].id,goals[0].description||goals[0].desired_outcome||goals[0].title);await load();await telemetry("event",{goal_id:goals[0]?.id||null,event_name:"document_processed",event_category:"value",properties:{document_count:documents.length,result_count:results.length}});PS.textContent="Pilot bereit";render()}catch(e){PS.textContent="Pilot bereit";await telemetry("incident",{goal_id:goals[0]?.id||null,source:"documents",severity:"error",error_code:"DOCUMENT_FAILED",message:e.message||String(e)});pilotNotice(e.message||String(e));btn.disabled=false;btn.textContent="Hochladen & analysieren"}}
