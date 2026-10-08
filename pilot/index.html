@@ -1959,6 +1959,26 @@ body{background:radial-gradient(ellipse 72vw 60vw at 92% -10%,rgba(145,255,62,.1
 #pilotNextActionPanel.pilot-action-landed .command-card{animation:pilotActionRevealV4 .55s ease-out both}
 @media(prefers-reduced-motion:reduce){#pilotFlightLayer .pilot-plane::after{opacity:.45!important}}
 
+
+/* Pilot verified-work handoff: human signoff + safe bounded autonomous continuation. */
+.pilot-review-card{border:1px solid rgba(115,196,71,.33)!important;border-radius:21px!important;background:linear-gradient(125deg,#fbfff8,#fff)!important;padding:21px!important}
+.pilot-review-card h3{font-size:19px;line-height:1.35;letter-spacing:-.035em;margin:10px 0;color:#254128}
+.pilot-review-card p{font-size:13px;line-height:1.55;color:#637365}
+.pilot-review-label{font-size:10px;letter-spacing:.17em;font-weight:950;color:#4b8842}
+.pilot-review-text{max-height:265px;overflow-y:auto;white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px;line-height:1.6;color:#2f4831;background:rgba(255,255,255,.82);border:1px solid rgba(159,205,135,.24);border-radius:17px;padding:16px;margin:14px 0}
+.pilot-review-card .pilot-review-hint{margin-top:13px!important;font-size:11px!important;color:#73846e!important}
+.pilot-auto-status{display:flex;align-items:center;gap:13px;flex-wrap:wrap;margin:13px 0;padding:15px 16px;border-radius:19px;border:1px solid #d6edc9;background:linear-gradient(110deg,#f3ffea,#fff)}
+.pilot-auto-status>div{flex:1;min-width:150px}
+.pilot-auto-status strong{display:block;font-size:13px;color:#294d2a}
+.pilot-auto-status small{display:block;color:#72826f;font-size:12px;line-height:1.5;margin-top:3px}
+.pilot-auto-orbit{display:grid;place-items:center;width:32px;height:32px;flex:0 0 32px;border:1px solid #bceda0;background:#eaffdf;color:#428327;border-radius:50%;animation:pilotAutoPulse 2s ease-in-out infinite}
+@keyframes pilotAutoPulse{50%{transform:scale(1.09);box-shadow:0 0 0 8px rgba(142,246,53,.10)}}
+.pilot-auto-status>button{font-size:12px!important;white-space:normal;max-width:220px}
+.pilot-auto-summary{background:#fafff7;border-color:#e1eedd}
+.pilot-review-execution{padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important}
+@media(max-width:600px){.pilot-review-card{padding:15px!important}.pilot-review-card .pilot-home-action-buttons>.btn{width:100%}.pilot-auto-status{align-items:start}.pilot-auto-status>button{width:100%;max-width:none}}
+@media(prefers-reduced-motion:reduce){.pilot-auto-orbit{animation:none!important}}
+
 </style></head>
 <body>
 <section id="auth" class="auth"><div class="box">
@@ -2079,9 +2099,38 @@ function successGaugeHtml(s,compact=false){
 }
 function avatarIcon(v){return ({general:"X",business:"↗",creative:"✦",medical:"✚",document:"⌑",technical:"⌘"})[v||"general"]||"X"}
 function moduleState(aktiv,done,warn=false){return warn?"warn":aktiv?"live":done?"done":""}
+/* Customer-facing collaborative result approval. The back end still enforces ownership and verified output. */
+let pilotAutoSession=null;
+let pilotAutoSummary=null;
+function pilotReviewContext(){
+ const ex=executions.find(x=>x.status==="review_required"&&x.risk_level==="low"&&x.input_snapshot?.review_kind==="collaboration");
+ if(!ex)return null;
+ const result=results.find(r=>r.execution_id===ex.id&&r.id===ex.output_reference?.result_id);
+ return result?{ex,result}:null;
+}
+function pilotReviewCard(ctx){
+ if(!ctx)return "";
+ const title=ctx.result.title||"Pilot hat einen Vorschlag vorbereitet";
+ const text=String(ctx.result.content||"");
+ return '<div class="command-card pilot-review-card"><div class="pilot-review-label">✦ DEINE ENTSCHEIDUNG</div>'+
+   '<h3>'+esc(title)+'</h3><p>Pilot hat einen überprüften Vorschlag erstellt. Bitte prüfe ihn, bevor diese gemeinsame Aufgabe als erledigt gilt.</p>'+
+   '<div class="pilot-review-text">'+esc(text.slice(0,2600))+(text.length>2600?' …':'')+'</div>'+
+   '<div class="pilot-home-action-buttons"><button type="button" class="btn ai pilot-home-action-start" id="confirmPilotResult" data-execution="'+esc(ctx.ex.id)+'" '+(pilotAutoSession?.active?'disabled':'')+'>✓ Ergebnis bestätigen & weiterarbeiten</button>'+
+   '<button type="button" class="btn" data-jump="results">Vollständiges Ergebnis ansehen ↗</button></div>'+
+   '<p class="pilot-review-hint">Mit deiner Bestätigung wird dieser Schritt abgeschlossen. Danach arbeitet Pilot an bis zu drei freigegebenen, risikoarmen Folgeschritten weiter.</p></div>';
+}
+function pilotAutoStatusCard(){
+ if(pilotAutoSession?.active)return '<div class="pilot-auto-status" role="status" aria-live="polite"><span class="pilot-auto-orbit" aria-hidden="true">✦</span><div><strong>Pilot arbeitet selbstständig</strong><small>'+esc(pilotAutoSession.label||"Arbeitsschritt wird bearbeitet …")+'</small></div>'+
+ '<button id="pausePilotAutopilot" type="button" class="btn">'+(pilotAutoSession.cancelRequested?"Stop angefordert":"Nach diesem Schritt stoppen")+'</button></div>';
+ if(pilotAutoSummary?.text)return '<div class="pilot-auto-status pilot-auto-summary" role="status"><span aria-hidden="true">✓</span><div><strong>Automatischer Arbeitslauf</strong><small>'+esc(pilotAutoSummary.text)+'</small></div></div>';
+ return "";
+}
+
 function home(){
   const g=goals[0]||null;
   const n=actions.find(a=>a.status==="ready")||actions.find(a=>a.status==="pending");
+  const approval=pilotReviewContext();
+  const interruption=executions.find(x=>["running","waiting_approval","review_required","blocked"].includes(x.status));
   const total=milestones.reduce((sum,m)=>sum+Number(m.weight||1),0)||1;
   const done=milestones.filter(m=>m.status==="completed").reduce((sum,m)=>sum+Number(m.weight||1),0);
   const progress=g?Math.round(done/total*100):0;
@@ -2121,12 +2170,17 @@ function home(){
     '</section>':'<section class="pilot-home-empty">Noch kein aktiver Auftrag. Starte oben dein erstes Ziel – Pilot plant die nächsten Schritte mit dir.</section>';
   const action=g?'<section class="pilot-home-card operation-panel pilot-home-next" id="pilotNextActionPanel" aria-labelledby="homeNextTitle">'+
       '<div class="pilot-home-next-head"><div><span class="pilot-home-eyebrow">DEIN NÄCHSTER SCHRITT</span><h2 id="homeNextTitle">Nächste Aktion</h2></div>'+
-      (effectiveAdmin()&&n?'<button class="btn pilot-flight-preview" id="pilotLandingPreview" type="button">✈ Flug &amp; Landung testen</button>':'')+
+      (effectiveAdmin()&&n&&!approval&&!interruption?'<button class="btn pilot-flight-preview" id="pilotLandingPreview" type="button">✈ Flug &amp; Landung testen</button>':'')+
       '</div>'+
-      (n?'<div class="command-card">'+
+      pilotAutoStatusCard()+
+      (approval?pilotReviewCard(approval):
+       interruption?'<div class="command-card pilot-review-card"><div class="pilot-review-label">PILOT WARTET</div><h3>'+esc(deStatus(interruption.status))+'</h3>'+
+          '<p>Dieser Ausführungsschritt benötigt Aufmerksamkeit oder läuft noch. Pilot startet keine weitere Aktion, bis er geklärt ist.</p>'+
+          '<div class="btns"><button type="button" class="btn ai" data-jump="execution">Ausführung prüfen ↗</button></div></div>':
+       n?'<div class="command-card">'+
         '<div class="command-title">'+esc(n.title||"Nächsten Schritt bearbeiten")+'</div>'+
         '<p class="muted">'+esc(n.objective||"Pilot übernimmt die nächste Aufgabe und prüft das Ergebnis.")+'</p>'+
-        '<div class="pilot-home-action-buttons"><button type="button" class="btn ai pilot-home-action-start" id="executeAction" data-action="'+esc(n.id)+'">✈ Nächsten Schritt ausführen</button>'+
+        '<div class="pilot-home-action-buttons"><button type="button" class="btn ai pilot-home-action-start" id="executeAction" data-action="'+esc(n.id)+'" '+(pilotAutoSession?.active?'disabled':'')+'>✈ Nächsten Schritt ausführen</button>'+
         '<details class="pilot-home-action-more"><summary>Weitere Optionen</summary><div class="pilot-home-option-buttons">'+
         '<button type="button" class="btn" id="completeAction" data-action="'+esc(n.id)+'">Als erledigt markieren</button>'+
         '<button type="button" class="btn" id="completeWithOutcome" data-action="'+esc(n.id)+'">Ergebnis messen</button>'+
@@ -2159,6 +2213,8 @@ function executionView(){
  const numberCompleted=steps.filter(s=>s.status==="completed").length;
  return '<div class="pilot-screen pilot-execution-screen">'+
   pilotScene("OPERATIVE INTELLIGENZ",ex?"Pilot führt aus":"Bereit für den nächsten Schritt",ex?.objective||"Starte in der Zentrale eine operative Aktion. Hier wird der tatsächliche Ausführungsablauf sichtbar.","↗")+
+  (pilotReviewContext()?'<section class="card pilot-review-execution">'+pilotReviewCard(pilotReviewContext())+'</section>':'')+
+  pilotAutoStatusCard()+
   '<section class="card"><div class="section-head"><div><div class="pilot-screen-kicker">PROZESSSPUR</div><h2 style="margin:12px 0 7px">Arbeitsschritte</h2></div>'+
   '<span class="badge '+(ex?.status==="completed"?"green":ex?.status==="waiting_approval"?"orange":"")+'">'+esc(status)+'</span></div>'+
   '<p class="muted" style="font-size:13px;margin-bottom:18px">Pilot plant, bearbeitet und prüft jeden Schritt. Abschlüsse werden erst nach der erforderlichen Prüfung angezeigt.</p>'+
@@ -2534,6 +2590,8 @@ function bind(){
   document.getElementById("pilotLandingPreview")?.addEventListener("click",previewPilotFlight);
   document.getElementById("diagnoseSafety")?.addEventListener("click",()=>pilotSafetyDiagnostic({show:true}));
   document.getElementById("executeAction")?.addEventListener("click",executeAction);
+  document.getElementById("confirmPilotResult")?.addEventListener("click",confirmPilotResult);
+  document.getElementById("pausePilotAutopilot")?.addEventListener("click",()=>{if(pilotAutoSession?.active){pilotAutoSession.cancelRequested=true;pilotAutoSession.label="Der laufende Schritt wird sicher beendet; danach hält Pilot an.";render()}});
   document.getElementById("uploadDoc")?.addEventListener("click",uploadDocument);
   document.getElementById("completeAction")?.addEventListener("click",()=>completeAction(false,false));
   document.getElementById("completeWithOutcome")?.addEventListener("click",()=>completeAction(true,false));
@@ -2567,7 +2625,7 @@ function nxOpenNext(){
   const mask=document.createElement("div");mask.className="nx-mask";
   const safe=esc;
   mask.innerHTML='<section class="nx-modal" role="dialog" aria-modal="true" aria-labelledby="nxTitle" aria-describedby="nxDesc">'+
-    '<div class="nx-top"><div class="nx-symbol" aria-hidden="true">✦</div><span class="nx-kicker">neXaro · PILOT · LUMEN 2026.10.08.19</span><button type="button" class="nx-close" aria-label="Schließen">×</button></div>'+
+    '<div class="nx-top"><div class="nx-symbol" aria-hidden="true">✦</div><span class="nx-kicker">neXaro · PILOT · LUMEN 2026.10.08.20</span><button type="button" class="nx-close" aria-label="Schließen">×</button></div>'+
     '<h2 id="nxTitle">'+safe(config.title||"Pilot fragt nach")+'</h2><p class="nx-description" id="nxDesc">'+safe(config.description||"Bitte ergänze die noch fehlenden Angaben.")+'</p>'+
     '<form novalidate><div class="nx-fields">'+fields.map((f,i)=>'<div class="nx-field"><label for="nxInput'+i+'">'+safe(f.label)+'</label>'+
       (f.short?'<input id="nxInput'+i+'" type="text" name="'+safe(f.key)+'" maxlength="500" placeholder="'+safe(f.placeholder||"")+'" data-required="'+(f.required?"1":"0")+'">':
@@ -2877,7 +2935,7 @@ const pilotMotion={
 };
 function pilotWait(ms){return new Promise(resolve=>setTimeout(resolve,ms))}
 function pilotButtonTarget(){
- const b=document.getElementById("executeAction");
+ const b=document.getElementById("confirmPilotResult")||document.getElementById("executeAction");
  if(b&&b.getClientRects().length)return b;
  return document.querySelector('[data-view="execution"]')||document.querySelector('[data-view="results"]');
 }
@@ -3074,13 +3132,104 @@ async function previewPilotFlight(){
  catch(err){console.warn("Pilot Flugtest beendet:",String(err?.message||"Fehler"))}
  finally{finishPilotFlight();if(button.isConnected)button.disabled=false}
 }
-async function executeAction(){const n=actions.find(a=>a.status==="ready")||actions.find(a=>a.status==="pending");if(!n)return;const btn=document.getElementById("executeAction");btn?.classList.add("launching");startPilotFlight(btn);PS.textContent="Pilot hebt ab …";setTimeout(()=>{if(PS.textContent==="Pilot hebt ab …")PS.textContent="Pilot arbeitet …"},650);try{const r=await sb.functions.invoke("execution-engine",{body:{operation:"start",action_id:n.id}});if(r.error)throw await pilotApiError(r,"Ausführung wurde beendet.");await load();render();
-  const target=document.getElementById("pilotNextActionPanel");
-  if(target?.querySelector(".command-card")&&activePilotFlight){
-    target.classList.add("pilot-arrival-pending");
-    await landPilotAtNextAction({scroll:true,minCruise:1700});
-  }
-  PS.textContent=r.data?.status==="waiting_approval"?"Freigabe erforderlich":"Pilot bereit";if(r.data?.status==="waiting_approval")pilotNotice("Pilot hat die Arbeit vorbereitet. Die externe Aktion wartet auf deine Freigabe.");if(r.data?.status==="review_required")pilotNotice("Pilot hat das Resultat erstellt. Aufgrund des Risikoprofils ist eine menschliche Prüfung erforderlich.")}catch(e){PS.textContent="Pilot bereit";await telemetry("incident",{goal_id:goals[0]?.id||null,source:"execution",severity:"error",error_code:"EXECUTION_FAILED",message:e.message||String(e)});pilotNotice(e.message||String(e))}finally{finishPilotFlight();setTimeout(()=>btn?.classList.remove("launching"),700)}}
+/* A client-initiated, bounded Autopilot batch. Every iteration is separately authorized by the
+   backend; it can never override a joint decision, external approval, or quality review. */
+async function pilotContinueSafely(goalId,maxSteps=3){
+ if(!goalId||pilotAutoSession?.active)return;
+ const session={active:true,cancelRequested:false,count:0,max:maxSteps,label:"Pilot prüft den nächsten sicheren Schritt …"};
+ pilotAutoSession=session;pilotAutoSummary=null;render();
+ let stopped="Sicherer Arbeitsabschnitt beendet.";
+ try{
+   for(let i=0;i<maxSteps;i++){
+     if(session.cancelRequested){stopped="Auf deinen Wunsch nach dem laufenden Schritt angehalten.";break}
+     session.label="Prüfung und Ausführung "+(i+1)+" / "+maxSteps+" …";
+     render();
+     const response=await sb.functions.invoke("execution-engine",{body:{operation:"next",goal_id:goalId}});
+     if(response.error)throw await pilotApiError(response,"Autopilot konnte nicht fortfahren.");
+     const data=response.data||{};
+     if(data.status!=="completed"){
+       const reasons={
+         collaboration_required:"Nutzerentscheidung erforderlich. Pilot hat angehalten.",
+         attention_required:"Freigabe oder Prüfung erforderlich. Pilot hat angehalten.",
+         review_required:"Ergebnis benötigt eine Prüfung.",
+         waiting_approval:"Eine externe Aktion benötigt deine Freigabe.",
+         no_open_actions:"Alle geplanten Arbeitsschritte sind bearbeitet.",
+         goal_not_active:"Das Ziel ist nicht mehr aktiv.",
+         blocked:"Ein Arbeitsschritt ist blockiert.",
+         failed:"Die Ergebnisprüfung ist fehlgeschlagen."
+       };
+       stopped=reasons[data.status]||"Pilot hält zur Prüfung an ("+String(data.status||"unbekannt")+").";
+       break;
+     }
+     session.count++;
+     await load();
+     if(session.cancelRequested){stopped="Auf deinen Wunsch nach "+session.count+" Schritt(en) angehalten.";break}
+     if(i===maxSteps-1)stopped=maxSteps+" Folgeschritte bearbeitet. Weitere Aufgaben kannst du erneut starten.";
+   }
+ }catch(e){
+   stopped="Der automatische Lauf wurde gestoppt: "+String(e.message||e).slice(0,180);
+   await telemetry("incident",{goal_id:goalId,source:"autopilot",severity:"error",error_code:"AUTOPILOT_STOPPED",message:String(e.message||e)});
+ }finally{
+   await load().catch(()=>{});
+   session.active=false;
+   pilotAutoSummary={completed:session.count,text:session.count+" überprüfte Folgeschritte. "+stopped};
+   if(pilotAutoSession===session)pilotAutoSession=null;
+   render();
+ }
+}
+async function confirmPilotResult(){
+ const ctx=pilotReviewContext();
+ if(!ctx||pilotAutoSession?.active)return;
+ const btn=document.getElementById("confirmPilotResult");
+ if(btn)btn.disabled=true;
+ startPilotFlight(btn);
+ PS.textContent="Pilot übernimmt dein bestätigtes Ergebnis …";
+ try{
+   const response=await sb.functions.invoke("execution-engine",{body:{operation:"confirm",execution_id:ctx.ex.id,approved:true}});
+   if(response.error)throw await pilotApiError(response,"Der Vorschlag konnte nicht bestätigt werden.");
+   if(response.data?.status!=="completed")throw new Error("Die Bestätigung ist noch nicht abgeschlossen.");
+   await load();
+   render();
+   await pilotContinueSafely(ctx.ex.goal_id,3);
+   const target=document.getElementById("pilotNextActionPanel");
+   if(target?.querySelector(".command-card")&&activePilotFlight)await landPilotAtNextAction({scroll:true,minCruise:1700});
+   PS.textContent="Pilot bereit";
+ }catch(e){
+   PS.textContent="Pilot benötigt eine Prüfung";
+   await load().catch(()=>{});
+   render();
+   await telemetry("incident",{goal_id:ctx.ex.goal_id,source:"execution_confirmation",severity:"error",error_code:"CONFIRMATION_FAILED",message:String(e.message||e)});
+   pilotNotice(String(e.message||e),"error");
+ }finally{finishPilotFlight();if(btn?.isConnected)btn.disabled=false}
+}
+async function executeAction(){
+ if(pilotAutoSession?.active)return;
+ const n=actions.find(a=>a.status==="ready")||actions.find(a=>a.status==="pending");
+ if(!n||pilotReviewContext()||executions.some(x=>["running","waiting_approval","review_required","blocked"].includes(x.status)))return;
+ const btn=document.getElementById("executeAction");btn?.classList.add("launching");
+ startPilotFlight(btn);
+ PS.textContent="Pilot hebt ab …";
+ try{
+   const r=await sb.functions.invoke("execution-engine",{body:{operation:"start",action_id:n.id}});
+   if(r.error)throw await pilotApiError(r,"Die Aktion konnte nicht ausgeführt werden.");
+   await load();render();
+   if(r.data?.status==="completed")await pilotContinueSafely(n.goal_id||goals[0]?.id,3);
+   const target=document.getElementById("pilotNextActionPanel");
+   if(target?.querySelector(".command-card")&&activePilotFlight)await landPilotAtNextAction({scroll:true,minCruise:1700});
+   const status=r.data?.status;
+   PS.textContent=status==="waiting_approval"?"Freigabe erforderlich":status==="review_required"?"Pilot wartet auf deine Prüfung":"Pilot bereit";
+   if(status==="review_required"&&r.data?.execution_id){
+     if(pilotReviewContext())PS.textContent="Bitte prüfe den Vorschlag in der Zentrale";
+     else pilotNotice("Pilot hat ein Ergebnis erstellt, das vor der weiteren Bearbeitung geprüft werden muss.");
+   }
+   if(status==="waiting_approval")pilotNotice("Pilot hat die externe Aktion vorbereitet. Sie wartet auf deine ausdrückliche Freigabe.");
+ }catch(e){
+   PS.textContent="Pilot benötigt eine Prüfung";
+   await telemetry("incident",{goal_id:n.goal_id||goals[0]?.id||null,source:"execution",severity:"error",error_code:"EXECUTION_FAILED",message:String(e.message||e)});
+   await load().catch(()=>{});render();
+   pilotNotice(String(e.message||e),"error");
+ }finally{finishPilotFlight();setTimeout(()=>btn?.classList.remove("launching"),700)}
+}
 async function decideExecution(v,approved){const [execution_id,step_id]=v.split(":");const reason=approved?null:await pilotAskText("Warum möchtest du diese Aktion ablehnen?",{title:"Freigabe ablehnen",placeholder:"Optionaler Grund …"});if(!approved&&reason===null)return;PS.textContent=approved?"Freigabe wird verarbeitet …":"Aktion wird abgebrochen …";try{const r=await sb.functions.invoke("execution-engine",{body:{operation:"approve",execution_id,step_id,approved,reason}});if(r.error&&r.data?.status!=="blocked")throw r.error;await load();render();PS.textContent="Pilot bereit";if(r.data?.status==="blocked")pilotNotice("Freigabe wurde erfasst. Die externe Capability ist noch nicht verbunden; Pilot hat deshalb nicht ausgeführt.")}catch(e){PS.textContent="Pilot bereit";pilotNotice(e.message||String(e))}}
 async function enter(session){user=session.user;A.classList.add("hidden");APP.classList.remove("hidden");try{await load();render();if(goals[0])void startGoalResearch(goals[0].id);telemetry("event",{event_name:"session_entered",event_category:"activation",properties:{has_goal:!!goals[0]}})}catch(e){telemetry("incident",{source:"app_load",severity:"error",error_code:"LOAD_FAILED",message:e.message||String(e)});pilotNotice(e.message)}}
 async function leave(){user=null;org=null;isAdmin=false;customerPreview=false;adminData=null;pendingAttachments=[];goalSuccessMap={};goals=[];features=[];plans=[];actions=[];contexts=[];milestones=[];documents=[];results=[];claims=[];evidence=[];completeness=[];progressEvents=[];outcomes=[];adaptations=[];pilotState=null;aiRequests=[];qualityContracts=[];consensusRuns=[];executions=[];executionSteps=[];designJobs=[];canvaStatus=null;researchBusy=false;researchAttempted.clear();notifications=[];readiness=[];evalRuns=[];APP.classList.add("hidden");A.classList.remove("hidden")}
