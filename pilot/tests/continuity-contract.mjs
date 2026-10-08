@@ -175,6 +175,21 @@ assert.equal(incomplete.http,503);
 assert.equal(incomplete.body.error,"goal_setup_incomplete");
 assert.equal(initialProject.data.goals.length,goalCount);
 initialProject.data.actions.push(...removed);
+// Parallel mobile retries may observe a goal before its plan is persisted;
+// only one project may be created, and a later identical retry must recover it.
+const parallelNew=scenario();
+const simultaneous=await Promise.all([
+ parallelNew.invoke(freshArgs),parallelNew.invoke(freshArgs)
+]);
+assert(simultaneous.every(r=>[200,503].includes(r.http)));
+assert.equal(parallelNew.data.goals.length,2,"Concurrent initial requests created duplicate projects");
+const afterParallel=await parallelNew.invoke(freshArgs);
+assert.equal(afterParallel.http,200);
+assert.equal(afterParallel.body.recovered,true);
+assert.equal(afterParallel.body.goal.id,parallelNew.data.goals[1].id);
+assert.equal(parallelNew.data.goals.length,2);
+console.log("PASS Concurrent new-project delivery creates one project and recovers after planning");
+
 console.log("PASS First-project retry is idempotent, conflict-safe and fails closed on incomplete plans");
 
 console.log("PASS Retried follow-up is idempotent, scoped, and creates no orphan milestones");
