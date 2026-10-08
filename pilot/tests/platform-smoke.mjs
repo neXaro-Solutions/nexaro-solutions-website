@@ -97,7 +97,7 @@ try{
    await page.locator("#closeAuth").click();
    // Wait for the user-visible closed state on narrow Firefox touch emulation.
    try{
-    await page.waitForFunction(()=>document.getElementById("authModal")?.classList.contains("hidden"),{timeout:3000});
+    await page.waitForFunction(()=>document.getElementById("authModal")?.classList.contains("hidden"),null,{timeout:3000});
    }catch{throw Error("Login modal fails to close after close-button click");}
    await page.evaluate(()=>{
     document.getElementById("auth").classList.add("hidden");
