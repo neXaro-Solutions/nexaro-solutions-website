@@ -2003,117 +2003,131 @@ body{background:radial-gradient(ellipse 72vw 60vw at 92% -10%,rgba(145,255,62,.1
 @media(max-width:680px){.pilot-review-editable .pilot-decision-editor{font-size:16px!important;padding:16px!important;min-height:245px}.pilot-review-editable .pilot-decision-go{font-size:16px!important}.pilot-review-editable{padding:18px!important}}
 
 
-/* LUMEN 2.4 — iPhone decision workbench. Native section headings and a single scroll owner. */
-.pilot-review-editable .pilot-decision-shell{position:relative;margin-top:16px}
-.pilot-review-editable .pilot-decision-scroll{
- display:block;position:relative;overflow-y:auto!important;overflow-x:hidden!important;
- height:min(330px,43dvh);min-height:230px;max-height:360px;
- border:2px solid rgba(124,224,56,.77);border-radius:23px;
- background:linear-gradient(180deg,#fff 0%,#fafff8 100%);
- padding:15px 16px;box-sizing:border-box;
- box-shadow:0 7px 23px rgba(108,193,53,.10),inset 0 1px 2px rgba(255,255,255,.8);
- -webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y;
- scrollbar-width:thin;scrollbar-color:#b4ea90 transparent;
+/* LUMEN 2.5 · Decision Core: one compact, live-editable surface. Not a form, not a modal. */
+.pilot-review-editable.pilot-decision-hub{
+ position:relative;isolation:isolate;overflow:hidden;
+ margin:10px 0 0;padding:clamp(19px,3.4vw,29px)!important;
+ background:radial-gradient(ellipse at 100% 0%,rgba(146,255,74,.2),transparent 51%),
+  radial-gradient(ellipse at 0% 96%,rgba(255,134,46,.085),transparent 51%),
+  linear-gradient(145deg,rgba(255,255,255,.98),rgba(246,255,244,.95))!important;
+ border:1px solid rgba(148,224,104,.38)!important;border-radius:27px!important;
+ box-shadow:0 28px 72px rgba(52,122,36,.105),0 8px 20px rgba(50,101,40,.05),
+ inset 0 1px 0 rgba(255,255,255,1)!important;
 }
-.pilot-decision-scroll:focus-visible{outline:3px solid #f9a54b;outline-offset:3px}
-.pilot-decision-section+.pilot-decision-section{margin-top:22px;padding-top:16px;border-top:1px solid #e2f0da}
+.pilot-decision-hub:before{
+ content:"";position:absolute;inset:0;pointer-events:none;opacity:.5;
+ background-image:linear-gradient(rgba(132,203,107,.08) 1px,transparent 1px),
+ linear-gradient(90deg,rgba(132,203,107,.08) 1px,transparent 1px);
+ background-size:27px 27px;mask-image:linear-gradient(95deg,transparent 16%,#000 100%);
+ z-index:0
+}
+.pilot-decision-hub:after{
+ content:"";position:absolute;left:25px;right:25px;top:0;height:3px;
+ background:linear-gradient(90deg,transparent,#9bfa50 24%,#7de72e 64%,#ffa047 88%,transparent);
+ border-radius:100%;box-shadow:0 0 26px rgba(132,236,54,.33);pointer-events:none
+}
+.pilot-decision-hub>*{position:relative;z-index:1}
+.pilot-decision-eyebrow{
+ display:flex;align-items:center;gap:9px;margin-bottom:11px;
+ font-size:10px;letter-spacing:.17em;font-weight:950;color:#5a8151
+}
+.pilot-decision-beacon{
+ width:9px;height:9px;flex:0 0 9px;border-radius:50%;
+ background:#8df937;box-shadow:0 0 0 5px rgba(154,248,75,.15),0 0 19px rgba(136,237,56,.38)
+}
+.pilot-decision-hub h3{margin:0 0 9px!important;font-size:clamp(24px,4.2vw,32px)!important;line-height:1.13!important;letter-spacing:-.057em!important;color:#213b23!important}
+.pilot-decision-hub>p{color:#68816b!important;margin:0 0 19px!important;font-size:13px!important;line-height:1.6!important;max-width:550px}
+.pilot-decision-shell{margin:0 0 18px!important}
+.pilot-decision-surface-head{
+ display:flex;justify-content:space-between;align-items:center;gap:8px;
+ margin:0 4px 9px;font-size:10px;letter-spacing:.14em;
+ font-weight:950;color:#597a52
+}
+.pilot-decision-live{white-space:nowrap;color:#519734;letter-spacing:.09em;font-size:9px}
+.pilot-decision-live span{font-size:11px;color:#85ed35;text-shadow:0 0 8px rgba(120,219,44,.4);margin-right:3px}
+.pilot-review-editable .pilot-decision-scroll{
+ position:relative;display:block;height:290px;min-height:210px;max-height:290px;
+ padding:17px 17px 20px;box-sizing:border-box;
+ border-radius:23px!important;border:1px solid rgba(121,219,74,.62)!important;
+ background:radial-gradient(circle at 90% 4%,rgba(223,255,206,.25),transparent 45%),
+  linear-gradient(125deg,#fff,#fbfff8)!important;
+ box-shadow:inset 0 1px 0 #fff,0 5px 22px rgba(75,171,56,.085),
+  0 0 0 4px rgba(170,255,102,.055)!important;
+ overflow-x:hidden!important;overflow-y:auto!important;
+ touch-action:pan-y;-webkit-overflow-scrolling:touch;
+ overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#b2eb8b transparent;
+ scroll-padding-block:15px;
+}
+.pilot-review-editable .pilot-decision-scroll:focus-visible{outline:3px solid #ff9e3a;outline-offset:2px}
+.pilot-decision-shell.is-writing .pilot-decision-scroll,
+.pilot-decision-shell:focus-within .pilot-decision-scroll{
+ border-color:#77e735!important;
+ box-shadow:0 0 0 5px rgba(143,246,53,.13),0 15px 32px rgba(84,168,46,.1),inset 0 1px 0 white!important;
+}
+.pilot-decision-section+.pilot-decision-section{border-top:1px solid rgba(156,210,130,.27);margin-top:19px;padding-top:20px}
 .pilot-decision-section-title{
- display:flex;align-items:center;gap:11px;
- font-size:15px!important;line-height:1.35!important;font-weight:900!important;
- letter-spacing:-.025em;color:#31592f!important;
- margin:0 0 10px!important;text-transform:none!important
+ display:flex;align-items:center;gap:11px;margin:0 0 10px!important;
+ font-size:15px!important;line-height:1.33!important;font-weight:950!important;
+ color:#315d2f!important;letter-spacing:-.025em!important;text-transform:none!important
 }
 .pilot-decision-section-marker{
- flex:0 0 27px;width:27px;height:27px;display:inline-grid;place-items:center;
- border-radius:10px;background:#e7ffd9;color:#41762c;border:1px solid #c4f3ac;
- font-size:12px;font-weight:950;box-shadow:0 4px 13px rgba(102,196,42,.09)
+ display:grid;place-items:center;width:30px;height:30px;flex:0 0 30px;
+ background:radial-gradient(circle at 20% 10%,#fff,#dbffc5);
+ color:#4a842c;border:1px solid #bdefa1;border-radius:11px;font-size:13px;font-weight:900;
+ box-shadow:0 4px 12px rgba(99,185,45,.10)
 }
-.pilot-review-editable .pilot-preview-text,.pilot-editor-overlay .pilot-modal-text{
- display:block;width:100%;min-width:0;box-sizing:border-box;border:0!important;box-shadow:none!important;
- background:transparent!important;color:#243a29!important;padding:0!important;
- font:inherit!important;font-size:16px!important;font-weight:550!important;line-height:1.63!important;
- letter-spacing:0!important;white-space:pre-wrap!important;overflow:hidden!important;resize:none!important;
- -webkit-appearance:none;appearance:none;outline:none!important;border-radius:0!important
+.pilot-review-editable .pilot-decision-editor.pilot-inline-text{
+ width:100%;min-width:0;max-width:100%;min-height:78px!important;max-height:none!important;
+ height:auto;padding:0!important;margin:0!important;
+ border:0!important;outline:0!important;border-radius:0!important;box-shadow:none!important;
+ background:transparent!important;color:#263e2c!important;
+ font-size:16px!important;line-height:1.65!important;font-weight:560!important;
+ letter-spacing:0!important;white-space:pre-wrap!important;
+ overflow:hidden!important;resize:none!important;touch-action:pan-y;
+ caret-color:#4ebc22;-webkit-appearance:none;appearance:none
 }
-.pilot-review-editable .pilot-preview-text{cursor:text;min-height:88px;max-height:none!important;touch-action:pan-y;pointer-events:auto}
-.pilot-review-editable .pilot-preview-text:focus{border:0!important;box-shadow:none!important}
-.pilot-review-editable .pilot-decision-editor-meta{margin:12px 0 8px!important}
-.pilot-decision-expand{
- display:inline-flex;align-items:center;gap:7px;margin:5px 0 16px;
- border:1px solid #d5ecce;border-radius:999px;background:#f4ffed;
- padding:11px 17px;color:#36722a;font-weight:850;font-size:12px;cursor:pointer
+.pilot-review-editable .pilot-decision-editor.pilot-inline-text:focus{
+ border:0!important;outline:0!important;background:transparent!important;box-shadow:none!important
 }
-.pilot-decision-expand:hover{background:#eaffdf}
-.pilot-decision-expand:focus-visible{outline:3px solid #ff9a34;outline-offset:2px}
-.pilot-review-editable .pilot-decision-go{margin-top:0!important}
-body.pilot-editor-open{overflow:hidden!important;overscroll-behavior:none!important}
-.pilot-editor-overlay{
- position:fixed;z-index:2147483000;left:0;right:0;top:var(--pilot-editor-vtop,0px);
- height:var(--pilot-editor-vheight,100dvh);width:100%;
- display:flex;justify-content:center;align-items:stretch;box-sizing:border-box;
- padding:clamp(6px,1.5vw,14px);
- background:rgba(240,249,238,.96);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
- overscroll-behavior:contain;touch-action:none
+.pilot-review-editable .pilot-decision-editor-meta{
+ display:flex;justify-content:space-between;align-items:start;gap:13px;
+ margin:10px 2px 0!important;font-size:11px!important;line-height:1.5!important;color:#7a8b78!important
 }
-.pilot-editor-dialog{
- width:min(720px,100%);height:100%;min-height:0;display:flex;flex-direction:column;
- border:1px solid #d2edc0;border-radius:27px;overflow:hidden;
- background:linear-gradient(150deg,#fff,#f8fff5);
- box-shadow:0 24px 80px rgba(41,82,37,.19),inset 0 1px 0 #fff;
- pointer-events:auto;touch-action:auto
+.pilot-review-editable #pilotDecisionCount{font-weight:850;font-variant-numeric:tabular-nums;color:#619455;white-space:nowrap}
+.pilot-decision-overlimit #pilotDecisionCount{color:#c36930!important}
+.pilot-review-editable .pilot-decision-go{
+ display:block;width:100%;min-height:61px!important;max-height:none!important;
+ padding:15px 16px!important;box-sizing:border-box;
+ background:linear-gradient(107deg,#b4ff69,#87ef31 61%,#73e127)!important;
+ color:#1d421c!important;border:1px solid #8beb47!important;border-radius:19px!important;
+ text-align:center;font-size:clamp(15px,3.2vw,18px)!important;font-weight:950!important;
+ line-height:1.3!important;white-space:normal!important;letter-spacing:-.025em;
+ box-shadow:0 13px 30px rgba(97,214,32,.18),inset 0 2px 2px rgba(255,255,255,.55)!important;
+ transition:filter .2s ease,box-shadow .2s ease,transform .2s ease
 }
-.pilot-editor-toolbar{
- flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:10px;
- padding:15px 18px 13px;border-bottom:1px solid #e6f0e0;background:#fff;
+.pilot-review-editable .pilot-decision-go:disabled{opacity:.56;filter:grayscale(.2);cursor:not-allowed}
+.pilot-review-editable .pilot-decision-go:focus-visible{outline:3px solid #ff9c35;outline-offset:3px}
+.pilot-decision-after{
+ display:flex;align-items:center;justify-content:center;text-align:center;margin-top:14px;
+ font-size:11px;line-height:1.55;color:#799075
 }
-.pilot-editor-toolbar>div{display:flex;flex-direction:column;gap:5px;min-width:0}
-.pilot-editor-toolbar .pilot-review-label{font-size:9px!important}
-.pilot-editor-toolbar strong{font-size:18px;line-height:1.3;letter-spacing:-.04em;color:#223d26}
-.pilot-editor-done{
- flex:0 0 auto;border:1px solid #c8e9b9;border-radius:15px;
- background:#ecffdf;color:#2e6927;font-weight:900;font-size:13px;padding:12px 15px;cursor:pointer
+.pilot-decision-after:before{
+ content:"";width:6px;height:6px;flex:0 0 6px;border-radius:50%;
+ background:#99ea5a;box-shadow:0 0 0 4px rgba(150,244,69,.11);margin-right:9px
 }
-.pilot-editor-scroll{
- flex:1 1 auto;min-height:0;overflow-y:auto!important;overflow-x:hidden!important;
- touch-action:pan-y;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;
- padding:21px 19px 35px;scroll-padding-block:24px;scrollbar-width:thin;
-}
-.pilot-editor-scroll .pilot-decision-section+.pilot-decision-section{margin-top:30px;padding-top:20px}
-.pilot-editor-scroll .pilot-decision-section-title{font-size:17px!important;margin-bottom:15px!important}
-.pilot-editor-scroll .pilot-modal-text{
- font-size:19px!important;line-height:1.65!important;font-weight:600!important;
- min-height:90px!important;height:auto;caret-color:#409526;
- white-space:pre-wrap!important;touch-action:pan-y!important;overflow:hidden!important;
-}
-.pilot-editor-scroll .pilot-modal-text:focus{outline:none!important}
-.pilot-editor-footer{
- flex:0 0 auto;display:grid;gap:9px;
- border-top:1px solid #dbeed1;background:#fff;padding:10px 16px calc(12px + env(safe-area-inset-bottom));
-}
-.pilot-editor-footer-head{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:11px;color:#748972}
-.pilot-editor-footer-head strong{white-space:nowrap;color:#48783d;font-variant-numeric:tabular-nums}
-.pilot-editor-confirm{
- display:block;width:100%;min-height:49px;border:0;border-radius:16px;
- background:linear-gradient(110deg,#b0ff64,#7ae625)!important;color:#214022!important;
- font-weight:900!important;font-size:14px!important;line-height:1.25;letter-spacing:-.01em;
- box-shadow:0 9px 22px rgba(107,218,31,.16);white-space:normal;padding:12px
-}
-.pilot-editor-confirm:disabled{filter:grayscale(.35);opacity:.5}
-.pilot-editor-over-limit #pilotModalDecisionCount{color:#c3541d!important}
-.pilot-editor-dialog :focus-visible{outline:3px solid #ff9a34;outline-offset:2px}
 @media(max-width:680px){
- .pilot-review-editable .pilot-decision-scroll{height:min(295px,41dvh);min-height:220px;padding:13px}
- .pilot-review-editable .pilot-preview-text{font-size:16px!important}
- .pilot-editor-overlay{padding:3px}
- .pilot-editor-dialog{border-radius:19px}
- .pilot-editor-scroll{padding:18px 16px 32px}
- .pilot-editor-scroll .pilot-modal-text{font-size:18px!important;line-height:1.62!important}
- .pilot-editor-toolbar{padding:11px 14px}
- .pilot-editor-toolbar strong{font-size:17px}
- .pilot-editor-footer{padding:8px 12px 9px;gap:6px}
- .pilot-editor-confirm{min-height:45px;font-size:13.5px!important}
+ .pilot-review-editable.pilot-decision-hub{padding:19px 17px!important;border-radius:25px!important}
+ .pilot-decision-hub h3{font-size:26px!important}
+ .pilot-review-editable .pilot-decision-scroll{height:290px;max-height:290px;min-height:210px;padding:15px!important;border-radius:20px!important}
+ .pilot-decision-section-title{font-size:14px!important}
+ .pilot-review-editable .pilot-decision-editor.pilot-inline-text{font-size:16px!important}
+ .pilot-review-editable .pilot-decision-go{min-height:58px!important;font-size:16px!important}
+ .pilot-decision-after{font-size:10px}
 }
-@media(prefers-reduced-motion:reduce){.pilot-editor-overlay,.pilot-editor-dialog{transition:none!important;animation:none!important}}
+@media(hover:hover) and (pointer:fine){
+ .pilot-review-editable .pilot-decision-go:hover{transform:translateY(-2px);filter:brightness(1.035)}
+}
+@media(prefers-reduced-motion:reduce){.pilot-review-editable .pilot-decision-go{transition:none!important}}
 
 </style></head>
 <body>
@@ -2264,19 +2278,20 @@ function pilotDecisionPlainText(raw){
 /* Structured decisions: headings remain real elements, while the user's content stays editable.
    iOS textareas are full-height inside a scrollable region; tapping a preview opens a body-level
    modal, outside all transformed LUMEN surfaces, to avoid scroll/keyboard clipping. */
-let pilotDecisionModal=null;
+/* LUMEN Decision Surface — compact, directly editable, with a single touch-scroll layer.
+   Real headings stay visible inside the surface; no modal, no keyboard takeover. */
 function pilotDecisionSections(text){
  const match=String(text||"").match(/^Für wen arbeiten wir\?\s*\n([\s\S]*?)\n\s*Das versprechen wir unseren Kunden:\s*\n([\s\S]*)$/i);
  if(match)return [
   {heading:"Für wen arbeiten wir?",value:match[1].trim()},
   {heading:"Das versprechen wir unseren Kunden:",value:match[2].trim()}
  ];
- return [{heading:"Dein Vorschlag",value:String(text||"").trim()}];
+ return [{heading:"Deine Entscheidung",value:String(text||"").trim()}];
 }
 function pilotDecisionSerialize(sections){
  if(sections.length===2&&sections[0].heading==="Für wen arbeiten wir?"){
    return "Für wen arbeiten wir?\n"+sections[0].value.trim()+
-          "\n\nDas versprechen wir unseren Kunden:\n"+sections[1].value.trim();
+     "\n\nDas versprechen wir unseren Kunden:\n"+sections[1].value.trim();
  }
  return sections.map(section=>section.value.trim()).join("\n\n");
 }
@@ -2289,170 +2304,82 @@ function pilotDecisionFor(ctx){
  if(!pilotDecisionDraft.sections)pilotDecisionDraft.sections=pilotDecisionSections(pilotDecisionDraft.text);
  return pilotDecisionDraft;
 }
-function pilotDecisionFields(sections,inModal){
+function pilotDecisionFields(sections){
  return sections.map((part,index)=>{
-   const id=(inModal?"pilotModalDecision":"pilotDecisionText")+(index||"");
+   const id="pilotDecisionText"+(index||"");
    return '<section class="pilot-decision-section">'+
      '<label class="pilot-decision-section-title" for="'+id+'">'+
-     '<span class="pilot-decision-section-marker" aria-hidden="true">'+(index+1)+'</span>'+esc(part.heading)+'</label>'+
-     '<textarea id="'+id+'" class="pilot-decision-editor '+(inModal?"pilot-modal-text":"pilot-preview-text")+
-     '" data-decision-part="'+index+'" rows="3" spellcheck="true" maxlength="2500"'+
-     (inModal?'':' readonly aria-label="'+esc(part.heading)+' – antippen zum Bearbeiten"')+
-     '>'+esc(part.value)+'</textarea></section>';
+     '<span class="pilot-decision-section-marker" aria-hidden="true">'+(index+1)+'</span>'+
+     '<span>'+esc(part.heading)+'</span></label>'+
+     '<textarea id="'+id+'" class="pilot-decision-editor pilot-inline-text"'+
+     ' data-decision-part="'+index+'" rows="3" spellcheck="true" aria-label="'+esc(part.heading)+
+     '" aria-describedby="pilotDecisionHint">'+esc(part.value)+'</textarea></section>';
  }).join("");
 }
 function pilotReviewCard(ctx){
  if(!ctx)return "";
- const decision=pilotDecisionFor(ctx),length=decision.text.length;
- return '<div class="command-card pilot-review-card pilot-review-editable">'+
-  '<div class="pilot-review-label">✦ DEINE ENTSCHEIDUNG</div>'+
-  '<h3>Dein Vorschlag. Deine Entscheidung.</h3>'+
-  '<p>Pilot hat eine Fassung vorbereitet. <strong>Tippe auf den Text</strong> und passe ihn so an, wie du ihn haben möchtest.</p>'+
-  '<div class="pilot-decision-shell" id="pilotDecisionShell">'+
-    '<div class="pilot-decision-label">Dein Ergebnis – direkt bearbeitbar</div>'+
-    '<div class="pilot-decision-scroll" id="pilotDecisionScroll" role="region" tabindex="0" aria-label="Vorschlag zum Bearbeiten – innerhalb des Feldes scrollen">'+
-    pilotDecisionFields(decision.sections,false)+'</div>'+
-    '<div class="pilot-decision-editor-meta"><span id="pilotDecisionHint">Text antippen, vergrößern und bearbeiten. Innerhalb des Feldes scrollen.</span>'+
-     '<span id="pilotDecisionCount">'+length+' / 2500</span></div>'+
-    '<button type="button" class="pilot-decision-expand" id="pilotDecisionExpand">⛶ In großem Editor bearbeiten</button>'+
-  '</div>'+
-  '<button type="button" class="btn ai pilot-home-action-start pilot-decision-go" id="confirmPilotResult" data-execution="'+esc(ctx.ex.id)+
-  '" '+(pilotAutoSession?.active||length<35||length>2500?'disabled':'')+'>⚡ Entscheidung steht. Pilot übernimmt.</button>'+
-  '<p class="pilot-review-hint">Pilot speichert deine Fassung und arbeitet nach der Freigabe an geeigneten nächsten Schritten weiter.</p>'+
- '</div>';
+ const draft=pilotDecisionFor(ctx);
+ const count=draft.text.length;
+ return '<section class="pilot-review-card pilot-review-editable pilot-decision-hub" aria-labelledby="pilotDecisionTitle">'+
+   '<div class="pilot-decision-eyebrow"><span class="pilot-decision-beacon" aria-hidden="true"></span>DEIN KURS · PILOT BEREIT</div>'+
+   '<h3 id="pilotDecisionTitle">Du gibst die Richtung vor.</h3>'+
+   '<p>Pilot hat vorgearbeitet. Passe den Vorschlag hier direkt an – Pilot übernimmt danach die Umsetzung.</p>'+
+   '<div class="pilot-decision-shell" id="pilotDecisionShell">'+
+     '<div class="pilot-decision-surface-head"><span>✦ DEIN ERGEBNIS</span><span class="pilot-decision-live"><span aria-hidden="true">●</span> BEARBEITBAR</span></div>'+
+     '<div class="pilot-decision-scroll" id="pilotDecisionScroll" role="region" tabindex="0" aria-label="Deinen Vorschlag bearbeiten und innerhalb des Feldes scrollen">'+
+       pilotDecisionFields(draft.sections)+'</div>'+
+     '<div class="pilot-decision-editor-meta"><span id="pilotDecisionHint">Text direkt ändern · im Feld nach oben und unten scrollen</span>'+
+       '<span id="pilotDecisionCount">'+count+' / 2500</span></div>'+
+   '</div>'+
+   '<button type="button" class="btn ai pilot-home-action-start pilot-decision-go" id="confirmPilotResult" data-execution="'+esc(ctx.ex.id)+
+      '" '+(pilotAutoSession?.active||count<35||count>2500?'disabled':'')+'>⚡ Entscheidung steht. Pilot übernimmt.</button>'+
+   '<div class="pilot-decision-after">Deine Fassung wird übernommen. Pilot erledigt die nächsten sicheren Schritte.</div>'+
+ '</section>';
+}
+function pilotDecisionAutoSize(textarea){
+ if(!textarea)return;
+ textarea.style.height="auto";
+ textarea.style.height=Math.max(78,textarea.scrollHeight+3)+"px";
 }
 function pilotDecisionRefreshCard(){
  if(!pilotDecisionDraft)return;
  const d=pilotDecisionDraft;
  document.querySelectorAll("#pilotDecisionShell [data-decision-part]").forEach(el=>{
-   const index=Number(el.dataset.decisionPart);
-   if(d.sections[index]&&el.value!==d.sections[index].value)el.value=d.sections[index].value;
-   // Recompute preview heights after an edit so the entire edited text remains scrollable.
+   const i=Number(el.dataset.decisionPart);
+   if(d.sections[i]&&el!==document.activeElement&&el.value!==d.sections[i].value)el.value=d.sections[i].value;
    pilotDecisionAutoSize(el);
  });
- const counter=document.getElementById("pilotDecisionCount");
- if(counter)counter.textContent=d.text.length+" / 2500";
- const submit=document.getElementById("confirmPilotResult");
- if(submit)submit.disabled=!!pilotAutoSession?.active||d.text.trim().length<35||d.text.length>2500;
- const modalCount=document.getElementById("pilotModalDecisionCount");
- if(modalCount)modalCount.textContent=d.text.length+" / 2500";
- const modalSubmit=document.getElementById("pilotModalDecisionConfirm");
- if(modalSubmit)modalSubmit.disabled=!!pilotAutoSession?.active||d.text.trim().length<35||d.text.length>2500;
- const editor=pilotDecisionModal?.root;
- if(editor)editor.classList.toggle("pilot-editor-over-limit",d.text.length>2500);
-}
-function pilotDecisionAutoSize(textarea){
- textarea.style.height="auto";
- textarea.style.height=Math.max(88,textarea.scrollHeight+3)+"px";
+ const count=document.getElementById("pilotDecisionCount");
+ if(count)count.textContent=d.text.length+" / 2500";
+ const btn=document.getElementById("confirmPilotResult");
+ if(btn)btn.disabled=!!pilotAutoSession?.active||d.text.trim().length<35||d.text.length>2500;
+ const shell=document.getElementById("pilotDecisionShell");
+ if(shell)shell.classList.toggle("pilot-decision-overlimit",d.text.length>2500);
 }
 function pilotDecisionSyncInput(event){
- const el=event.currentTarget,ctx=pilotReviewContext();
- if(!ctx||!el)return;
- const index=Number(el.dataset.decisionPart);
- const draft=pilotDecisionFor(ctx);
+ const field=event.currentTarget,ctx=pilotReviewContext();
+ if(!ctx||!field)return;
+ const index=Number(field.dataset.decisionPart),draft=pilotDecisionFor(ctx);
  if(!draft.sections[index])return;
- draft.sections[index].value=el.value;
+ draft.sections[index].value=field.value;
  draft.text=pilotDecisionSerialize(draft.sections);
  draft.changed=true;
- pilotDecisionAutoSize(el);
+ pilotDecisionAutoSize(field);
  pilotDecisionRefreshCard();
-}
-function pilotDecisionVisualViewport(){
- if(!pilotDecisionModal)return;
- const v=window.visualViewport;
- const root=pilotDecisionModal.root;
- root.style.setProperty("--pilot-editor-vtop",Math.round(v?.offsetTop||0)+"px");
- root.style.setProperty("--pilot-editor-vheight",Math.round(v?.height||window.innerHeight)+"px");
- // The modal itself is fixed to the visible, not the layout, viewport on iOS.
-}
-function pilotCloseDecisionFocus({restoreFocus=false}={}){
- if(!pilotDecisionModal)return;
- const {root,previous,updateViewport,keyHandler}=pilotDecisionModal;
- pilotDecisionModal=null;
- window.visualViewport?.removeEventListener("resize",updateViewport);
- window.visualViewport?.removeEventListener("scroll",updateViewport);
- window.removeEventListener("keydown",keyHandler);
- root.remove();
- document.body.classList.remove("pilot-editor-open");
- pilotDecisionRefreshCard();
- if(restoreFocus&&previous?.isConnected&&typeof previous.focus==="function"){
-   try{previous.focus({preventScroll:true})}catch{}
- }
-}
-function pilotOpenDecisionFocus(index=0){
- const ctx=pilotReviewContext();
- if(!ctx||pilotAutoSession?.active)return;
- if(pilotDecisionModal){
-   const focusInput=pilotDecisionModal.root.querySelectorAll("[data-decision-part]")[index];
-   focusInput?.focus({preventScroll:true});
-   return;
- }
- const draft=pilotDecisionFor(ctx);
- const previous=document.activeElement;
- const root=document.createElement("div");
- root.className="pilot-editor-overlay";
- root.setAttribute("role","dialog");
- root.setAttribute("aria-modal","true");
- root.setAttribute("aria-label","Ergebnis groß bearbeiten");
- root.innerHTML='<div class="pilot-editor-dialog">'+
-   '<header class="pilot-editor-toolbar"><div><span class="pilot-review-label">✦ PILOT · BEARBEITEN</span>'+
-   '<strong>Dein Ergebnis gestalten</strong></div>'+
-   '<button id="pilotModalDecisionDone" type="button" class="pilot-editor-done" aria-label="Bearbeitung beenden">✓ Fertig</button></header>'+
-   '<div class="pilot-editor-scroll" id="pilotModalDecisionScroll" role="region" tabindex="0" aria-label="Bearbeitbarer Vorschlag – nach oben und unten scrollen">'+
-      pilotDecisionFields(draft.sections,true)+'</div>'+
-   '<footer class="pilot-editor-footer"><div class="pilot-editor-footer-head"><small>Deine Änderungen werden übernommen</small>'+
-       '<strong id="pilotModalDecisionCount">'+draft.text.length+' / 2500</strong></div>'+
-     '<button type="button" class="btn ai pilot-editor-confirm" id="pilotModalDecisionConfirm" '+
-       (draft.text.trim().length<35||draft.text.length>2500?'disabled':'')+
-       '>⚡ Entscheidung steht. Pilot übernimmt.</button></footer>'+
-   '</div>';
- document.body.append(root);
- document.body.classList.add("pilot-editor-open");
- const updateViewport=()=>pilotDecisionVisualViewport();
- const keyHandler=event=>{
-   if(event.key==="Escape"){event.preventDefault();pilotCloseDecisionFocus({restoreFocus:true})}
-   if(event.key==="Tab"){
-     const candidates=[...root.querySelectorAll("button:not([disabled]),textarea:not([disabled])")];
-     const first=candidates[0],last=candidates.at(-1);
-     if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus()}
-     else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus()}
-   }
- };
- pilotDecisionModal={root,previous,updateViewport,keyHandler};
- window.visualViewport?.addEventListener("resize",updateViewport,{passive:true});
- window.visualViewport?.addEventListener("scroll",updateViewport,{passive:true});
- window.addEventListener("keydown",keyHandler);
- updateViewport();
- const inputs=[...root.querySelectorAll("[data-decision-part]")];
- inputs.forEach(input=>{
-   pilotDecisionAutoSize(input);
-   input.addEventListener("input",pilotDecisionSyncInput);
- });
- root.querySelector("#pilotModalDecisionDone")?.addEventListener("click",()=>pilotCloseDecisionFocus({restoreFocus:true}));
- root.querySelector("#pilotModalDecisionConfirm")?.addEventListener("click",()=>{
-   pilotCloseDecisionFocus();
-   confirmPilotResult();
- });
- // iOS requires focus synchronously in the initiating tap/click to open the keyboard.
- // Deferring focus to requestAnimationFrame would silently skip the soft keyboard.
- const field=inputs[Math.min(index,inputs.length-1)]||inputs[0];
- if(field){
-   try{field.focus({preventScroll:true})}catch{field.focus()}
-   try{field.setSelectionRange(field.value.length,field.value.length)}catch{}
- }
 }
 function bindPilotDecisionEditor(){
  const shell=document.getElementById("pilotDecisionShell");
  if(!shell)return;
- shell.querySelectorAll(".pilot-preview-text").forEach(field=>{
+ const scroll=shell.querySelector("#pilotDecisionScroll");
+ shell.querySelectorAll(".pilot-inline-text").forEach(field=>{
    pilotDecisionAutoSize(field);
-   field.addEventListener("click",()=>pilotOpenDecisionFocus(Number(field.dataset.decisionPart)));
-   field.addEventListener("keydown",event=>{
-     if(event.key==="Enter"||event.key===" "){event.preventDefault();pilotOpenDecisionFocus(Number(field.dataset.decisionPart))}
-   });
+   field.addEventListener("input",pilotDecisionSyncInput);
+   field.addEventListener("focus",()=>shell.classList.add("is-writing"));
+   field.addEventListener("blur",()=>{if(!shell.contains(document.activeElement))shell.classList.remove("is-writing")});
  });
- document.getElementById("pilotDecisionExpand")?.addEventListener("click",()=>pilotOpenDecisionFocus(0));
- // The preview is read-only: the scrolling container, not a nested textarea, owns touch scrolling.
+ // The viewport-sized panel is the ONLY vertical scroller; textareas expand with content.
+ // This avoids competing nested iOS textarea scrolling and keeps editing directly in place.
+ scroll?.addEventListener("wheel",event=>event.stopPropagation(),{passive:true});
  pilotDecisionRefreshCard();
 }
 function pilotAutoStatusCard(){
@@ -2805,7 +2732,7 @@ function pilotBindSpatialUI(){
  if(!reduced){V.classList.remove("pilot-view-enter");V.classList.add("pilot-view-enter")}
 }
 
-function render(){if(pilotDecisionModal)pilotCloseDecisionFocus();if(!effectiveAdmin()&&["roadmap","alpha","admin"].includes(current))current="home";applyRoleUI();document.querySelectorAll("[data-view]").forEach(b=>b.classList.toggle("active",b.dataset.view===current));T.textContent={home:"Zentrale",goals:"Ziele",documents:"Dokumente",results:"Ergebnisse",execution:"Ausführung",canva:"Gestaltung",roadmap:"Entwicklungsplan",alpha:"Systemtest",admin:"Admin-Cockpit",me:"Einstellungen"}[current];V.dataset.screen=current;V.innerHTML={home:home,goals:goalsView,documents:documentsView,results:resultsView,execution:executionView,canva:canvaView,roadmap:roadmap,alpha:alphaView,admin:adminView,me:me}[current]();document.querySelectorAll(".side .nav[data-view]").forEach(b=>{if(b.dataset.view===current)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current")});bind();pilotBindSpatialUI()}
+function render(){if(!effectiveAdmin()&&["roadmap","alpha","admin"].includes(current))current="home";applyRoleUI();document.querySelectorAll("[data-view]").forEach(b=>b.classList.toggle("active",b.dataset.view===current));T.textContent={home:"Zentrale",goals:"Ziele",documents:"Dokumente",results:"Ergebnisse",execution:"Ausführung",canva:"Gestaltung",roadmap:"Entwicklungsplan",alpha:"Systemtest",admin:"Admin-Cockpit",me:"Einstellungen"}[current];V.dataset.screen=current;V.innerHTML={home:home,goals:goalsView,documents:documentsView,results:resultsView,execution:executionView,canva:canvaView,roadmap:roadmap,alpha:alphaView,admin:adminView,me:me}[current]();document.querySelectorAll(".side .nav[data-view]").forEach(b=>{if(b.dataset.view===current)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current")});bind();pilotBindSpatialUI()}
 
 function formatBytes(n){const v=Number(n||0);if(v<1024)return v+" B";if(v<1024*1024)return (v/1024).toFixed(1)+" KB";return (v/1024/1024).toFixed(1)+" MB"}
 function renderAttachmentTray(){
@@ -2964,7 +2891,7 @@ function nxOpenNext(){
   const mask=document.createElement("div");mask.className="nx-mask";
   const safe=esc;
   mask.innerHTML='<section class="nx-modal" role="dialog" aria-modal="true" aria-labelledby="nxTitle" aria-describedby="nxDesc">'+
-    '<div class="nx-top"><div class="nx-symbol" aria-hidden="true">✦</div><span class="nx-kicker">neXaro · PILOT · LUMEN 2026.10.08.24</span><button type="button" class="nx-close" aria-label="Schließen">×</button></div>'+
+    '<div class="nx-top"><div class="nx-symbol" aria-hidden="true">✦</div><span class="nx-kicker">neXaro · PILOT · LUMEN 2026.10.08.25</span><button type="button" class="nx-close" aria-label="Schließen">×</button></div>'+
     '<h2 id="nxTitle">'+safe(config.title||"Pilot fragt nach")+'</h2><p class="nx-description" id="nxDesc">'+safe(config.description||"Bitte ergänze die noch fehlenden Angaben.")+'</p>'+
     '<form novalidate><div class="nx-fields">'+fields.map((f,i)=>'<div class="nx-field"><label for="nxInput'+i+'">'+safe(f.label)+'</label>'+
       (f.short?'<input id="nxInput'+i+'" type="text" name="'+safe(f.key)+'" maxlength="500" placeholder="'+safe(f.placeholder||"")+'" data-required="'+(f.required?"1":"0")+'">':
@@ -3540,11 +3467,10 @@ async function confirmPilotResult(){
  if(!ctx||pilotAutoSession?.active)return;
  const editedText=String(pilotDecisionFor(ctx).text||"").trim();
  if(editedText.length<35||editedText.length>2500){
-   pilotNotice("Bitte schreibe mindestens zwei aussagekräftige Sätze und bleibe unter 2500 Zeichen.","error");
-   pilotOpenDecisionFocus(0);return;
+   pilotNotice("Bitte beschreibe deine Entscheidung in mindestens 35 und höchstens 2500 Zeichen.","error");
+   document.getElementById("pilotDecisionText")?.focus();return;
  }
  pilotDecisionFor(ctx).text=editedText;
- pilotCloseDecisionFocus();
  const btn=document.getElementById("confirmPilotResult");
  if(btn)btn.disabled=true;
  startPilotFlight(btn);
