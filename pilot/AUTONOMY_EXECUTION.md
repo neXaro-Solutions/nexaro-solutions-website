@@ -116,3 +116,16 @@ Der Authentifizierte-Testlauf `d8127ae2-509e-488b-98f0-352e68e2134a` benötigte 
 **Korrektur deployed:** In `best-of-ai v18` bleibt `fast_best` ein Laufzeitmodus; persistent wird `mode=best` gespeichert und `decision=fast_verified_<provider>` dokumentiert die tatsächlich genutzte schnelle Route. Hochrisiko-`high_assurance` ist unverändert. Interne Datenbankfehlermeldungen werden nicht mehr als Klartext an den Nutzer weitergereicht. SQL-Verifikation: `best` und `high_assurance` zulässig, `fast_best` nicht. Keine Schema-Aufweichung vorgenommen.
 
 **Status:** V18 aktiv mit JWT, Datenbank-Constraint und Quellensuche geprüft. Die Live-Aktion „Qualifikation & Versicherungsschutz bei Baumpflege prüfen“ ist weiterhin `ready`, kein laufender Job und noch kein abgeschlossenes Ergebnis. Erneute **echte** Benutzerabnahme ist offen; keine unbelegte Erfolgsbehauptung.
+
+
+### Live-Fix 2026-10-08, 10:27 – Modell-Kompatibilität und Timeout (LUMEN .29)
+
+Der echte iPhone-Lauf `34849feb-abeb-40e1-8417-83fc972a79ef` (ca. 32 Sekunden, Status `failed`) bestätigte: Recherche war nach 3,7 s abgeschlossen und erfolgreich; Fehlercode `UPSTREAM_best-of-ai_503_MODEL_OUTPUT_NOT_READY` im `reason`-Schritt. In `ai_requests` schlugen Claude nach ca. 19 s (`signal aborted`) und OpenAI nach 0,4 s (`OPENAI_400`) fehl. Kein verifizierbares Ausführungsergebnis wurde gespeichert.
+
+**Veröffentlichte Korrekturen:**
+- `ai-gateway v24`: Die interaktive OpenAI-Arbeitsroute verwendet standardmäßig `gpt-4.1-mini` statt des bisherigen `gpt-6-sol`-Profils, verzichtet bei diesem kompatibleren Modell auf den `reasoning`-Parameter und fordert ausdrücklich ein JSON-Objekt an. Andere Routen bleiben beim bisherigen Modellprofil. Das Modell ist über `PILOT_INTERACTIVE_OPENAI_MODEL` konfigurierbar, ohne einen geheimen Schlüssel zu ändern.
+- `ai-gateway v24`: Interaktive Claude-Aufrufe dürfen bis zu 32 Sekunden benötigen; Verarbeitungs- und Moderationschecks bleiben unverändert. Modellanbietercodes werden in Logs diagnostisch protokolliert, nicht als ungefilterte Fehlermeldung angezeigt.
+- `best-of-ai v19`: Im schnellen `fast_best`-Modus wird zunächst die JSON-kompatible OpenAI-Route verwendet (23-Sekunden-Grenze), Claude folgt nur bei fehlendem/ungültigem Ergebnis (35-Sekunden-Grenze). Beide Pfade prüfen Pflichtfelder; `high_assurance` behält das strengere Dualmodell-Prinzip.
+- `pilot/index.html` LUMEN .29: verständliche, getrennte Meldung bei nicht verfügbaren Modellantworten, unverändertes Zielgedächtnis, Flugfunktion und Ein-Klick-Sperre gegen doppelte Ausführung.
+
+**Prüfstatus:** Alle acht Quellcode-/Konfigurationsprüfungen sowie JavaScript-Syntax bestanden, Edge-Funktionen aktiv mit JWT; tatsächliche Modellantwort und End-to-End-Artefakt auf iPhone **noch nicht geprüft**. Bestehende Aufgabe `ready`, keine parallele Ausführung, vier protokollierte Fehlversuche, null Ergebnisse. Der Block bleibt Alpha und darf erst nach erfolgreicher Live-Durchführung auf Grün.
