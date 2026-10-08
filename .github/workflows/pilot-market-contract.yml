@@ -4,12 +4,16 @@ on:
     paths:
       - 'pilot/index.html'
       - 'pilot/tests/market-contract.mjs'
+      - 'pilot/tests/feed-normalizer-contract.mjs'
+      - 'pilot/feed-normalizer.mjs'
       - 'supabase/functions/pilot-market/index.ts'
       - '.github/workflows/pilot-market-contract.yml'
   pull_request:
     paths:
       - 'pilot/index.html'
       - 'pilot/tests/market-contract.mjs'
+      - 'pilot/tests/feed-normalizer-contract.mjs'
+      - 'pilot/feed-normalizer.mjs'
       - 'supabase/functions/pilot-market/index.ts'
 jobs:
   contract:
@@ -20,3 +24,4 @@ jobs:
         with:
           node-version: '22'
       - run: node pilot/tests/market-contract.mjs
+      - run: node pilot/tests/feed-normalizer-contract.mjs
