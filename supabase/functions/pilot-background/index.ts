@@ -30,6 +30,10 @@ function eligible(goal:any,action:any){
  if(goal.status!=="active"||action.status!=="ready"||
    action.owner_type!=="pilot"||action.recommended_mode!=="do_it"||action.blocking===true)return false;
  if(!["general","marketing","business","document_work"].includes(String(goal.domain?.primary||"general")))return false;
+ // Additional stem check: "schicke", "versenden", "registrieren" and other
+ // inflected verbs must never become authorized external actions.
+ if(/(?:schick|send|versend|mail|email|publish|posten|veröffent|veroeffent|upload|hochlad|bezahl|kauf|buch|bestell|anruf|kontaktier|anmeld|registrier|genehmig|steuer|rechts|gesetz|finanz|kapital|budget|versicherung|medizin|therapie|haftung|pflicht|lösch|loesch|vertrag|sicherheits)/i.test(txt))
+   return false;
  return permittedCreative.test(txt)&&!unsafe.test(txt);
 }
 function extract(response:any){
@@ -50,7 +54,8 @@ async function moderate(key:string,text:string){
    throw Error("CONTENT_SAFETY_REVIEW_REQUIRED");
 }
 async function createDraft(key:string,goal:any,action:any,decisions:any[]){
- const model=Deno.env.get("PILOT_INTERACTIVE_OPENAI_MODEL")||"gpt-4.1-mini";
+ const configured=Deno.env.get("PILOT_INTERACTIVE_OPENAI_MODEL")||"gpt-4.1-mini";
+ const model=["gpt-4.1-mini","gpt-4o-mini"].includes(configured)?configured:"gpt-4.1-mini";
  // The output is text only; never promise graphics, outside research or registrations.
  const instruction=[
   "Du bist neXaro Pilot. Erstelle ein sofort nutzbares deutsches TEXT-Arbeitsergebnis für einen risikoarmen Kreativauftrag.",
@@ -136,6 +141,14 @@ async function performOne(sb:any,job:any){
   }
   const key=Deno.env.get("OPENAI_API_KEY")||Deno.env.get("AI_PROVIDER_API_KEY");
   if(!key)throw Error("AI_CONFIGURATION_UNAVAILABLE");
+  // Reserve the entire possible provider charge BEFORE contacting the model.
+  // A paused tab, timeout or crashed worker cannot silently evade the quota.
+  const reserved=await sb.from("pilot_background_jobs").update({
+    cost_spent_usd:Number((Number(job.cost_spent_usd)+RESERVE_USD).toFixed(5)),
+    updated_at:iso()
+  }).eq("id",job.id).eq("lease_token",job.lease_token).eq("status","running")
+    .select("id").maybeSingle();
+  if(reserved.error||!reserved.data)throw Error("BACKGROUND_COST_RESERVATION_FAILED");
   const artifact=await createDraft(key,goal,action,decisions);
   const fresh=await sb.from("pilot_background_jobs").select("status,lease_token,expires_at")
     .eq("id",job.id).single();
@@ -251,11 +264,11 @@ Deno.serve(async(req:Request)=>{
  const row=found.data;
  if(row?.status==="running")return respond({status:"running",job:row});
  if(op==="resume"&&!row)return respond({error:"not_started"},409);
- if(row?.status==="completed"||row?.steps_completed>=row?.max_steps||
-   (row&&Number(row.cost_spent_usd)+RESERVE_USD>Number(row.max_cost_usd)))
-   return respond({error:"background_budget_exhausted",job:row},409);
- if(row&&new Date(row.expires_at).getTime()<=Date.now())
-   return respond({error:"background_authorization_expired"},409);
+ const expired=row&&new Date(row.expires_at).getTime()<=Date.now();
+ const exhausted=row&&(row.status==="completed"||row.steps_completed>=row.max_steps||
+   Number(row.cost_spent_usd)+RESERVE_USD>Number(row.max_cost_usd));
+ if(op==="resume"&&(expired||exhausted))
+   return respond({error:expired?"background_authorization_expired":"background_budget_exhausted",job:row},409);
  let result:any;
  if(!row){
   if(op==="resume")return respond({error:"not_started"},409);
@@ -264,9 +277,13 @@ Deno.serve(async(req:Request)=>{
    max_steps:MAX_STEPS,max_cost_usd:MAX_USD,status:"queued"
   }).select("*").single();
  }else{
+  const reauthorized=op==="start"&&(expired||exhausted);
   result=await sb.from("pilot_background_jobs").update({
    status:"queued",last_error:null,next_run_at:iso(),lease_token:null,
-   lease_until:null,updated_at:iso()
+   lease_until:null,updated_at:iso(),
+   ...(reauthorized?{steps_completed:0,cost_spent_usd:0,max_steps:MAX_STEPS,
+     max_cost_usd:MAX_USD,started_at:iso(),
+     expires_at:new Date(Date.now()+24*60*60*1000).toISOString()}: {})
   }).eq("id",row.id).eq("owner_id",owner).select("*").single();
  }
  if(result.error)return respond({error:"background_start_failed",retryable:true},503);
