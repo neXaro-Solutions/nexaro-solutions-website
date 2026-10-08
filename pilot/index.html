@@ -2744,8 +2744,8 @@ body{background:radial-gradient(ellipse 72vw 60vw at 92% -10%,rgba(145,255,62,.1
 .pilot-worker--boarding{animation:pilotWorkerBoard .44s ease-in both}
 .pilot-worker--boarding .pilot-worker-speech{opacity:0;transition:opacity .12s}
 .pilot-worker--boarding .pilot-worker-arm--wave{animation:none}
-@keyframes pilotWorkerExit{0%{opacity:0;transform:translate3d(-25px,-25px,0) scale(.43)}65%{opacity:1}100%{opacity:1;transform:translate3d(0,0,0) scale(1)}}
-@keyframes pilotWorkerBoard{0%{opacity:1;transform:translate3d(0,0,0) scale(1)}100%{opacity:0;transform:translate3d(-24px,-24px,0) scale(.3)}}
+@keyframes pilotWorkerExit{0%{opacity:0;transform:translate3d(var(--worker-to-plane-x),var(--worker-to-plane-y),0) scale(.36)}65%{opacity:1}100%{opacity:1;transform:translate3d(0,0,0) scale(1)}}
+@keyframes pilotWorkerBoard{0%{opacity:1;transform:translate3d(0,0,0) scale(1)}100%{opacity:0;transform:translate3d(var(--worker-to-plane-x),var(--worker-to-plane-y),0) scale(.3)}}
 @keyframes pilotWorkerWave{0%,100%{transform:rotate(18deg)}50%{transform:rotate(-42deg)}}
 @media(max-width:420px){.pilot-worker-avatar{width:194px;gap:3px}.pilot-worker-speech{max-width:137px;padding:6px 7px;font-size:10px}.pilot-worker-speech strong{font-size:10px}}
 @media(prefers-reduced-motion:reduce){.pilot-worker--exit,.pilot-worker--boarding,.pilot-worker-arm--wave{animation:none!important}.pilot-worker--boarding{opacity:0}}
@@ -4485,8 +4485,11 @@ function pilotWorkerProfile(goalId){
 function pilotPositionWorker(worker,plane){
  const r=plane.getBoundingClientRect(),w=window.innerWidth,h=window.innerHeight;
  const right=r.right+9,fit=right+210<w-8;
- worker.style.left=Math.round(fit?right:Math.max(8,r.left-210))+"px";
- worker.style.top=Math.round(Math.max(90,Math.min(h-161,r.top-30)))+"px";
+ const left=Math.round(fit?right:Math.max(8,r.left-210));
+ const top=Math.round(Math.max(90,Math.min(h-161,r.top-30)));
+ worker.style.left=left+"px";worker.style.top=top+"px";
+ worker.style.setProperty("--worker-to-plane-x",Math.round(r.left+13-left)+"px");
+ worker.style.setProperty("--worker-to-plane-y",Math.round(r.top+9-top)+"px");
  worker.classList.toggle("pilot-worker--left",!fit);
 }
 function pilotAvatarDisembark(f){
