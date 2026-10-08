@@ -3572,7 +3572,7 @@ async function pilotBackgroundStart(id){
  const r=await pilotBackgroundCall("start",id);
  if(!["queued","running"].includes(r.status))throw Error("Serverstart nicht bestätigt.");
  pilotAutoRunPreference(id,false);pilotBackgroundJob=r.job||null;
- await pilotBackgroundObserve(id);return r;
+ render();await pilotBackgroundObserve(id);return r;
 }
 async function pilotBackgroundPause(){
  const id=goals[0]?.id;if(!id)return;
@@ -3722,6 +3722,8 @@ function home(){
  attach+'<div id="attachmentTray" class="attachment-tray" aria-live="polite"></div></div>'+
  '<button id="createGoal" type="button" class="btn ai launch-primary">✈ Pilot starten</button></div>'+
  '<span id="goalTextCount" class="pilot-simple-counter" aria-hidden="true">0 / 3000</span>'+
+ '<details class="pilot-simple-details"><summary>Hintergrundmodus & Kostenlimit</summary>'+
+ '<p>Mit „Pilot starten“ erlaubst du bis zu 6 risikoarme Kreativtext-Schritte innerhalb von 24 Stunden; maximales geschätztes KI-Budget: 0,25 USD. Externe Aktionen, Rechts- und Finanzfragen benötigen weiterhin eine separate Prüfung.</p></details>'+
  '</section>';
  if(!g)return '<div class="pilot-simple">'+entry+'<p class="pilot-simple-footnote">Pilot fragt nur nach, wenn eine entscheidende Information fehlt. Externe Aktionen benötigen deine Freigabe.</p></div>';
  const needsHuman=!inProgress&&(!!approval||
@@ -5717,7 +5719,7 @@ async function pilotExecutionProviderDiagnostic(){
   }
 }
 async function executeAction(){
- if(pilotAutoSession?.active||pilotExecutionRequestActive)return;
+ if(pilotBackgroundWorking(goals[0]?.id)||pilotAutoSession?.active||pilotExecutionRequestActive)return;
  const n=pilotNextQueuedAction();
  if(!n||n.status!=="ready"||pilotReviewContext()||pilotRelevantInterruption())return;
  const btn=document.getElementById("executeAction");
