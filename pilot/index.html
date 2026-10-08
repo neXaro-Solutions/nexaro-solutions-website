@@ -3784,45 +3784,66 @@ body:has(.shell[data-screen="home"]:not(.hidden)){background:radial-gradient(ell
  .side nav.pilot-minimal-nav .pilot-nav-more-content .nav{min-height:43px!important;height:auto!important}
 }
 
-/* Global DE/EN control: top right on every Pilot view, never in the bottom dock. */
+/* Pilot language: compact choice remains at the TOP RIGHT on mobile and desktop. */
 #pilotLanguageSwitcher{
  position:fixed!important;
- top:calc(13px + env(safe-area-inset-top,0px))!important;
- right:max(14px,env(safe-area-inset-right,0px))!important;
+ top:calc(10px + env(safe-area-inset-top,0px))!important;
+ right:max(12px,env(safe-area-inset-right,0px))!important;
  left:auto!important;bottom:auto!important;
- display:flex!important;align-items:center!important;gap:3px!important;justify-content:center!important;
- z-index:340!important;width:auto!important;min-width:94px!important;height:43px!important;
- padding:4px 5px!important;border:1px solid #e9e4d7!important;border-radius:15px!important;
- background:rgba(255,255,255,.97)!important;color:#d87523!important;
- box-shadow:0 8px 26px rgba(25,69,37,.09)!important;
- font-size:10px!important;line-height:1!important;font-weight:780!important;
+ z-index:950!important;
+ display:block!important;
+ width:auto!important;max-width:calc(100vw - 24px)!important;
+ padding:0!important;margin:0!important;
+ border:1px solid #e5e9dd!important;border-radius:15px!important;
+ background:rgba(255,255,255,.98)!important;color:#bd5c1c!important;
+ box-shadow:0 7px 24px rgba(34,67,39,.12)!important;
+ font-family:inherit!important;
 }
-#pilotLanguageSwitcher button{
- all:unset;display:grid!important;place-items:center!important;box-sizing:border-box!important;
- min-width:37px!important;height:32px!important;padding:0 4px!important;border-radius:10px!important;
- cursor:pointer!important;color:#758b77!important;font-size:11px!important;font-weight:820!important;
+#pilotLanguageSwitcher #pilotLanguageToggle{
+ display:flex!important;align-items:center!important;justify-content:center!important;gap:7px!important;
+ width:auto!important;min-width:91px!important;height:42px!important;
+ border:0!important;border-radius:14px!important;background:transparent!important;
+ color:#a75418!important;font:800 12px/1 inherit!important;
+ padding:0 12px!important;cursor:pointer!important;
 }
-#pilotLanguageSwitcher button.is-active{background:linear-gradient(125deg,#fff1df,#ffbc78)!important;color:#884008!important}
-#pilotLanguageSwitcher button:focus-visible{outline:2px solid #fd8f35!important;outline-offset:1px!important}
+#pilotLanguageSwitcher #pilotLanguageToggle:hover,
+#pilotLanguageSwitcher #pilotLanguageToggle[aria-expanded="true"]{background:#fff3e9!important}
+#pilotLanguageSwitcher .pilot-language-globe{font-size:15px!important;line-height:1!important}
+#pilotLanguageSwitcher .pilot-language-chevron{font-size:17px!important;line-height:1!important;color:#b77448!important}
+#pilotLanguageSwitcher #pilotLanguageOptions{
+ position:absolute!important;right:0!important;left:auto!important;
+ top:calc(100% + 8px)!important;bottom:auto!important;
+ width:152px!important;max-width:calc(100vw - 24px)!important;
+ display:grid!important;gap:3px!important;padding:6px!important;
+ background:#fff!important;border:1px solid #e1e9df!important;border-radius:15px!important;
+ box-shadow:0 14px 34px #183e281a!important;
+}
+#pilotLanguageSwitcher #pilotLanguageOptions[hidden]{display:none!important}
+#pilotLanguageSwitcher #pilotLanguageOptions button{
+ display:block!important;box-sizing:border-box!important;width:100%!important;
+ min-height:42px!important;border:0!important;border-radius:10px!important;
+ padding:9px 12px!important;text-align:left!important;cursor:pointer!important;
+ color:#536c59!important;background:#fff!important;font-size:12px!important;font-weight:750!important;
+}
+#pilotLanguageSwitcher #pilotLanguageOptions button.is-active{
+ color:#a34f0f!important;background:#fff0dc!important
+}
+#pilotLanguageSwitcher button:focus-visible{outline:2px solid #fd8f35!important;outline-offset:2px!important}
 body:has(.auth-modal:not(.hidden)) #pilotLanguageSwitcher{display:none!important}
-/* Reserve clear space for this always-visible control without shrinking admin buttons. */
-.shell:not([data-screen="home"]) .main>.head{padding-top:44px!important}
+/* Prevent fixed top-right control overlapping the screen title or admin actions. */
+.shell:not([data-screen="home"]) .main>.head{padding-top:48px!important}
 @media(max-width:760px){
  #pilotLanguageSwitcher{
-  top:calc(9px + env(safe-area-inset-top,0px))!important;
-  right:max(11px,env(safe-area-inset-right,0px))!important;
-  left:auto!important;bottom:auto!important;
-  height:39px!important;min-width:88px!important;border-radius:13px!important;
+  top:calc(8px + env(safe-area-inset-top,0px))!important;
+  right:max(10px,env(safe-area-inset-right,0px))!important;
  }
- #pilotLanguageSwitcher button{min-width:34px!important;height:29px!important}
- .shell:not([data-screen="home"]) .main>.head{padding-top:52px!important}
+ #pilotLanguageSwitcher #pilotLanguageToggle{min-width:83px!important;height:38px!important;padding:0 10px!important}
+ .shell:not([data-screen="home"]) .main>.head{padding-top:48px!important}
 }
-@media(max-height:560px) and (max-width:760px){
- #pilotLanguageSwitcher{top:calc(6px + env(safe-area-inset-top,0px))!important;bottom:auto!important}
-}
+
 </style><link rel="manifest" href="/pilot/manifest.webmanifest"><link rel="apple-touch-icon" href="/pilot/icon-192.png"><meta name="theme-color" content="#f2f6f3"><meta name="apple-mobile-web-app-capable" content="yes"></head>
 <body>
-<div id="pilotLanguageSwitcher" class="pilot-language-switcher" role="group" aria-label="Sprachauswahl"><button type="button" data-pilot-locale="de" aria-pressed="true" class="is-active" lang="de">DE</button><span aria-hidden="true">/</span><button type="button" data-pilot-locale="en" aria-pressed="false" lang="en">EN</button></div>
+<div id="pilotLanguageSwitcher" class="pilot-language-switcher" role="group" aria-label="Sprachauswahl"><button type="button" id="pilotLanguageToggle" aria-expanded="false" aria-controls="pilotLanguageOptions" aria-label="Sprache auswählen"><span class="pilot-language-globe" aria-hidden="true">🌐</span><span id="pilotLanguageCurrent">DE</span><span class="pilot-language-chevron" aria-hidden="true">⌄</span></button><div id="pilotLanguageOptions" role="group" aria-label="Sprache" hidden><button type="button" data-pilot-locale="de" aria-pressed="true" class="is-active" lang="de">Deutsch</button><button type="button" data-pilot-locale="en" aria-pressed="false" lang="en">English</button></div></div>
 <section id="auth" class="auth"><div class="box">
 <div class="pilot-focus"><section class="pilot-focus-entry" aria-labelledby="guestComposeTitle"><div class="pilot-machine-core" aria-hidden="true"><i></i><i></i><i></i><span>✦</span></div><div class="pilot-focus-brand">PILOT</div><h2 id="guestComposeTitle">Was soll ich für dich <span class="pilot-neon-keyword">erledigen?</span></h2><p class="pilot-value-lead"><strong>Ein Ziel. Ein digitaler Mitarbeiter. Ein greifbares Ergebnis.</strong><span>Pilot verbindet deinen Auftrag mit den Arbeitsschritten und hält die Ergebnisse an einem Ort.</span></p><div class="pilot-focus-composer"><textarea id="guestTask" maxlength="3000" rows="3" aria-label="Dein Auftrag" placeholder="Beschreibe dein gewünschtes Ergebnis …"></textarea><div class="pilot-focus-tools"><span></span><button id="guestStart" type="button" class="btn ai launch-primary">Starten <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 19V5m-6 6 6-6 6 6"/></svg></button></div></div><div class="pilot-value-advantages" aria-label="Was Pilot für dich einfacher macht"><div class="pilot-value-item"><span aria-hidden="true">01</span><strong>Einfach sagen, was du brauchst</strong><small>Ein Auftrag statt komplizierter Prompt-Ketten.</small></div><div class="pilot-value-item"><span aria-hidden="true">02</span><strong>Pilot klärt und arbeitet</strong><small>Rückfragen nur, wenn wichtige Angaben fehlen.</small></div><div class="pilot-value-item"><span aria-hidden="true">03</span><strong>Ergebnisse bleiben bei dir</strong><small>Fertige Inhalte und Folgeschritte direkt im Auftrag.</small></div></div></section></div><nav class="pilot-guest-dock" aria-label="Zugang"><button id="openLogin" type="button">Anmelden</button><button id="openRegister" type="button">Konto erstellen</button></nav>
 </div></section>
