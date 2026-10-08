@@ -6699,29 +6699,81 @@ function pilotWorkerProfile(goalId,taskHint=""){
  if(/unternehmen|gründ|gruend|beratung|büro|buero|business/.test(t))return {id:"business",label:"Business & Gründung"};
  return {id:"general",label:"Dein Pilot"};
 }
+/* Ground-safe avatar: scan only visible controls, then place the small figure
+   on a virtual floor immediately ABOVE the dock. Never sacrifice working controls
+   merely to display decoration. Geometry is measured at transitions, not per frame. */
+function pilotWorkerObstacleRects(worker){
+ const selectors=[
+  "button","a","input","textarea","select","summary",
+  '[role="button"]','[role="dialog"]','[role="alertdialog"]',
+  "#pilotLanguageSwitcher","#pilotNextActionPanel","#pilotFlightAttention",
+  ".pilot-focus-composer",".pilot-minimal-nav",".side",
+  ".nx-modal",".auth-modal-card",".pilot-project-card details[open]"
+ ];
+ const nodes=new Set(document.querySelectorAll(selectors.join(",")));
+ const w=window.innerWidth,h=window.visualViewport?.height||window.innerHeight;
+ return [...nodes].filter(n=>n!==worker&&!worker.contains(n)&&!n.closest("#pilotFlightLayer"))
+  .flatMap(n=>{
+    const style=getComputedStyle(n);
+    if(style.display==="none"||style.visibility==="hidden"||Number(style.opacity)<.03)return [];
+    return [...n.getClientRects()].filter(r=>r.width>2&&r.height>2&&r.bottom>0&&r.top<h&&r.right>0&&r.left<w)
+      .map(r=>({left:r.left,top:r.top,right:r.right,bottom:r.bottom}));
+  });
+}
+function pilotWorkerOverlaps(a,b,margin=8){
+ return a.left<b.right+margin&&a.right>b.left-margin&&a.top<b.bottom+margin&&a.bottom>b.top-margin;
+}
 function pilotPositionWorker(worker,plane){
- const r=plane.getBoundingClientRect(),w=window.innerWidth;
- const vh=window.visualViewport?.height||window.innerHeight;
- const workerWidth=worker.getBoundingClientRect().width||172;
- const workerHeight=worker.getBoundingClientRect().height||108;
- const right=r.right+10,leftCandidate=r.left-workerWidth-10;
- const fitsRight=right+workerWidth<=w-8,fitsLeft=leftCandidate>=8;
- // On small screens the larger avatar stands above the landed aircraft,
- // keeping the underlying confirmation button visible.
- let x,y;
- if(fitsRight||fitsLeft){
-   x=fitsRight?right:leftCandidate;
-   y=r.top+r.height*.5-workerHeight*.6;
- }else{
-   x=r.left+r.width/2-workerWidth/2;
-   y=r.top-workerHeight-12>=72?r.top-workerHeight-12:r.bottom+12;
+ if(!worker?.isConnected)return false;
+ const w=window.innerWidth,h=window.visualViewport?.height||window.innerHeight;
+ const nav=document.querySelector(".side nav.pilot-minimal-nav");
+ const navRect=nav?.getClientRects()?.[0];
+ const dockTop=navRect&&navRect.top>h*.45&&navRect.top<h?navRect.top:h;
+ const baseFloor=Math.min(h-14,dockTop-12);
+ const workerWidth=Math.min(168,w-16),speech=worker.querySelector(".pilot-worker-speech");
+ // The figure is approx 50px high, including the boots. It stays aligned with
+ // the ground shadow irrespective of the airplane's airborne coordinates.
+ const speechHeight=speech?.offsetHeight||54,speechWidth=Math.min(124,w-80);
+ const obstacles=pilotWorkerObstacleRects(worker);
+ const xCandidates=[12,Math.round(w-workerWidth-12),Math.round((w-workerWidth)/2),
+  Math.round(w*.24-workerWidth/2),Math.round(w*.76-workerWidth/2)]
+  .map(x=>Math.max(8,Math.min(w-workerWidth-8,x)));
+ const uniqueX=[...new Set(xCandidates)];
+ const floors=Array.from({length:9},(_,i)=>baseFloor-i*14)
+  .filter(y=>y>Math.max(110,h*.54));
+ let best=null;
+ for(const floor of floors){
+   const top=floor-56;
+   if(top<70)continue;
+   for(const left of uniqueX){
+     // 14 px are reserved for lateral pacing, so walking cannot reach a button.
+     const figure={left:left-3,right:left+48+14,top:top-4,bottom:floor+4};
+     if(obstacles.some(rect=>pilotWorkerOverlaps(figure,rect)))continue;
+     const bubble={left:left+36,right:left+36+speechWidth,top:top+34-speechHeight,bottom:top+34};
+     const bubbleFits=bubble.left>=4&&bubble.right<=w-4&&bubble.top>=42;
+     const bubbleSafe=bubbleFits&&!obstacles.some(rect=>pilotWorkerOverlaps(bubble,rect));
+     const candidate={left,top,floor,bubbleSafe,score:(baseFloor-floor)+(bubbleSafe?0:280)+(Math.abs(left-w/2)*.002)};
+     if(!best||candidate.score<best.score)best=candidate;
+   }
+   // Prefer ground-level over elevated positions when a complete cue fits.
+   if(best?.bubbleSafe)break;
  }
- const left=Math.round(Math.max(8,Math.min(w-workerWidth-8,x)));
- const top=Math.round(Math.max(72,Math.min(vh-workerHeight-20,y)));
- worker.style.left=left+"px";worker.style.top=top+"px";
- worker.style.setProperty("--worker-to-plane-x",Math.round(r.left+r.width*.5-left-25)+"px");
- worker.style.setProperty("--worker-to-plane-y",Math.round(r.top+r.height*.5-top-45)+"px");
- worker.classList.toggle("pilot-worker--left",!fitsRight&&fitsLeft);
+ if(!best){
+   // A crowded mobile viewport has no safe landing strip. Hide the decorative
+   // avatar instead of masking a form; status remains in the flight label.
+   worker.hidden=true;
+   worker.dataset.groundSafe="unavailable";
+   return false;
+ }
+ worker.hidden=false;worker.dataset.groundSafe=best.bubbleSafe?"full":"figure";
+ worker.classList.toggle("pilot-worker--quiet",!best.bubbleSafe);
+ worker.style.left=Math.round(best.left)+"px";
+ worker.style.top=Math.round(best.top)+"px";
+ worker.style.setProperty("--worker-ground-y",Math.round(best.floor-best.top)+"px");
+ worker.style.setProperty("--worker-to-plane-x","0px");
+ worker.style.setProperty("--worker-to-plane-y","0px");
+ worker.classList.toggle("pilot-worker--left",best.left>w/2);
+ return true;
 }
 /* Once the short, visible avatar cue has been delivered, return the one aircraft
    to its original station. The review stays pending; this is NOT an approval. */
@@ -6815,13 +6867,22 @@ function pilotAvatarDisembark(f,message="Hier ist deine Handlung erforderlich.")
    if(activePilotFlight===f&&f.phase==="parked")void pilotAttentionRecall(f);
  },3200);
 }
+let pilotWorkerLayoutFrame=null;
 function pilotRefreshParkedAvatar(){
  const f=activePilotFlight;
  if(f?.phase==="parked"&&f.worker?.isConnected&&f.plane?.isConnected)
    pilotPositionWorker(f.worker,f.plane);
 }
-window.addEventListener("resize",pilotRefreshParkedAvatar,{passive:true});
-window.visualViewport?.addEventListener?.("resize",pilotRefreshParkedAvatar,{passive:true});
+function pilotScheduleWorkerLayout(){
+ if(pilotWorkerLayoutFrame!==null)return;
+ pilotWorkerLayoutFrame=requestAnimationFrame(()=>{
+   pilotWorkerLayoutFrame=null;
+   pilotRefreshParkedAvatar();
+ });
+}
+window.addEventListener("resize",pilotScheduleWorkerLayout,{passive:true});
+window.visualViewport?.addEventListener?.("resize",pilotScheduleWorkerLayout,{passive:true});
+window.addEventListener("scroll",pilotScheduleWorkerLayout,{capture:true,passive:true});
 async function pilotAvatarReboard(goalId){
  const f=activePilotFlight;
  if(!f?.plane?.isConnected||!["parked","boarding","returning"].includes(f.phase)||
