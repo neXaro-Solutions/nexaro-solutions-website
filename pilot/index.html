@@ -4405,7 +4405,18 @@ async function pilotOpenArtifact(id,download=false){
   const node=document.querySelector('[data-artifact-preview="'+CSS.escape(id)+'"]');if(!node)return;
   if(file.kind==='presentation'){node.innerHTML=(file.slides||[]).map((s,i)=>'<section style="background:#f4f7f3;padding:28px;margin:12px 0;border-left:4px solid #617b65;border-radius:12px"><small>Folie '+(i+1)+'</small><h3>'+esc(s.title)+'</h3><p style="white-space:pre-wrap">'+esc(s.body)+'</p></section>').join('');return}
   const frame=document.createElement('iframe');frame.setAttribute('sandbox','');frame.title='Fertiges Pilot-Ergebnis';frame.style='width:100%;height:520px;border:1px solid #dae5db;border-radius:16px;background:white';
-  frame.srcdoc=file.kind==='image'?'<html><head><meta http-equiv="Content-Security-Policy" content="default-src \'none\'; style-src \'unsafe-inline\'"><style>body{margin:0;display:grid;place-items:center;height:100vh}svg{max-width:90%;max-height:90vh}</style></head><body>'+await d.data.text()+'</body></html>':await d.data.text();node.replaceChildren(frame);
+  frame.srcdoc=file.kind==='image'?'<html><head><meta http-equiv="Content-Security-Policy" content="default-src \'none\'; style-src \'unsafe-inline\'"><style>body{margin:0;display:grid;place-items:center;height:100vh}svg{max-width:90%;max-height:90vh}
+/* Pilot Market: advanced capabilities remain behind a single admin-only disclosure. */
+.pilot-market-feeds{margin:26px 0 12px;border:1px solid #d9e9d5;border-radius:19px;padding:0 17px;background:#fff;box-shadow:0 7px 23px rgba(23,61,36,.035)}
+.pilot-market-feeds summary{cursor:pointer;min-height:50px;display:flex;align-items:center;font-size:13px;font-weight:800;color:#3f654e}
+.pilot-market-feeds p{font-size:12px;line-height:1.6;color:#5f7669}
+.pilot-market-feed-form{display:grid;gap:9px;max-width:570px;margin:13px 0 18px}
+.pilot-market-feed-form label{font-size:12px;font-weight:760;color:#3c604b}
+.pilot-market-feed-form input,.pilot-market-feed-form select{min-height:47px;border:1px solid #d3e0d5;border-radius:12px;padding:10px;background:white;font-size:16px}
+.pilot-market-feed-form .btn{justify-self:start;min-height:44px}
+.pilot-market-feed-status{overflow-wrap:anywhere;font-weight:700}
+@media(max-width:560px){.pilot-market-feeds{padding:0 13px}.pilot-market-feed-form .btn{width:100%}}
+</style></head><body>'+await d.data.text()+'</body></html>':await d.data.text();node.replaceChildren(frame);
  }catch{pilotNotice('Die Ergebnisdatei konnte nicht geöffnet werden. Bitte erneut versuchen.')}
 }
 document.addEventListener('click',e=>{const b=e.target.closest?.('[data-download-result],[data-artifact-open],[data-artifact-download]');if(!b)return;if(b.dataset.downloadResult)pilotDownloadText(b.dataset.downloadResult);else pilotOpenArtifact(b.dataset.artifactOpen||b.dataset.artifactDownload,!!b.dataset.artifactDownload)});
@@ -4767,8 +4778,57 @@ function pilotMarketView(){
  }else if(p.searched)answer='<div class="pilot-market-empty"><strong>Derzeit keine belegten Angebote verfügbar.</strong><p>'+esc(p.notice||"Die geprüften Partnerquellen liefern momentan keinen Treffer. Sobald Zugänge und Produktfeeds verbunden sind, erscheinen hier echte Preise.")+'</p></div>';
  return '<div class="pilot-market">'+intro+
  (p.searched||p.loading?'<section class="pilot-market-answer" aria-live="polite">'+answer+'</section>':'')+
+ (effectiveAdmin()?pilotMarketFeedPanel():'')+
  '<p class="pilot-market-disclosure">Hinweis: Preise, Versandkosten und Verfügbarkeit können sich beim Händler ändern. Werbelinks sind gekennzeichnet. Pilot kann bei qualifizierten Käufen eine Provision erhalten; die Sortierung richtet sich nicht nach der Provision. Ein Kauf erfolgt ausschließlich beim jeweiligen Anbieter.</p></div>';
 }
+
+/* Customer surfaces stay calm. Licensed partner feed onboarding is admin-only. */
+let pilotMarketFeedState={busy:false,message:"",error:false};
+function pilotMarketFeedPanel(){
+ const sources=[["awin","Awin"],["adcell","ADCELL"],["impact","impact.com"],["cj","CJ Affiliate"],["tradedoubler","Tradedoubler"],["webgains","Webgains"],["rakuten","Rakuten Advertising"],["partnerize","Partnerize"],["belboon","belboon"],["amazon","Amazon PartnerNet"],["ebay","eBay"],["comparison","Lizenzierter Vergleichspartner"]];
+ return '<details class="pilot-market-feeds" id="pilotMarketFeedAdmin">'+
+  '<summary>Partnerdaten verbinden · Admin</summary>'+
+  '<p>Nur Produktfeeds verwenden, für die eine ausdrückliche Nutzungserlaubnis besteht. CSV, TSV oder JSON mit Produkt-ID, Bezeichnung, Händler, Preis in EUR und HTTPS-Angebotslink.</p>'+
+  '<form id="pilotMarketFeedForm" class="pilot-market-feed-form">'+
+  '<label for="pilotMarketFeedSource">Partnerquelle</label>'+
+  '<select id="pilotMarketFeedSource" required>'+sources.map(([id,name])=>'<option value="'+id+'">'+esc(name)+'</option>').join("")+'</select>'+
+  '<label for="pilotMarketFeedFile">Offiziellen Produktfeed auswählen</label>'+
+  '<input type="file" id="pilotMarketFeedFile" accept=".csv,.tsv,.json,text/csv,text/tab-separated-values,application/json" required>'+
+  '<button type="submit" class="btn ai" '+(pilotMarketFeedState.busy?'disabled':'')+'>'+(pilotMarketFeedState.busy?'Import läuft …':'Angebote übernehmen')+'</button></form>'+
+  '<p class="pilot-market-feed-status" role="status" aria-live="polite">'+esc(pilotMarketFeedState.message||'Keine Verbindung ohne offizielle Partnerschaft. Es werden keine Musterpreise veröffentlicht.')+'</p>'+
+  '<p class="pilot-market-feed-hint">Die Schnittstelle prüft Produktfelder und Händlerlinks, überspringt fehlerhafte Zeilen und speichert gültige Angebote zeitlich begrenzt. Ein Affiliate-Trackinglink muss vom Partner stammen.</p>'+
+  '</details>';
+}
+async function pilotMarketImportFile(){
+ if(!effectiveAdmin()||pilotMarketFeedState.busy)return;
+ const form=document.getElementById("pilotMarketFeedForm");
+ const file=document.getElementById("pilotMarketFeedFile")?.files?.[0];
+ const source=document.getElementById("pilotMarketFeedSource")?.value;
+ if(!form||!file||!source)return;
+ pilotMarketFeedState={busy:true,message:"Datei wird geprüft …",error:false};
+ const status=form.parentElement.querySelector(".pilot-market-feed-status");
+ const button=form.querySelector('button[type="submit"]');
+ if(button){button.disabled=true;button.textContent="Import läuft …";}
+ const inform=text=>{pilotMarketFeedState.message=text;if(status)status.textContent=text;};
+ try{
+  if(file.size>3*1024*1024)throw Error("Feed ist größer als 3 MB.");
+  const {parseProductFeed,PILOT_FEED_SOURCES}=await import("./feed-normalizer.mjs");
+  if(!PILOT_FEED_SOURCES.some(([id])=>id===source))throw Error("Unbekannte Partnerquelle.");
+  const {offers,stats}=parseProductFeed(await file.text());
+  if(!offers.length)throw Error("Keine importierbaren Produkte. Fehlende oder ungültige Pflichtfelder: "+JSON.stringify(stats.reasons));
+  let imported=0;
+  for(let start=0;start<offers.length;start+=100){
+   const response=await sb.functions.invoke("pilot-market",{body:{operation:"import",source,offers:offers.slice(start,start+100)}});
+   if(response.error||response.data?.error||response.data?.ok!==true)
+    throw Error(response.data?.error||"Partnerfeed konnte nicht übernommen werden.");
+   imported+=Number(response.data.imported||0);
+   inform(imported+" / "+offers.length+" gültige Angebote übernommen …");
+  }
+  inform("✓ "+imported+" echte Angebote importiert. "+stats.skipped+" Zeilen übersprungen. Die gespeicherten Angebote sind 48 Stunden gültig.");
+ }catch(e){pilotMarketFeedState.error=true;inform("Import nicht abgeschlossen: "+String(e?.message||e));}
+ finally{pilotMarketFeedState.busy=false;if(button){button.disabled=false;button.textContent="Angebote übernehmen";}}
+}
+
 async function pilotMarketSearch(query){
  const q=String(query||"").trim().replace(/\s+/g," ").slice(0,120);
  if(q.length<3){pilotMarketState.error="Bitte beschreibe das gesuchte Produkt genauer.";pilotMarketState.searched=true;render();return}
@@ -4905,6 +4965,7 @@ async function processPendingAttachments(goalId,taskText){
 }
 
 function bind(){
+  document.getElementById("pilotMarketFeedForm")?.addEventListener("submit",event=>{event.preventDefault();void pilotMarketImportFile();});
   document.getElementById("pilotMarketForm")?.addEventListener("submit",e=>{e.preventDefault();void pilotMarketSearch(document.getElementById("pilotMarketInput")?.value||"")});
   document.querySelectorAll("[data-view]").forEach(b=>b.onclick=async()=>{current=b.dataset.view;const menu=b.closest(".pilot-nav-more");if(menu)menu.open=false;if(current==="admin"&&isAdmin){try{await loadAdminConsole()}catch(e){pilotNotice(e.message||String(e))}}render();if(current==="alpha")void pilotBackgroundLiveCall("status")});
   document.querySelectorAll("[data-jump]").forEach(b=>b.onclick=()=>{current=b.dataset.jump;render();if(current==="alpha")void pilotBackgroundLiveCall("status")});
