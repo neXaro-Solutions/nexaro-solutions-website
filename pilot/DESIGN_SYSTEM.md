@@ -140,3 +140,20 @@ Umgesetzt in `pilot/index.html`, LUMEN `2026.10.08.32`, Commit `ef0b9ae26fcea9ac
 ## iPhone-Abnahme LUMEN 2026.10.08.32 — bestätigt
 
 Der Nutzer hat die weiter verkleinerte LUMEN-.32-Oberfläche ausdrücklich akzeptiert: „So ist das super“. Die entsprechende Design-Abnahme ist im Entwicklungsplan abgeschlossen (3/3 Prüfungen bestanden, Featurestatus `ready`). **Künftige Quellen-/KI-Funktionen dürfen keine größeren Admin-Karten, zusätzlichen Pflichtdialoge oder neue Büro-Software-Anmutung erzwingen.** Recherche-/Quellenqualität wird im Backend erweitert und durch kompakte, optionale Evidenzhinweise in bestehenden Ergebnissen erklärt.
+
+
+## LUMEN DEPTH 2026.10.08.41 — ruhiges, räumliches neXaro-Design
+
+**Verbindliche Pilot-Ausführung:** `pilot/lumen-depth.css`, `pilot/lumen-orb.svg`, `pilot/templates/`.
+Die separate Unternehmenswebsite und ihre zentralen Seiten bleiben unangetastet.
+
+- **Bildintegrität:** Vom zuletzt freigegebenen Bildschirmmotiv wird ausschließlich der reale Flugzeug-Glaskern als zentriertes 3D-Motiv übernommen. Keine Bildschirmaufnahme als unbewegliche App; Überschriften, Aufgabenfeld, Upload, Starten, Sprachmenü und Navigation bleiben native, bedienbare Controls.
+- **Farbhierarchie:** Weiße Keramik und sehr helles Mint dominieren. Dunkelgrüner Text gewährleistet Kontrast. Grün betont den einzigen Hauptbefehl, Orange nur einzelne Orientierungselemente. Keine flächige grelle Neonüberlagerung.
+- **Tiefe:** Stufenweise Außen-/Kontaktschatten, innere Lichtkante, subtile Glasränder, ein weicher Bodenreflex unter dem Auftragsfeld. 3D-Effekt nur bei der zentralen Eingabe stärker. Verzicht auf Blend- und Dauerblinken.
+- **Netzwerk:** Nur vier leise beschriftete Begriffe um das zentrale Motiv; Bild und Linien sind rein dekorativ und nicht klickbar. Wichtige Textpassagen und Handlungselemente liegen davor.
+- **Alle eingebauten Ansichten:** Gemeinsamer CSS-Layer für Zentrale, Unterseiten, Auftragskarten, Dialogkonsistenz, Navigation und Print-Ansichten; die Partnerprofilseite im Pilot-Ordner verwendet dieselben Stilparameter.
+- **Mobilgerät:** iOS, Android, macOS und Windows mit kleinen und großen Viewports; Text bleibt im DOM, Mindest-Touchflächen und `prefers-reduced-motion` erhalten. Hintergrunddarstellung darf keine Formulare blockieren.
+- **Ausgabekanal:** Druckbares Pilot-Ergebnisdokument und tabellenbasiertes Bestätigungs-Mail-Layout sind als Vorlagen im Repository hinterlegt. Vorlagen dürfen Status niemals als verifiziert ausgeben, solange die fachliche Prüfung fehlt. Platzhalter sicher ersetzen.
+- **Wichtige Grenze:** Das E-Mail-Versandsystem in Supabase sowie serverseitige Erzeuger für PDF, DOCX oder andere Formate verwenden die neuen Vorlagen **nicht automatisch**. Erst nach sicherer Pipeline-Integration und realer Testzustellung als vollständig umgesetzt einstufen.
+
+**Technischer Status:** GitHub-Pilot-Frontend und Partnerunterseite angepasst, Artwork integriert, Dokument-/Mailvorlagen bereit. Code-/Strukturtest und echter iPhone-/Android- sowie Versandtest getrennt abnehmen.
