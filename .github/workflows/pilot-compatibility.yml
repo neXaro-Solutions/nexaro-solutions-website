@@ -4,6 +4,10 @@ on:
   push:
     paths:
       - "pilot/index.html"
+      - "pilot/lumen-depth.css"
+      - "pilot/lumen-orb.svg"
+      - "pilot/publisher-partnerprofil.html"
+      - "pilot/templates/**"
       - "index.html"
       - "site-shell.css"
       - "nx-language.js"
@@ -12,6 +16,10 @@ on:
   pull_request:
     paths:
       - "pilot/index.html"
+      - "pilot/lumen-depth.css"
+      - "pilot/lumen-orb.svg"
+      - "pilot/publisher-partnerprofil.html"
+      - "pilot/templates/**"
       - "index.html"
       - "site-shell.css"
       - "nx-language.js"
@@ -54,5 +62,7 @@ jobs:
       - name: Install browser on macOS / Windows
         if: runner.os != 'Linux'
         run: npx playwright install ${{ matrix.browser }}
+      - name: Check LUMEN design integrity
+        run: node pilot/tests/lumen-depth-contract.mjs
       - name: Check JavaScript syntax and responsive UI
         run: node pilot/tests/platform-smoke.mjs --browser=${{ matrix.browser }}
