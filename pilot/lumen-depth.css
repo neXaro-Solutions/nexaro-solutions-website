@@ -320,3 +320,30 @@ body:has(.shell[data-screen="home"]:not(.hidden)){background:
 #pilotLanguageSwitcher #pilotLanguageToggle,
 #pilotLanguageSwitcher #pilotLanguageOptions,
 #pilotLanguageSwitcher #pilotLanguageOptions button{pointer-events:auto!important;touch-action:manipulation}
+
+/* PILOT X-JET BRAND ACCENT — quiet secondary signature.
+   The glass airplane hero, task field and flight remain the primary interaction. */
+.pilot-focus .pilot-focus-brand{
+ display:flex!important;
+ align-items:center!important;
+ justify-content:center!important;
+ gap:8px!important;
+}
+.pilot-focus .pilot-focus-brand::before{
+ content:""!important;
+ display:block!important;
+ flex:0 0 23px!important;
+ width:23px!important;height:23px!important;
+ background:url("/pilot/icon.svg") center/contain no-repeat!important;
+ opacity:.82;
+ border-radius:6px;
+ filter:drop-shadow(0 2px 5px rgba(176,114,57,.10));
+ pointer-events:none!important;
+}
+@media(max-width:420px){
+ .pilot-focus .pilot-focus-brand{gap:6px!important}
+ .pilot-focus .pilot-focus-brand::before{
+  flex-basis:20px!important;width:20px!important;height:20px!important;
+  opacity:.74;
+ }
+}
