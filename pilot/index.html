@@ -1133,11 +1133,109 @@ input,textarea{border-radius:var(--radius-input)}.btn{border-radius:var(--radius
   .side nav{gap:2px!important}
   .nav span{font-size:9px!important;white-space:nowrap}
 }
+
+/* Login clarity + curiosity v13 */
+.auth-capabilities{
+  position:relative;z-index:3;
+  width:min(100%,680px);
+  margin-top:auto;
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+}
+.auth-capabilities>div{
+  min-height:88px;
+  padding:14px 15px;
+  background:rgba(255,255,255,.84);
+  border:1px solid rgba(220,226,229,.92);
+  border-radius:20px;
+  box-shadow:0 12px 30px rgba(18,24,33,.055);
+}
+.auth-capabilities span{
+  display:block;
+  font-size:8px;
+  letter-spacing:.15em;
+  color:#8a9198;
+  font-weight:900;
+}
+.auth-capabilities strong{
+  display:block;
+  margin-top:5px;
+  font-size:15px;
+  letter-spacing:-.02em;
+}
+.auth-capabilities small{
+  display:block;
+  margin-top:4px;
+  color:#747d85;
+  font-size:9px;
+  line-height:1.35;
+}
+.auth-curiosity{
+  position:relative;z-index:3;
+  margin-top:10px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:10px 12px;
+  border:1px solid rgba(213,222,216,.86);
+  border-radius:16px;
+  background:linear-gradient(90deg,rgba(141,255,47,.08),rgba(255,255,255,.76),rgba(255,116,23,.05));
+  font-size:10px;
+}
+.auth-curiosity .dot{
+  width:8px;height:8px;flex:0 0 auto;
+}
+.auth-curiosity strong{font-size:10px}
+.auth-curiosity small{color:#778089}
+.auth-core-copy p{max-width:620px!important}
+.auth-form-panel h2{max-width:560px}
+.auth-form-panel>p{max-width:520px}
+
+@media(max-width:760px){
+  .auth-core-panel{justify-content:flex-start!important}
+  .auth-core-copy h1{
+    font-size:clamp(31px,8.8vw,39px)!important;
+    line-height:.93!important;
+  }
+  .auth-core-copy p{
+    max-width:92%!important;
+    font-size:11.5px!important;
+  }
+  .auth-capabilities{
+    margin-top:auto;
+    grid-template-columns:repeat(3,1fr);
+    gap:6px;
+  }
+  .auth-capabilities>div{
+    min-height:65px;
+    padding:9px 8px;
+    border-radius:16px;
+  }
+  .auth-capabilities strong{font-size:10px}
+  .auth-capabilities small{font-size:7px;line-height:1.25}
+  .auth-capabilities span{font-size:6.5px}
+  .auth-curiosity{
+    margin-top:6px;
+    padding:7px 9px;
+    border-radius:13px;
+    justify-content:center;
+    flex-wrap:wrap;
+    text-align:center;
+  }
+  .auth-curiosity strong,.auth-curiosity small{font-size:7.5px}
+  .system-visual-chip{font-size:6.5px!important}
+}
+@media(max-width:390px){
+  .auth-capabilities small{display:none}
+  .auth-capabilities>div{min-height:50px}
+  .auth-curiosity small{display:none}
+}
 </style></head>
 <body>
 <section id="auth" class="auth"><div class="box">
-<section class="auth-core-panel"><div class="machine-depth-layer"></div><div class="auth-core-copy"><div class="system-kicker"><span class="live-pulse"></span>neXaro · Pilot-Zentrale aktiv</div><h1>Die Zukunft<br><em>arbeitet hier.</em></h1><p>Pilot verbindet Recherche, Intelligenz, Ausführung und Prüfung zu einem operativen KI-System.</p></div><div class="visual-flow" aria-hidden="true"><span></span><span></span><span></span></div><div class="gear-cluster" aria-hidden="true"><div class="gear-energy"></div><div class="gear g1"></div><div class="gear g2"></div><div class="gear g3"></div><div class="gear g4"></div></div><span class="system-visual-chip c1">INTELLIGENZ AKTIV</span><span class="system-visual-chip c2">AUSFÜHRUNG BEREIT</span><span class="system-visual-chip c3">PRÜFUNG GESICHERT</span><div class="auth-system-rail"><div class="auth-system-node keyword"><strong>EVIDENZ</strong></div><div class="auth-system-node keyword"><strong>INTELLIGENZ</strong></div><div class="auth-system-node keyword"><strong>AUSFÜHRUNG</strong></div><div class="auth-system-node keyword"><strong>PRÜFUNG</strong></div></div></section>
-<section class="auth-form-panel"><div class="brand-login"><img src="/nexaro-transparent-logo.webp" class="brand-logo-login" alt="neXaro Solutions"></div><div class="ey">PILOT-ZENTRALE · PRIVATE TESTPHASE</div><h2>Systemzugang</h2><p>Dein Zugang zur nächsten Stufe operativer KI.</p><div class="access-actions"><button id="openLogin" class="btn primary">Pilot öffnen</button><button id="openRegister" class="btn">Zukunft kostenfrei starten</button></div><div class="free-start-note"><strong>Kostenfrei starten</strong><span>Keine Zahlungsdaten · Private Testphase</span></div><div class="auth-trust"><span class="dot"></span><span>Geschützte Sitzung · Zugriffsschutz aktiv</span></div><div class="mini-trust"><strong>Datenschutz von Beginn an</strong><span>Verschlüsselte Verbindung · geschützte Anmeldung · Zugriff nur innerhalb deiner Sitzung</span></div></section>
+<section class="auth-core-panel"><div class="machine-depth-layer"></div><div class="auth-core-copy"><div class="system-kicker"><span class="live-pulse"></span>neXaro · Pilot-Zentrale aktiv</div><h1>Keine KI für Antworten.<br><em>Eine Maschine für Ergebnisse.</em></h1><p>Pilot merkt sich Zusammenhänge, passt den Weg dynamisch an und arbeitet Aufgaben bis zum Ergebnis weiter.</p></div><div class="visual-flow" aria-hidden="true"><span></span><span></span><span></span></div><div class="gear-cluster" aria-hidden="true"><div class="gear-energy"></div><div class="gear g1"></div><div class="gear g2"></div><div class="gear g3"></div><div class="gear g4"></div></div><span class="system-visual-chip c1">KONTEXT BLEIBT</span><span class="system-visual-chip c2">SYSTEM PASST SICH AN</span><span class="system-visual-chip c3">BIS ZUM ERGEBNIS</span><div class="auth-capabilities"><div><span>01</span><strong>Merkt sich</strong><small>Kontext bleibt erhalten.</small></div><div><span>02</span><strong>Passt sich an</strong><small>Der nächste Weg entsteht dynamisch.</small></div><div><span>03</span><strong>Erledigt</strong><small>Pilot arbeitet bis zum Abschluss.</small></div></div><div class="auth-curiosity"><span class="dot"></span><strong>Gib Pilot ein Ziel.</strong><small>Sieh, wie daraus ein ausführbarer Weg entsteht.</small></div></section>
+<section class="auth-form-panel"><div class="brand-login"><img src="/nexaro-transparent-logo.webp" class="brand-logo-login" alt="neXaro Solutions"></div><div class="ey">PILOT-ZENTRALE · PRIVATE TESTPHASE</div><h2>Bereit, Pilot arbeiten zu sehen?</h2><p>Starte kostenfrei und erlebe, wie Pilot aus einem Ziel einen Weg bis zum Ergebnis baut.</p><div class="access-actions"><button id="openLogin" class="btn primary">Pilot öffnen</button><button id="openRegister" class="btn">Zukunft kostenfrei starten</button></div><div class="free-start-note"><strong>Kostenfrei starten</strong><span>Keine Zahlungsdaten · Private Testphase</span></div><div class="auth-trust"><span class="dot"></span><span>Geschützte Sitzung · Zugriffsschutz aktiv</span></div><div class="mini-trust"><strong>Datenschutz von Beginn an</strong><span>Verschlüsselte Verbindung · geschützte Anmeldung · Zugriff nur innerhalb deiner Sitzung</span></div></section>
 </div></section>
 <div id="authModal" class="auth-modal hidden" role="dialog" aria-modal="true" aria-labelledby="authModalTitle">
   <button class="auth-modal-backdrop" id="closeAuthBackdrop" aria-label="Fenster schließen"></button>
