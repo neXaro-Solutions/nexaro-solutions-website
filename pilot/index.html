@@ -1794,7 +1794,7 @@ async function preflightFile(file,goalId){
   const medical=(goals.find(g=>g.id===goalId)||goals[0])?.domain?.primary==="medical_documentation";
   let payload=null;
   if(mime.startsWith("image/")&&!medical){
-    if(file.size>6*1024*1024)throw pilotApiError({data:{reason_code:"unsupported_image"}},"Bild zu groß für Sicherheitsprüfung");
+    if(file.size>6*1024*1024)throw await pilotApiError({data:{reason_code:"unsupported_image"}},"Bild zu groß für Sicherheitsprüfung");
     const dataUrl=await new Promise((resolve,reject)=>{
       const reader=new FileReader();
       reader.onload=()=>resolve(reader.result);
@@ -1808,7 +1808,7 @@ async function preflightFile(file,goalId){
   if(payload){
     const result=await sb.functions.invoke("safety-gate",{body:payload});
     if(result.error||result.data?.allowed!==true)
-      throw pilotApiError(result,"Anhang konnte nicht sicher geprüft werden");
+      throw await pilotApiError(result,"Anhang konnte nicht sicher geprüft werden");
   }
 }
 
@@ -1830,7 +1830,7 @@ async function processCommandAttachment(item,goalId,taskText){
 
   if(!isImage){
     const pr=await sb.functions.invoke("document-processor",{body:{document_id:ins.data.id,goal_id:goalId}});
-    if(pr.error)throw pilotApiError(pr,"Dokument konnte nicht verarbeitet werden");
+    if(pr.error)throw await pilotApiError(pr,"Dokument konnte nicht verarbeitet werden");
     return {document_id:ins.data.id,type:"document",status:"ready"};
   }
 
@@ -1930,23 +1930,41 @@ function nxOpenNext(){
   mask.querySelector("form").onsubmit=e=>{e.preventDefault();const answer={};for(const input of mask.querySelectorAll("input,textarea")){const value=input.value.trim();if(input.dataset.required==="1"&&!value){mask.querySelector(".nx-warning").hidden=false;input.focus();return}answer[input.name]=value}finish(fields.length?answer:"submit")};
   mask.querySelector("input,textarea,.nx-action.accent,.nx-action")?.focus({preventScroll:true});
 }
-function pilotApiError(response,fallback){
-  const raw=response?.data||{},reason=String(raw.reason_code||"");
+async function pilotApiError(response,fallback){
+  let extracted=response?.data&&typeof response.data==="object"?response.data:{};
+  if(!extracted?.reason_code && response?.error?.context){
+    try{
+      const ctx=response.error.context;
+      if(typeof ctx.clone==="function")extracted=await ctx.clone().json();
+      else if(typeof ctx.json==="function")extracted=await ctx.json();
+    }catch{}
+  }
+  if(extracted?.reason_code==="safety_provider_unavailable"||extracted?.error==="safety_check_unavailable"){
+    return new Error("Die Sicherheitsprüfung ist derzeit technisch nicht verfügbar. Deshalb wird der Auftrag noch nicht ausgeführt. Dein Auftrag wurde nicht als unzulässig eingestuft. (Code: SAFETY_PROVIDER_UNAVAILABLE)");
+  }
+  if(extracted?.error==="invalid_session"||extracted?.error==="auth_required")
+    return new Error("Deine Anmeldung ist nicht mehr gültig. Bitte melde dich erneut an.");
+  if(extracted?.error==="request_blocked_by_policy"&&!extracted?.reason_code)
+    return new Error("Dieser Auftrag wurde von der Sicherheitsprüfung abgelehnt. Du kannst ihn zulässig neu formulieren.");
+  const raw=extracted,reason=String(raw.reason_code||"");
   const messages={
     competing_ai_system:"Pilot entwickelt aus Gründen des Produkt- und Wettbewerbsschutzes keine konkurrierenden KI-Mitarbeitersysteme oder Nachbauten. Andere geschäftliche Aufgaben, Websites und übliche Fachsoftware kann Pilot weiterhin unterstützen.",
     sexual_content_creation:"Pilot erstellt keine expliziten sexuellen Inhalte. Sachliche Aufklärung und Prävention bleiben möglich.",
-    sexual_content:"Die Anfrage wurde wegen sexueller Inhalte abgelehnt. Für medizinische Aufklärung und Prävention kannst du den Auftrag sachlich neu formulieren.",
+    sexual_content:"Diese Anfrage wurde wegen sexueller Inhalte abgelehnt. Sachliche Aufklärung bleibt möglich.",
     child_safety:"Diese Anfrage kann aus Gründen des Kinder- und Jugendschutzes nicht bearbeitet werden.",
-    harassment_enablement:"Pilot unterstützt keine Belästigung, Demütigung oder Mobbing. Prävention und sachliche Vorfallsdokumentation sind zulässig.",
-    harassment:"Die Anfrage wurde wegen möglicher Belästigung abgelehnt.",
+    harassment_enablement:"Pilot unterstützt keine Belästigung, Demütigung oder Mobbing. Prävention bleibt möglich.",
+    harassment:"Diese Anfrage wurde wegen Belästigungsinhalten abgelehnt.",
     violent_wrongdoing:"Pilot unterstützt keine Gewalttaten oder deren Planung.",
     graphic_violence:"Explizite Gewaltdarstellungen werden nicht erzeugt.",
     illegal_instructions:"Pilot unterstützt keine rechtswidrigen Handlungen oder deren Durchführung.",
-    safety_provider_unavailable:"Die Sicherheitsprüfung ist vorübergehend nicht verfügbar. Pilot startet den Auftrag erst nach erfolgreicher Prüfung. Bitte versuche es später erneut.",
+    safety_provider_unavailable:"Die Sicherheitsprüfung ist technisch nicht erreichbar. Pilot führt den Auftrag aus Sicherheitsgründen noch nicht aus. (Code: SAFETY_PROVIDER_UNAVAILABLE)",
     unsupported_image:"Dieses Bildformat oder diese Bildgröße kann nicht sicher geprüft werden.",
-    content_too_large:"Der Inhalt überschreitet die maximale sichere Prüflänge."
+    content_too_large:"Der Inhalt überschreitet die maximale Prüflänge."
   };
-  return new Error(messages[reason]||(["request_blocked_by_policy","safety_check_unavailable"].includes(raw.error)?(raw.error==="request_blocked_by_policy"?"Diese Anfrage entspricht nicht den Sicherheitsrichtlinien von Pilot.":"Die Sicherheitsprüfung ist derzeit nicht verfügbar."):raw.error||response?.error?.message||fallback||"Unbekannter Fehler"));
+  const reasonMessage=messages[reason];
+  const backendMessage=typeof raw?.detail==="string"?raw.detail:typeof raw?.error==="string"?raw.error:null;
+  const error=reasonMessage||backendMessage||response?.error?.message||fallback||"Unbekannter Fehler";
+  return new Error(error==="Edge Function returned a non-2xx status code"?"Der Pilot-Server hat die Anfrage zurückgewiesen. Bitte melde diesen Fehler mit der angezeigten Uhrzeit.":error);
 }
 function pilotNotice(message,type){
   const t=String(message?.message||message||"");
@@ -1987,7 +2005,7 @@ async function createGoal(){
   try{
     let resolutionPayload={force_new_goal:true};
     let r=await sb.functions.invoke("pilot-intelligence",{body:{input:text}});
-    if(r.error)throw pilotApiError(r,"Pilot konnte den Auftrag nicht einordnen.");
+    if(r.error)throw await pilotApiError(r,"Pilot konnte den Auftrag nicht einordnen.");
     let data=r.data;
 
     if(data.stage==="goal_resolution"){
@@ -2003,7 +2021,7 @@ async function createGoal(){
         r=await sb.functions.invoke("pilot-intelligence",{body:{input:text,...resolutionPayload}});
       }
 
-      if(r.error)throw pilotApiError(r,"Pilot konnte die Zielentscheidung nicht übernehmen.");
+      if(r.error)throw await pilotApiError(r,"Pilot konnte die Zielentscheidung nicht übernehmen.");
       data=r.data;
     }
 
@@ -2012,7 +2030,7 @@ async function createGoal(){
       if(!answers){PS.textContent="Pilot bereit";btn.disabled=false;btn.textContent="✈ Pilot jetzt starten";btn.classList.remove("launching");return;}
       PS.textContent="Pilot plant …";
       r=await sb.functions.invoke("pilot-intelligence",{body:{input:text,intent:data.intent,answers,...resolutionPayload}});
-      if(r.error)throw pilotApiError(r,"Pilot konnte den Plan nicht erstellen.");
+      if(r.error)throw await pilotApiError(r,"Pilot konnte den Plan nicht erstellen.");
       data=r.data;
     }
 
@@ -2081,7 +2099,7 @@ async function connectCanva(){pilotNotice("Das Gestaltungsmodul wird zentral dur
 async function designWithCanva(v){const [id,type]=v.split(":");const r=results.find(x=>x.id===id);if(!r)return;const brief=["Create a professional neXaro-branded "+type+" based on this approved result. Use a light, premium layout with neon green and neon orange accents, high readability, and restrained visual energy. Preserve facts and wording accuracy.","","Title: "+r.title,"","Content:",String(r.content||"").slice(0,4200)].join("\\n");PS.textContent="Gestaltung wird vorbereitet …";try{const x=await sb.functions.invoke("canva-execution",{body:{action:"generate",goal_id:goals[0]?.id||null,source_result_id:r.id,design_type:type,brief}});if(x.error&&x.data?.status!=="canva_connection_required")throw x.error;if(x.data?.status==="canva_connection_required"){pilotNotice("Das Gestaltungsmodul wird aktuell vorbereitet. Pilot führt dich nicht zu externen Diensten weiter.");return}await load();current="canva";render();PS.textContent="Pilot bereit"}catch(e){PS.textContent="Pilot bereit";pilotNotice(e.message||String(e))}}
 async function pollCanva(id){PS.textContent="Designauftrag wird geprüft …";try{const x=await sb.functions.invoke("canva-execution",{body:{action:"poll",design_job_id:id}});if(x.error)throw x.error;await load();render();PS.textContent="Pilot bereit"}catch(e){PS.textContent="Pilot bereit";pilotNotice(e.message||String(e))}}
 function startPilotFlight(btn){const layer=document.getElementById("pilotFlightLayer");if(!layer||!btn)return;const reduced=window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;if(reduced)return;const rect=btn.getBoundingClientRect();const plane=document.createElement("div");plane.className="pilot-plane";plane.textContent="✈";plane.style.left=(rect.left+rect.width*.58-23)+"px";plane.style.top=(rect.top+rect.height*.16-10)+"px";layer.appendChild(plane);plane.addEventListener("animationend",()=>plane.remove(),{once:true});setTimeout(()=>{if(plane.isConnected)plane.remove()},2000)}
-async function executeAction(){const n=actions.find(a=>a.status==="ready")||actions.find(a=>a.status==="pending");if(!n)return;const btn=document.getElementById("executeAction");btn?.classList.add("launching");startPilotFlight(btn);PS.textContent="Pilot hebt ab …";setTimeout(()=>{if(PS.textContent==="Pilot hebt ab …")PS.textContent="Pilot arbeitet …"},650);try{const r=await sb.functions.invoke("execution-engine",{body:{operation:"start",action_id:n.id}});if(r.error)throw pilotApiError(r,"Ausführung wurde beendet.");await load();render();PS.textContent=r.data?.status==="waiting_approval"?"Freigabe erforderlich":"Pilot bereit";if(r.data?.status==="waiting_approval")pilotNotice("Pilot hat die Arbeit vorbereitet. Die externe Aktion wartet auf deine Freigabe.");if(r.data?.status==="review_required")pilotNotice("Pilot hat das Resultat erstellt. Aufgrund des Risikoprofils ist eine menschliche Prüfung erforderlich.")}catch(e){PS.textContent="Pilot bereit";await telemetry("incident",{goal_id:goals[0]?.id||null,source:"execution",severity:"error",error_code:"EXECUTION_FAILED",message:e.message||String(e)});pilotNotice(e.message||String(e))}finally{setTimeout(()=>btn?.classList.remove("launching"),700)}}
+async function executeAction(){const n=actions.find(a=>a.status==="ready")||actions.find(a=>a.status==="pending");if(!n)return;const btn=document.getElementById("executeAction");btn?.classList.add("launching");startPilotFlight(btn);PS.textContent="Pilot hebt ab …";setTimeout(()=>{if(PS.textContent==="Pilot hebt ab …")PS.textContent="Pilot arbeitet …"},650);try{const r=await sb.functions.invoke("execution-engine",{body:{operation:"start",action_id:n.id}});if(r.error)throw await pilotApiError(r,"Ausführung wurde beendet.");await load();render();PS.textContent=r.data?.status==="waiting_approval"?"Freigabe erforderlich":"Pilot bereit";if(r.data?.status==="waiting_approval")pilotNotice("Pilot hat die Arbeit vorbereitet. Die externe Aktion wartet auf deine Freigabe.");if(r.data?.status==="review_required")pilotNotice("Pilot hat das Resultat erstellt. Aufgrund des Risikoprofils ist eine menschliche Prüfung erforderlich.")}catch(e){PS.textContent="Pilot bereit";await telemetry("incident",{goal_id:goals[0]?.id||null,source:"execution",severity:"error",error_code:"EXECUTION_FAILED",message:e.message||String(e)});pilotNotice(e.message||String(e))}finally{setTimeout(()=>btn?.classList.remove("launching"),700)}}
 async function decideExecution(v,approved){const [execution_id,step_id]=v.split(":");const reason=approved?null:await pilotAskText("Warum möchtest du diese Aktion ablehnen?",{title:"Freigabe ablehnen",placeholder:"Optionaler Grund …"});if(!approved&&reason===null)return;PS.textContent=approved?"Freigabe wird verarbeitet …":"Aktion wird abgebrochen …";try{const r=await sb.functions.invoke("execution-engine",{body:{operation:"approve",execution_id,step_id,approved,reason}});if(r.error&&r.data?.status!=="blocked")throw r.error;await load();render();PS.textContent="Pilot bereit";if(r.data?.status==="blocked")pilotNotice("Freigabe wurde erfasst. Die externe Capability ist noch nicht verbunden; Pilot hat deshalb nicht ausgeführt.")}catch(e){PS.textContent="Pilot bereit";pilotNotice(e.message||String(e))}}
 async function enter(session){user=session.user;A.classList.add("hidden");APP.classList.remove("hidden");try{await load();render();if(goals[0])void startGoalResearch(goals[0].id);telemetry("event",{event_name:"session_entered",event_category:"activation",properties:{has_goal:!!goals[0]}})}catch(e){telemetry("incident",{source:"app_load",severity:"error",error_code:"LOAD_FAILED",message:e.message||String(e)});pilotNotice(e.message)}}
 async function leave(){user=null;org=null;isAdmin=false;customerPreview=false;adminData=null;pendingAttachments=[];goalSuccessMap={};goals=[];features=[];plans=[];actions=[];contexts=[];milestones=[];documents=[];results=[];claims=[];evidence=[];completeness=[];progressEvents=[];outcomes=[];adaptations=[];pilotState=null;aiRequests=[];qualityContracts=[];consensusRuns=[];executions=[];executionSteps=[];designJobs=[];canvaStatus=null;researchBusy=false;researchAttempted.clear();notifications=[];readiness=[];evalRuns=[];APP.classList.add("hidden");A.classList.remove("hidden")}
