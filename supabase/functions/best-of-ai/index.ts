@@ -2,7 +2,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.57.4";
 
-import {pilotProviderCatalog, pilotProviderOrder} from "../_shared/pilot-providers.ts";
+import {pilotProviderCatalog, pilotProviderOrder, pilotCoordinationPolicy} from "../_shared/pilot-providers.ts";
 
 const H={"content-type":"application/json","cache-control":"no-store"};
 
@@ -64,8 +64,9 @@ const pilotCorsHandler=async(req:Request)=>{
    {status:guard?.status===403?403:503,headers:H});
   const goalId=body.goal_id?String(body.goal_id):null;
   const sensitivity=String(body.sensitivity||"internal");
-  const requestedMode=String(body.mode||"best");
-  const mode=["high_assurance","fast_best"].includes(requestedMode)?requestedMode:"best";
+  const requestedMode=String(body.mode||"auto");
+  const coordination=pilotCoordinationPolicy(taskType,input,requestedMode,body.human_review_required===true);
+  const mode=coordination.mode;
   const required=Array.isArray(body.required_fields)?body.required_fields.map(String):[];
 
   // Database invariant: ai_consensus_runs.mode accepts only best|high_assurance.
@@ -121,7 +122,7 @@ const pilotCorsHandler=async(req:Request)=>{
   const fail=async(code:string)=>{
     await sb.from("ai_consensus_runs").update({status:"failed",decision:code,
       scores:{coordinator:"jarvis",attempts},completed_at:new Date().toISOString()}).eq("id",run.data.id);
-    return Response.json({error:"no_valid_model_result",reason_code:code,provider_statuses:attempts,retryable:true},{status:503,headers:H});
+    return Response.json({error:"no_valid_model_result",reason_code:code,provider_statuses:attempts,retryable:!["NO_CONFIGURED_PROVIDER_AVAILABLE","INDEPENDENT_REVIEW_UNAVAILABLE"].includes(code)},{status:503,headers:H});
   };
   if(!planned.length)return fail("NO_CONFIGURED_PROVIDER_AVAILABLE");
   if(mode==="high_assurance"&&planned.length<2)return fail("INDEPENDENT_REVIEW_UNAVAILABLE");
@@ -154,7 +155,7 @@ const pilotCorsHandler=async(req:Request)=>{
   }
   const scores=Object.fromEntries(ranked.map(c=>[c.provider,c.score]));
   const record=(c:any)=>c?{provider:c.provider,request_id:c.request_id,output:c.output,route:c.route,cost:c.cost}:null;
-  const orchestration={coordinator:"jarvis",version:1,policy:mode,attempts,
+  const orchestration={coordinator:"jarvis",version:2,policy:mode,routing_reason:coordination.reason,max_model_calls:coordination.max_model_calls,attempts,
     independent_providers:ranked.map(c=>c.provider),comparison_performed:ranked.length===2,
     verification_scope:"structured_output_and_content_safety_not_factual_truth"};
   const saved=await sb.from("ai_consensus_runs").update({candidate_a:record(ranked[0]),candidate_b:record(ranked[1]),

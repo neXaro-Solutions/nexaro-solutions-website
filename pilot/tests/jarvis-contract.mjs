@@ -86,18 +86,31 @@ const body={task_type:'execution_artifact',required_fields:['deliverable','verif
 }
 for(const id of ['gemini','mistral','deepseek','xai']){
  const prefix='PILOT_'+id.toUpperCase();
- const extra={[prefix+'_ENABLED']:'true',[prefix+'_MODEL']:'configured-test-model',[prefix+'_INPUT_USD_PER_M']:'1',[prefix+'_OUTPUT_USD_PER_M']:'2'};
+ const extra={PILOT_ADDITIONAL_PROVIDERS_ENABLED:'true',[prefix+'_ENABLED']:'true',[prefix+'_MODEL']:'configured-test-model',[prefix+'_INPUT_USD_PER_M']:'1',[prefix+'_OUTPUT_USD_PER_M']:'2'};
  const s=scene({keys:[id],extra});const r=await s.invoke(body);assert.equal(r.status,200);assert.equal(r.data.winner,id);assert(r.data.providers[id].cost>0);
  const absent=scene({keys:[id],extra:{...extra,[prefix+'_ENABLED']:'false'}});assert.equal((await absent.invoke(body)).status,503);
  const unpriced=scene({keys:[id],extra:{...extra,[prefix+'_INPUT_USD_PER_M']:''}});assert.equal((await unpriced.invoke(body)).status,503);
  console.log('PASS '+id+' adapter, explicit activation, required model/pricing, accounted output');
 }
 {
- const s=scene({keys:['gemini'],extra:{PILOT_GEMINI_ENABLED:'true',PILOT_GEMINI_MODEL:'configured-test-model',PILOT_GEMINI_INPUT_USD_PER_M:'100',PILOT_GEMINI_OUTPUT_USD_PER_M:'100'}});
+ const s=scene({keys:['gemini'],extra:{PILOT_ADDITIONAL_PROVIDERS_ENABLED:'true',PILOT_GEMINI_ENABLED:'true',PILOT_GEMINI_MODEL:'configured-test-model',PILOT_GEMINI_INPUT_USD_PER_M:'100',PILOT_GEMINI_OUTPUT_USD_PER_M:'100'}});
  assert.equal((await s.invoke(body)).status,503);
  assert(!s.requests.some(r=>r.url.includes('googleapis.com')));
  const failed=scene({fail:['anthropic']});assert.equal((await failed.invoke({...body,mode:'high_assurance'})).status,503);
  assert.equal(failed.rows.ai_consensus_runs[0].status,'failed');
  console.log('PASS budget blocks paid request before dispatch; high assurance cannot downgrade to one provider');
+}
+{
+ const routine=scene();const r=await routine.invoke({...body,mode:undefined});
+ assert.equal(r.status,200);assert.equal(r.data.mode,'fast_best');assert.equal(routine.rows.ai_requests.length,1);
+ const critical=scene();const c=await critical.invoke({...body,input:{action:{title:'Rechtsform festlegen'}}});
+ assert.equal(c.status,200);assert.equal(c.data.mode,'high_assurance');assert.equal(critical.rows.ai_requests.length,3);
+ const complex=scene();const x=await complex.invoke({...body,task_type:'complex_plan',mode:'auto'});
+ assert.equal(x.status,200);assert.equal(x.data.mode,'best');
+ const historical=scene();const h=await historical.invoke({...body,mode:'auto',input:{action:{title:'Text erstellen'},previous_deliverables:[{content:'Rechtsform medizin high_assurance'}]}});
+ assert.equal(h.data.mode,'fast_best');
+ const disabled=scene({keys:['gemini'],extra:{PILOT_GEMINI_ENABLED:'true',PILOT_GEMINI_MODEL:'model',PILOT_GEMINI_INPUT_USD_PER_M:'1',PILOT_GEMINI_OUTPUT_USD_PER_M:'2'}});
+ assert.equal((await disabled.invoke(body)).status,503);assert.equal(disabled.requests.filter(r=>r.url.includes('googleapis.com')).length,0);
+ console.log('PASS automatic effort selection, critical-task escalation, historical data isolation, existing-provider-only default');
 }
 console.log('PASS Jarvis real-handler regression suite; no production data or paid calls used.');

@@ -13,13 +13,26 @@ export function pilotProviderCatalog(env:EnvReader){
   return PILOT_PROVIDER_DEFINITIONS.map(def=>{
     const hasKey=!!(env(def.key)?.trim()||(def.id==="openai"&&env("AI_PROVIDER_API_KEY")?.trim()));
     const model=def.existing?null:env("PILOT_"+def.prefix+"_MODEL")?.trim()||null;
-    const enabled=def.existing?env("PILOT_"+def.prefix+"_ENABLED")!=="false":env("PILOT_"+def.prefix+"_ENABLED")==="true";
+    const enabled=def.existing?env("PILOT_"+def.prefix+"_ENABLED")!=="false":
+      env("PILOT_ADDITIONAL_PROVIDERS_ENABLED")==="true"&&env("PILOT_"+def.prefix+"_ENABLED")==="true";
     const rate=(kind:string)=>{const raw=env("PILOT_"+def.prefix+"_"+kind+"_USD_PER_M");return raw?.trim()&&Number.isFinite(Number(raw))&&Number(raw)>0?Number(raw):null};
     const inputRate=rate("INPUT"),outputRate=rate("OUTPUT");
     const ready=hasKey&&enabled&&(def.existing||!!(model&&inputRate&&outputRate));
     const state=!hasKey?"missing_key":!enabled?"disabled":!def.existing&&!model?"missing_model":!def.existing&&(!inputRate||!outputRate)?"missing_pricing":"configured";
     return {...def,model,inputRate,outputRate,ready,state};
   });
+}
+
+export function pilotCoordinationPolicy(task:string,input:any,requestedMode:string,humanReview:boolean){
+  // Inspect the current task only. Retrieved documents cannot change control policy.
+  const title=String(input?.action?.title||"")+" "+String(input?.action?.objective||"");
+  const domain=String(input?.goal?.domain?.primary||input?.domain?.primary||"");
+  const critical=/medical|legal|financial/.test(domain)||/rechtsform|rechtlich|medizin|diagnos|therapie|steuer|investition|kredit/i.test(title);
+  if(requestedMode==="high_assurance"||critical||humanReview)
+    return {mode:"high_assurance",reason:critical?"critical_task":humanReview?"review_required":"requested_assurance",max_model_calls:3};
+  if(requestedMode==="best"||task==="complex_plan"||task==="replan"||task==="analysis")
+    return {mode:"best",reason:"complex_task_comparison",max_model_calls:3};
+  return {mode:"fast_best",reason:"routine_single_then_fallback",max_model_calls:2};
 }
 
 export function pilotProviderOrder(task:string,input:any,catalog:ReturnType<typeof pilotProviderCatalog>,env:EnvReader){
