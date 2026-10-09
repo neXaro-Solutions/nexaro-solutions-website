@@ -3,6 +3,10 @@ name: Pilot engine regression tests
 on:
   push:
     paths:
+      - "supabase/functions/ai-gateway/**"
+      - "supabase/functions/best-of-ai/**"
+      - "supabase/functions/_shared/pilot-providers.ts"
+      - "pilot/tests/jarvis-contract.mjs"
       - "supabase/functions/execution-engine/**"
       - "supabase/functions/pilot-intelligence/**"
       - "supabase/functions/alpha-e2e-selftest/**"
@@ -19,6 +23,10 @@ on:
       - ".github/workflows/pilot-engine-guards.yml"
   pull_request:
     paths:
+      - "supabase/functions/ai-gateway/**"
+      - "supabase/functions/best-of-ai/**"
+      - "supabase/functions/_shared/pilot-providers.ts"
+      - "pilot/tests/jarvis-contract.mjs"
       - "supabase/functions/execution-engine/**"
       - "supabase/functions/pilot-intelligence/**"
       - "supabase/functions/alpha-e2e-selftest/**"
@@ -62,3 +70,5 @@ jobs:
         run: node pilot/tests/background-live-contract.mjs
       - name: Check live mission test isolation and authorization
         run: node pilot/tests/live-e2e-contract.mjs
+      - name: Run Jarvis provider coordination and failure tests
+        run: node pilot/tests/jarvis-contract.mjs

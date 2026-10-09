@@ -5055,9 +5055,11 @@ function alphaViewLegacy(){
  '<details class="pilot-tests-group"><summary><span class="pilot-tests-icon">⌁</span><span>Verbindungen & Einzeltests</span><span class="pilot-tests-arrow">⌄</span></summary>'+
  '<div class="pilot-tests-details pilot-admin-quicktest"><div class="pilot-tests-actions pilot-admin-quicktest-grid">'+
  '<button id="diagnosePilotAI" class="btn pilot-admin-ai-test" type="button">KI-Ausführung</button>'+
+ '<button id="pilotJarvisStatus" class="btn" type="button">Jarvis · KI-Verbund</button>'+
  '<button id="pilotBraveTest" class="btn" type="button">Brave-Suche</button>'+
  '<button id="diagnoseSafety" class="btn" type="button">Sicherheitsverbindung</button>'+
  '<button id="pilotLandingPreview" class="btn" type="button">Flug & Avatar</button></div>'+
+ '<div id="pilotJarvisStatusResult" role="status" aria-live="polite"></div>'+
  '<p class="pilot-admin-quicktest-note">Diese Tests verändern deinen bestehenden Auftrag nicht.</p></div></details>'+
  '<details class="pilot-tests-group"><summary><span class="pilot-tests-icon">▤</span><span>Auswertung & Hinweise</span><span class="pilot-tests-arrow">⌄</span></summary>'+
  '<div class="pilot-tests-details">'+
@@ -5656,6 +5658,7 @@ function bind(){
   document.getElementById("pilotLandingPreview")?.addEventListener("click",previewPilotFlight);
   document.getElementById("diagnoseSafety")?.addEventListener("click",()=>pilotSafetyDiagnostic({show:true}));
   document.getElementById("diagnosePilotAI")?.addEventListener("click",pilotExecutionProviderDiagnostic);
+  document.getElementById("pilotJarvisStatus")?.addEventListener("click",pilotJarvisProviderStatus);
   document.getElementById("pilotBraveTest")?.addEventListener("click",pilotBraveDiagnostic);
   document.getElementById("executeAction")?.addEventListener("click",executeAction);
   document.getElementById("pilotResumeMission")?.addEventListener("click",()=>void pilotContinueSafely(goals[0]?.id,32));
@@ -7241,6 +7244,30 @@ async function pilotBraveDiagnostic(){
  }
 }
 
+/* Read-only configuration status. A configured key is not a successful live test. */
+async function pilotJarvisProviderStatus(){
+ if(!effectiveAdmin())return;
+ const button=document.getElementById("pilotJarvisStatus");
+ const target=document.getElementById("pilotJarvisStatusResult");
+ if(!button||button.disabled||!target)return;
+ button.disabled=true;target.textContent="Jarvis prüft die Einrichtung …";
+ try{
+   const result=await sb.functions.invoke("best-of-ai",{body:{operation:"provider_status"}});
+   if(result.error)throw await pilotApiError(result,"Anbieterstatus nicht verfügbar.");
+   const states={configured:"Eingerichtet · Live-Test separat erforderlich",missing_key:"Vorbereitet · Zugang fehlt",disabled:"Vorbereitet · nicht aktiviert",missing_model:"Modellauswahl fehlt",missing_pricing:"Kostenkonfiguration fehlt"};
+   target.replaceChildren();
+   const summary=document.createElement("p");
+   summary.textContent="Jarvis koordiniert die bestehende KI-Ausführung. Routineaufträge nutzen einen Anbieter und bei Bedarf einen Ersatz. Anspruchsvolle Aufgaben vergleichen zwei unabhängige Anbieter. Quellenprüfung und Freigaben bleiben eigene Schritte.";
+   target.append(summary);
+   for(const provider of result.data?.providers||[]){
+     const row=document.createElement("p");
+     row.textContent=provider.label+": "+(states[provider.state]||"Status unbekannt");
+     target.append(row);
+   }
+ }catch(error){target.textContent=String(error?.message||"Anbieterstatus nicht verfügbar.").slice(0,220)}
+ finally{button.disabled=false}
+}
+
 /* Admin-only smoke check: isolated, authenticated AI generation; no action progress changes. */
 let pilotAiDiagnosticBusy=false;
 async function pilotExecutionProviderDiagnostic(){
@@ -7267,7 +7294,7 @@ async function pilotExecutionProviderDiagnostic(){
        !["deliverable","verification","next_recommendation"].every(k=>String(output[k]||"").trim().length>8))
       throw new Error("Das Modell hat keine vollständige strukturierte Testantwort geliefert.");
     PS.textContent="KI-Verbindung funktionsfähig";
-    pilotNotice("✦ KI-Test erfolgreich: "+(result.winner==="anthropic"?"Claude":result.winner==="openai"?"OpenAI":"Modell")+
+    pilotNotice("✦ KI-Test erfolgreich: "+({anthropic:"Claude",openai:"OpenAI",gemini:"Gemini",mistral:"Mistral",deepseek:"DeepSeek",xai:"Grok"}[result.winner]||"Modell")+
       " liefert ein gültiges Testergebnis. Der vollständige Auftrag benötigt anschließend noch seinen eigenen Qualitätscheck.");
   }catch(e){
     PS.textContent="KI-Verbindung benötigt Aufmerksamkeit";
