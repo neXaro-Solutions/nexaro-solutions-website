@@ -7,7 +7,7 @@ const html=readFileSync(resolve(root,"pilot/index.html"),"utf8");
 const edge=readFileSync(resolve(root,"supabase/functions/pilot-market/index.ts"),"utf8");
 const first=html.indexOf('<script type="module">'),last=html.indexOf("</script>",first);
 assert(first>=0&&last>first,"Pilot module exists");
-const script=html.slice(first+'<script type="module">'.length,last).replace(/^import\s+\{createClient\}[^;]+;/m,"");
+const script=html.slice(first+'<script type="module">'.length,last).replace(/^import\s+\{[^}]+\}\s+from\s+[^;]+;/gm,"");
 new Function("async function syntax(){"+script+"}");
 const i=script.indexOf("/* Market intelligence"),j=script.indexOf("function render(){",i);
 assert(i>0&&j>i,"Market module exists");
