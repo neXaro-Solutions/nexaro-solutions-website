@@ -33,7 +33,7 @@ export function deriveIntelligenceStage({
   return null;
 }
 
-export function createIntelligenceFlow(root) {
+export function createIntelligenceFlow(root, coreMarkup = "✦") {
   if (!root) {
     const noop = () => {};
     return {start: noop, finish: noop, reset: noop, isActive: () => false};
@@ -48,7 +48,7 @@ export function createIntelligenceFlow(root) {
         '<div class="pif-aura"></div><div class="pif-ring pif-ring-one"></div>' +
         '<div class="pif-ring pif-ring-two"></div>' +
         '<div class="pif-particles"></div>' +
-        '<div class="pif-core"><span>✦</span></div>' +
+        '<div class="pif-core"><span>' + coreMarkup + '</span></div>' +
       '</div>' +
       '<div class="pif-copy"><span class="pif-eyebrow">PAILOT · INTELLIGENCE FLOW</span>' +
         '<strong class="pif-message">Pilot arbeitet</strong>' +
@@ -84,6 +84,7 @@ export function createIntelligenceFlow(root) {
     root.dataset.phase = next;
     root.dataset.open = "true";
     root.setAttribute("aria-hidden", "false");
+    root.setAttribute("aria-busy", "true");
     setMessage(message);
     phase = next;
   }
@@ -93,6 +94,7 @@ export function createIntelligenceFlow(root) {
     closing = true;
     phase = kind;
     root.dataset.phase = kind;
+    root.setAttribute("aria-busy", "false");
     setMessage(message);
     closeTimer = setTimeout(() => {
       root.dataset.open = "false";
@@ -108,6 +110,7 @@ export function createIntelligenceFlow(root) {
     phase = "idle";
     closing = false;
     root.dataset.phase = "idle";
+    root.setAttribute("aria-busy", "false");
     root.dataset.open = "false";
     root.setAttribute("aria-hidden", "true");
   }
