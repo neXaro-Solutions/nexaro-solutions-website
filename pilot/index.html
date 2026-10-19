@@ -5494,7 +5494,7 @@ async function pilotShoppingAsk(text){
 
 function render(){if(current==="results")current="goals";if(!effectiveAdmin()&&["roadmap","alpha","admin","market"].includes(current))current="home";applyRoleUI();document.querySelectorAll("[data-view]").forEach(b=>b.classList.toggle("active",b.dataset.view===current));T.textContent={home:"Pilot",goals:"Aufträge",documents:"Dokumente",results:"Ergebnisse",market:"Angebote",notifications:"Mitteilungen",execution:"Ausführung",canva:"Gestaltung",roadmap:"Entwicklungsplan",alpha:"Systemtest",admin:"Admin-Cockpit",me:"Einstellungen"}[current];V.dataset.screen=current;APP.dataset.screen=current;V.innerHTML={home:home,goals:goalsView,documents:documentsView,results:resultsView,market:pilotMarketView,notifications:pilotNotificationsView,execution:executionView,canva:canvaView,roadmap:roadmap,alpha:alphaView,admin:adminView,me:me}[current]();document.querySelectorAll(".side .nav[data-view]").forEach(b=>{if(b.dataset.view===current)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current")});bind();pilotBindSpatialUI();pilotSyncFlightScreen();pilotUpdateDock();pilotRefreshIntelligence()}
 
-function pilotRefreshIntelligence(){
+function pilotRefreshIntelligence(finishMessage){
   if(pilotFlowSubmitting)return;
   const stage=deriveIntelligenceStage({
     job:pilotBackgroundJob,goalId:goals[0]?.id||null,
@@ -5502,7 +5502,7 @@ function pilotRefreshIntelligence(){
     executionActive:pilotExecutionRequestActive
   });
   if(stage)pilotIntelligenceFlow.start(stage.phase,stage.label);
-  else pilotIntelligenceFlow.finish();
+  else pilotIntelligenceFlow.finish(finishMessage||"Arbeitsabschnitt abgeschlossen");
 }
 function formatBytes(n){const v=Number(n||0);if(v<1024)return v+" B";if(v<1024*1024)return (v/1024).toFixed(1)+" KB";return (v/1024/1024).toFixed(1)+" MB"}
 function renderAttachmentTray(){
@@ -6244,8 +6244,7 @@ async function createGoal(){
        pilotFlightState.mode!=="flying")finishPilotFlight();
     if(btn.isConnected){btn.classList.remove("launching");btn.disabled=false;if(btn.textContent==="✈ Pilot startet …")btn.textContent="✈ Pilot jetzt starten →";}
     pilotFlowSubmitting=false;
-    pilotRefreshIntelligence();
-    if(pilotFlowAccepted)pilotIntelligenceFlow.finish("Auftrag übernommen");
+    pilotRefreshIntelligence(pilotFlowAccepted?"Auftrag übernommen":"Arbeitsabschnitt beendet");
   }
 }
 async function completeAction(withOutcome,blocked){
