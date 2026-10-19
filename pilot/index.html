@@ -3841,7 +3841,7 @@ body:has(.auth-modal:not(.hidden)) #pilotLanguageSwitcher{display:none!important
  .shell:not([data-screen="home"]) .main>.head{padding-top:48px!important}
 }
 
-</style><link rel="preload" href="/pilot/lumen-orb.svg" as="image" type="image/svg+xml"><link rel="stylesheet" href="/pilot/lumen-depth.css?v=20261009-xjet-v1"><link rel="icon" type="image/png" sizes="32x32" href="/pilot/favicon-32.png?v=xjet-v1"><link rel="icon" type="image/svg+xml" href="/pilot/icon.svg?v=xjet-v1"><link rel="shortcut icon" href="/pilot/favicon.ico?v=xjet-v1"><link rel="manifest" href="/pilot/manifest.webmanifest?v=xjet-v1"><link rel="apple-touch-icon" sizes="180x180" href="/pilot/apple-touch-icon.png?v=xjet-v1"><meta name="apple-mobile-web-app-title" content="Pilot"><meta name="theme-color" content="#fbfdf9"><meta name="apple-mobile-web-app-capable" content="yes"></head>
+</style><link rel="preload" href="/pilot/lumen-orb.svg" as="image" type="image/svg+xml"><link rel="stylesheet" href="/pilot/lumen-depth.css?v=20261009-xjet-v1"><link rel="stylesheet" href="/pilot/intelligence-flow.css?v=20261019-v1"><link rel="icon" type="image/png" sizes="32x32" href="/pilot/favicon-32.png?v=xjet-v1"><link rel="icon" type="image/svg+xml" href="/pilot/icon.svg?v=xjet-v1"><link rel="shortcut icon" href="/pilot/favicon.ico?v=xjet-v1"><link rel="manifest" href="/pilot/manifest.webmanifest?v=xjet-v1"><link rel="apple-touch-icon" sizes="180x180" href="/pilot/apple-touch-icon.png?v=xjet-v1"><meta name="apple-mobile-web-app-title" content="Pilot"><meta name="theme-color" content="#fbfdf9"><meta name="apple-mobile-web-app-capable" content="yes"></head>
 <body>
 <div id="pilotLanguageSwitcher" class="pilot-language-switcher" role="group" aria-label="Sprachauswahl"><button type="button" id="pilotLanguageToggle" aria-expanded="false" aria-controls="pilotLanguageOptions" aria-label="Sprache auswählen"><span class="pilot-language-globe" aria-hidden="true">🌐</span><span id="pilotLanguageCurrent">DE</span><span class="pilot-language-chevron" aria-hidden="true">⌄</span></button><div id="pilotLanguageOptions" role="group" aria-label="Sprache" hidden><button type="button" data-pilot-locale="de" aria-pressed="true" class="is-active" lang="de">Deutsch</button><button type="button" data-pilot-locale="en" aria-pressed="false" lang="en">English</button></div></div>
 <section id="auth" class="auth"><div class="box">
@@ -3896,13 +3896,16 @@ body:has(.auth-modal:not(.hidden)) #pilotLanguageSwitcher{display:none!important
 <section id="app" class="shell hidden"><aside class="side"><div class="brand"><div class="brand-meta"><img src="/nexaro-transparent-logo.webp" class="brand-logo" alt="neXaro Solutions"><div class="ey">Dein intelligenter Mitarbeiter</div></div></div>
 <nav class="pilot-minimal-nav" aria-label="Hauptnavigation"><button class="nav active" data-view="home" aria-label="Pilot"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="m3 10 9-7 9 7"/><path d="M5 9v11h14V9"/><path d="M9.5 20v-7h5v7"/></svg></span><span>Pilot</span></button><button class="nav" data-view="goals" aria-label="Aufträge"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/></svg></span><span>Aufträge</span></button><details class="pilot-nav-more"><summary aria-label="Weitere Bereiche"><span class="pilot-nav-more-symbol">•••</span><span>Mehr</span></summary><div class="pilot-nav-more-content" aria-label="Weitere Funktionen"><div class="pilot-more-menu-label">DEIN BEREICH</div><button class="nav" data-view="notifications" aria-label="Mitteilungen"><span class="pilot-nav-icon" aria-hidden="true">◉</span><span>Mitteilungen & Push</span></button><button class="nav" data-view="documents" aria-label="Dokumente"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M7 3.5h7l4 4V21H7a2 2 0 0 1-2-2V5.5a2 2 0 0 1 2-2Z"/><path d="M14 3.5V8h4"/><path d="M9 12h6M9 16h6"/></svg></span><span>Dokumente</span></button><button class="nav auxiliary-nav" data-view="canva" aria-label="Gestaltung"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="m12 2 2.8 7.2L22 12l-7.2 2.8L12 22l-2.8-7.2L2 12l7.2-2.8L12 2Z"/></svg></span><span>Gestaltung</span></button><button class="nav account-nav" data-view="me" aria-label="Einstellungen"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M10 2h4l.7 2.3 2.2 1.2 2.3-.8 2 3.4-1.7 1.7v2.5l1.7 1.7-2 3.4-2.3-.8-2.2 1.2L14 22h-4l-.7-2.3-2.2-1.2-2.3.8-2-3.4 1.7-1.7v-2.5L2.8 10l2-3.4 2.3.8 2.2-1.2L10 2Z"/><circle cx="12" cy="12" r="3"/></svg></span><span>Einstellungen</span></button><div class="pilot-more-menu-label admin-only hidden">SYSTEM · INTERN</div><button class="nav admin-only hidden" data-view="roadmap" aria-label="Entwicklungsplan"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M9 9v12"/></svg></span><span>Entwicklungsplan</span></button><button class="nav admin-only hidden" data-view="alpha" aria-label="Systemtest"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="m4 12 5 5L20 6"/><circle cx="12" cy="12" r="9"/></svg></span><span>Systemtest</span></button><button class="nav admin-only hidden" data-view="admin" aria-label="Administration"><span class="pilot-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="15" rx="3"/><path d="M3 10h18M8 15h5"/></svg></span><span>Administration</span></button></div></details></nav>
 <button id="logout" class="btn logout">Abmelden</button></aside>
-<main class="main"><div class="head"><div><div class="ey">PILOT · DEIN KI-MITARBEITER</div><h1 id="title">Pilot</h1></div><div class="head-actions"><button id="adminSystem" class="head-tool admin-only hidden" data-view="admin">Admin</button><button id="customerPreviewToggle" class="head-tool admin-preview hidden" type="button">Kundenansicht</button><button id="accountButton" class="head-tool" data-view="me">Profil</button><div class="status"><span class="dot"></span><span id="pilotStatus">Pilot bereit</span></div></div></div><div id="view"><section class="pilot-initial-fallback" role="status" aria-live="polite"><span class="pilot-initial-beacon" aria-hidden="true">✈</span><div><strong>Pilot wird geladen</strong><p>Dein Auftrag und deine Ergebnisse bleiben gespeichert.</p></div></section></div></main></section><div id="pilotFlightLayer" aria-hidden="true"></div>
+<main class="main"><div class="head"><div><div class="ey">PILOT · DEIN KI-MITARBEITER</div><h1 id="title">Pilot</h1></div><div class="head-actions"><button id="adminSystem" class="head-tool admin-only hidden" data-view="admin">Admin</button><button id="customerPreviewToggle" class="head-tool admin-preview hidden" type="button">Kundenansicht</button><button id="accountButton" class="head-tool" data-view="me">Profil</button><div class="status"><span class="dot"></span><span id="pilotStatus">Pilot bereit</span></div></div></div><div id="pilotIntelligenceFlow" class="pilot-intelligence-flow" data-open="false" data-phase="idle" role="status" aria-live="polite" aria-atomic="true" aria-hidden="true"></div><div id="view"><section class="pilot-initial-fallback" role="status" aria-live="polite"><span class="pilot-initial-beacon" aria-hidden="true">✈</span><div><strong>Pilot wird geladen</strong><p>Dein Auftrag und deine Ergebnisse bleiben gespeichert.</p></div></section></div></main></section><div id="pilotFlightLayer" aria-hidden="true"></div>
 
 <script src="./pilot-language.js?v=20261008-language-v8" defer></script>
 <script type="module">
+import {createIntelligenceFlow,deriveIntelligenceStage} from "./intelligence-flow.mjs?v=20261019-v1";
 import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
 const sb=createClient("https://qfrylqxbqmuafyvnqkey.supabase.co","sb_publishable_-6dNvI99H1Tf-uhOLXGIQw_2b2yCzQF");
 const A=document.getElementById("auth"),APP=document.getElementById("app"),V=document.getElementById("view"),T=document.getElementById("title"),PS=document.getElementById("pilotStatus");
+const pilotIntelligenceFlow=createIntelligenceFlow(document.getElementById("pilotIntelligenceFlow"));
+let pilotFlowSubmitting=false,pilotFlowAccepted=false;
 let user=null,org=null,isAdmin=false,customerPreview=false,adminData=null,pendingAttachments=[],goalSuccessMap={},goalPlanProgressMap={},goals=[],features=[],plans=[],actions=[],contexts=[],milestones=[],documents=[],results=[],claims=[],evidence=[],completeness=[],progressEvents=[],outcomes=[],adaptations=[],pilotState=null,aiRequests=[],qualityContracts=[],consensusRuns=[],executions=[],executionSteps=[],designJobs=[],canvaStatus=null,notifications=[],readiness=[],evalRuns=[],researchBusy=false,researchAttempted=new Set(),current="home";
 async function telemetry(type,payload){try{await sb.functions.invoke("telemetry",{body:{type,...payload}})}catch(e){}}
 window.addEventListener("error",e=>{if(user)telemetry("incident",{source:"client",severity:"error",error_code:"CLIENT_ERROR",message:e.message||"Client error",metadata:{filename:e.filename,lineno:e.lineno}})});
@@ -4299,7 +4302,7 @@ async function pilotBackgroundObserve(id){
   try{
    const prev=pilotBackgroundJob?.status||"",done=pilotBackgroundJob?.steps_completed||0;
    const stage=pilotBackgroundJob?.stage||"",title=pilotBackgroundJob?.current_action_title||"";
-   const job=await pilotBackgroundRead(id);if(!job)return;
+   const job=await pilotBackgroundRead(id);if(!job)return;pilotRefreshIntelligence();
    if(prev!==job.status||done!==job.steps_completed||stage!==job.stage||title!==job.current_action_title){
      await load();if(!document.querySelector("#goalText:focus"))render()
    }
@@ -5489,8 +5492,18 @@ async function pilotShoppingAsk(text){
  return handled;
 }
 
-function render(){if(current==="results")current="goals";if(!effectiveAdmin()&&["roadmap","alpha","admin","market"].includes(current))current="home";applyRoleUI();document.querySelectorAll("[data-view]").forEach(b=>b.classList.toggle("active",b.dataset.view===current));T.textContent={home:"Pilot",goals:"Aufträge",documents:"Dokumente",results:"Ergebnisse",market:"Angebote",notifications:"Mitteilungen",execution:"Ausführung",canva:"Gestaltung",roadmap:"Entwicklungsplan",alpha:"Systemtest",admin:"Admin-Cockpit",me:"Einstellungen"}[current];V.dataset.screen=current;APP.dataset.screen=current;V.innerHTML={home:home,goals:goalsView,documents:documentsView,results:resultsView,market:pilotMarketView,notifications:pilotNotificationsView,execution:executionView,canva:canvaView,roadmap:roadmap,alpha:alphaView,admin:adminView,me:me}[current]();document.querySelectorAll(".side .nav[data-view]").forEach(b=>{if(b.dataset.view===current)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current")});bind();pilotBindSpatialUI();pilotSyncFlightScreen();pilotUpdateDock()}
+function render(){if(current==="results")current="goals";if(!effectiveAdmin()&&["roadmap","alpha","admin","market"].includes(current))current="home";applyRoleUI();document.querySelectorAll("[data-view]").forEach(b=>b.classList.toggle("active",b.dataset.view===current));T.textContent={home:"Pilot",goals:"Aufträge",documents:"Dokumente",results:"Ergebnisse",market:"Angebote",notifications:"Mitteilungen",execution:"Ausführung",canva:"Gestaltung",roadmap:"Entwicklungsplan",alpha:"Systemtest",admin:"Admin-Cockpit",me:"Einstellungen"}[current];V.dataset.screen=current;APP.dataset.screen=current;V.innerHTML={home:home,goals:goalsView,documents:documentsView,results:resultsView,market:pilotMarketView,notifications:pilotNotificationsView,execution:executionView,canva:canvaView,roadmap:roadmap,alpha:alphaView,admin:adminView,me:me}[current]();document.querySelectorAll(".side .nav[data-view]").forEach(b=>{if(b.dataset.view===current)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current")});bind();pilotBindSpatialUI();pilotSyncFlightScreen();pilotUpdateDock();pilotRefreshIntelligence()}
 
+function pilotRefreshIntelligence(){
+  if(pilotFlowSubmitting)return;
+  const stage=deriveIntelligenceStage({
+    job:pilotBackgroundJob,goalId:goals[0]?.id||null,
+    autoSession:pilotAutoSession,shoppingStage:pilotShoppingAssistant?.getState()?.stage||"",
+    executionActive:pilotExecutionRequestActive
+  });
+  if(stage)pilotIntelligenceFlow.start(stage.phase,stage.label);
+  else pilotIntelligenceFlow.finish();
+}
 function formatBytes(n){const v=Number(n||0);if(v<1024)return v+" B";if(v<1024*1024)return (v/1024).toFixed(1)+" KB";return (v/1024/1024).toFixed(1)+" MB"}
 function renderAttachmentTray(){
   const tray=document.getElementById("attachmentTray");if(!tray)return;
@@ -5998,6 +6011,8 @@ async function createGoal(){
   const text=document.getElementById("goalText").value.trim();
   if(!text||!org)return;
   if(await pilotShoppingAsk(text))return;
+  pilotFlowSubmitting=true;pilotFlowAccepted=false;
+  pilotIntelligenceFlow.start("understand","Pilot ordnet deine Anfrage ein");
   pilotComposerDraft=text;
   const requestId=pilotPendingCommandId(text);
 
@@ -6024,8 +6039,10 @@ async function createGoal(){
     if(data.stage==="goal_resolution"){
       PS.textContent="Pilot prüft den Zusammenhang …";
       setPilotFlightPhase("Pilot ordnet dein Ziel zu …");
+      pilotIntelligenceFlow.finish("Pilot braucht deine Zuordnung","waiting");
       const choice=await askGoalResolution(data);
       if(choice===null){PS.textContent="Pilot bereit";btn.disabled=false;btn.textContent="✈ Pilot jetzt starten";btn.classList.remove("launching");return;}
+      pilotIntelligenceFlow.start("understand","Pilot übernimmt deine Zuordnung");
       const matches=Array.isArray(data.candidate_goals)?data.candidate_goals:[data.candidate_goal];
       const selected=matches.find(g=>g?.id&&choice==="goal:"+g.id);
       if(selected)resolutionPayload={existing_goal_id:selected.id};
@@ -6039,8 +6056,10 @@ async function createGoal(){
 
     if(data.stage==="clarification"){
       setPilotFlightPhase("Pilot klärt die nächsten Schritte …");
+      pilotIntelligenceFlow.finish("Pilot wartet auf deine Antwort","waiting");
       const answers=await pilotAskQuestions(data.questions);
       if(!answers){PS.textContent="Pilot bereit";btn.disabled=false;btn.textContent="✈ Pilot jetzt starten";btn.classList.remove("launching");return;}
+      pilotIntelligenceFlow.start("create","Pilot bereitet deinen Plan vor");
       PS.textContent="Pilot plant …";
       setPilotFlightPhase("Pilot erstellt deinen Plan …");
       r=await sb.functions.invoke("pilot-intelligence",{body:{input:text,request_id:requestId,intent:data.intent,answers,...resolutionPayload}});
@@ -6061,6 +6080,7 @@ async function createGoal(){
       const formNames={einzelunternehmen:"Einzelunternehmen",ug:"UG (haftungsbeschränkt)",gmbh:"GmbH"};
       const display=v=>key==="legal_form"?(formNames[v]||v):v;
       PS.textContent="Pilot prüft eine bestehende Entscheidung …";
+      pilotIntelligenceFlow.finish("Eine Projektentscheidung ist erforderlich","waiting");
       const choice=await nxDialog({
         pilotFlightHandoff:true,
         pilotFlightMessage:"Bitte prüfe deine bisherige Projektentscheidung.",
@@ -6076,6 +6096,7 @@ async function createGoal(){
         PS.textContent="Pilot bereit";btn.disabled=false;btn.textContent="✈ Pilot jetzt starten";
         btn.classList.remove("launching");return;
       }
+      pilotIntelligenceFlow.start("verify","Pilot gleicht deine Entscheidung ab");
       if(choice==="keep"){
         // The request contradicts a confirmed value. Rather than generate a
         // misleading deliverable, keep the existing work and do not enqueue it.
@@ -6107,6 +6128,8 @@ async function createGoal(){
       throw new Error("Bitte prüfe weitere widersprüchliche Angaben in deinem Auftrag.");
 
     if(data.stage!=="ready")throw new Error("Pilot konnte den Plan nicht abschließen.");
+    pilotFlowAccepted=true;
+    pilotIntelligenceFlow.start("create","Pilot bereitet die nächsten Schritte vor");
 
     setPilotFlightPhase("Pilot öffnet deinen Arbeitsbereich …");
     if(data.goal?.id){activeGoalId=data.goal.id;try{localStorage.setItem("nexaro_pilot_goal_"+user.id,activeGoalId)}catch{}}
@@ -6117,6 +6140,7 @@ async function createGoal(){
 
     if(pendingAttachments.length){
       setPilotFlightPhase("Pilot verarbeitet deine Anhänge …");
+      pilotIntelligenceFlow.start("create","Pilot verarbeitet deine Anhänge");
       await processPendingAttachments(targetGoal.id,text);
       await load();
     }
@@ -6211,6 +6235,7 @@ async function createGoal(){
       if(diagnostic)details+="\n\n"+diagnostic.description;
     }
     pilotNotice(details,"error");
+    pilotIntelligenceFlow.finish("Pilot benötigt eine Prüfung","error");
     btn.disabled=false;
     btn.textContent="✈ Pilot jetzt starten";
     btn.classList.remove("launching");
@@ -6218,6 +6243,9 @@ async function createGoal(){
     if(!pilotAutoSession?.active && pilotFlightState.mode!=="attention" &&
        pilotFlightState.mode!=="flying")finishPilotFlight();
     if(btn.isConnected){btn.classList.remove("launching");btn.disabled=false;if(btn.textContent==="✈ Pilot startet …")btn.textContent="✈ Pilot jetzt starten →";}
+    pilotFlowSubmitting=false;
+    pilotRefreshIntelligence();
+    if(pilotFlowAccepted)pilotIntelligenceFlow.finish("Auftrag übernommen");
   }
 }
 async function completeAction(withOutcome,blocked){
@@ -7127,6 +7155,7 @@ function pilotStageMessage(step,seconds=0){
 }
 function pilotUpdateStage(label){
  PS.textContent=label;setPilotFlightPhase(label);
+  pilotIntelligenceFlow.start("work",label);
  let tag=document.getElementById("pilotRunStage");
  if(!tag){
    const anchor=document.querySelector("#pilotNextActionPanel .command-card");
@@ -7402,7 +7431,7 @@ async function enter(session){
    pilotShowLoadError(e);
  }
 }
-async function leave(){pilotPinnedGoalId=null;pilotForceNewGoal=false;pilotProjectExpanded.clear();pilotShoppingAssistant?.clear();pilotShoppingAssistant=null;pilotShoppingLoader=null;pilotComposerDraft="";pilotDownloadCache.clear();if(activePilotFlight)pilotDestroyFlight(activePilotFlight);pilotSetFlightState(null,"idle","");user=null;org=null;isAdmin=false;customerPreview=false;adminData=null;pendingAttachments=[];goalSuccessMap={};goals=[];features=[];plans=[];actions=[];contexts=[];milestones=[];documents=[];results=[];claims=[];evidence=[];completeness=[];progressEvents=[];outcomes=[];adaptations=[];pilotState=null;aiRequests=[];qualityContracts=[];consensusRuns=[];executions=[];executionSteps=[];designJobs=[];canvaStatus=null;researchBusy=false;researchAttempted.clear();notifications=[];readiness=[];evalRuns=[];APP.classList.add("hidden");A.classList.remove("hidden")}
+async function leave(){pilotIntelligenceFlow.reset();pilotFlowSubmitting=false;pilotFlowAccepted=false;pilotPinnedGoalId=null;pilotForceNewGoal=false;pilotProjectExpanded.clear();pilotShoppingAssistant?.clear();pilotShoppingAssistant=null;pilotShoppingLoader=null;pilotComposerDraft="";pilotDownloadCache.clear();if(activePilotFlight)pilotDestroyFlight(activePilotFlight);pilotSetFlightState(null,"idle","");user=null;org=null;isAdmin=false;customerPreview=false;adminData=null;pendingAttachments=[];goalSuccessMap={};goals=[];features=[];plans=[];actions=[];contexts=[];milestones=[];documents=[];results=[];claims=[];evidence=[];completeness=[];progressEvents=[];outcomes=[];adaptations=[];pilotState=null;aiRequests=[];qualityContracts=[];consensusRuns=[];executions=[];executionSteps=[];designJobs=[];canvaStatus=null;researchBusy=false;researchAttempted.clear();notifications=[];readiness=[];evalRuns=[];APP.classList.add("hidden");A.classList.remove("hidden")}
 let authMode="login";
 const AUTHM=document.getElementById("authModal"),ME=document.getElementById("modalEmail"),MP=document.getElementById("modalPassword"),MP2=document.getElementById("modalPassword2"),MW=document.getElementById("repeatPasswordWrap"),PW=document.getElementById("privacyWrap"),AP=document.getElementById("acceptPrivacy"),SM=document.getElementById("submitAuth"),SW=document.getElementById("switchAuthMode"),RC=document.getElementById("resendConfirmation"),MM=document.getElementById("modalMessage"),CS=document.getElementById("confirmationState"),CE=document.getElementById("confirmationEmail"),CR=document.getElementById("confirmationResend"),CL=document.getElementById("confirmationLogin");
 function modalMessage(s,ok=false){MM.innerHTML='<div class="msg '+(ok?'ok':'')+'">'+esc(s)+'</div>'}
