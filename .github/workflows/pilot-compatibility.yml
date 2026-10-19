@@ -4,6 +4,8 @@ on:
   push:
     paths:
       - "pilot/index.html"
+      - "pilot/intelligence-flow.mjs"
+      - "pilot/intelligence-flow.css"
       - "pilot/lumen-depth.css"
       - "pilot/lumen-orb.svg"
       - "pilot/icon.svg"
@@ -22,6 +24,8 @@ on:
   pull_request:
     paths:
       - "pilot/index.html"
+      - "pilot/intelligence-flow.mjs"
+      - "pilot/intelligence-flow.css"
       - "pilot/lumen-depth.css"
       - "pilot/lumen-orb.svg"
       - "pilot/icon.svg"
@@ -76,6 +80,8 @@ jobs:
         run: npx playwright install ${{ matrix.browser }}
       - name: Check LUMEN design integrity
         run: node pilot/tests/lumen-depth-contract.mjs
+      - name: Check Intelligence Flow states and animation lifecycle
+        run: node pilot/tests/intelligence-flow-contract.mjs
       - name: Check JavaScript syntax and responsive UI
         run: node pilot/tests/platform-smoke.mjs --browser=${{ matrix.browser }}
       - name: Check 3D flight and worker motion
