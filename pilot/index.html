@@ -5502,6 +5502,12 @@ function pilotRefreshIntelligence(finishMessage){
     executionActive:pilotExecutionRequestActive
   });
   if(stage)pilotIntelligenceFlow.start(stage.phase,stage.label);
+  else if(pilotBackgroundJob?.goal_id===goals[0]?.id&&pilotBackgroundJob?.status==="waiting_user")
+    pilotIntelligenceFlow.finish("Pilot benötigt deine Entscheidung","waiting");
+  else if(pilotBackgroundJob?.goal_id===goals[0]?.id&&pilotBackgroundJob?.status==="paused")
+    pilotIntelligenceFlow.finish("Pilot hat den Auftrag pausiert","waiting");
+  else if(pilotBackgroundJob?.goal_id===goals[0]?.id&&pilotBackgroundJob?.status==="failed")
+    pilotIntelligenceFlow.finish("Der Arbeitsschritt wurde angehalten","error");
   else if(pilotShoppingAssistant?.getState()?.stage==="clarify")
     pilotIntelligenceFlow.finish("Pilot wartet auf deine Angaben","waiting");
   else if(pilotShoppingAssistant?.getState()?.stage==="error")
