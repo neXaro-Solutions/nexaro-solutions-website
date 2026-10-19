@@ -3904,7 +3904,7 @@ import {createIntelligenceFlow,deriveIntelligenceStage} from "./intelligence-flo
 import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
 const sb=createClient("https://qfrylqxbqmuafyvnqkey.supabase.co","sb_publishable_-6dNvI99H1Tf-uhOLXGIQw_2b2yCzQF");
 const A=document.getElementById("auth"),APP=document.getElementById("app"),V=document.getElementById("view"),T=document.getElementById("title"),PS=document.getElementById("pilotStatus");
-const pilotIntelligenceFlow=createIntelligenceFlow(document.getElementById("pilotIntelligenceFlow"));
+const pilotIntelligenceFlow=createIntelligenceFlow(document.getElementById("pilotIntelligenceFlow"),pilotAircraftSVG());
 let pilotFlowSubmitting=false,pilotFlowAccepted=false;
 let user=null,org=null,isAdmin=false,customerPreview=false,adminData=null,pendingAttachments=[],goalSuccessMap={},goalPlanProgressMap={},goals=[],features=[],plans=[],actions=[],contexts=[],milestones=[],documents=[],results=[],claims=[],evidence=[],completeness=[],progressEvents=[],outcomes=[],adaptations=[],pilotState=null,aiRequests=[],qualityContracts=[],consensusRuns=[],executions=[],executionSteps=[],designJobs=[],canvaStatus=null,notifications=[],readiness=[],evalRuns=[],researchBusy=false,researchAttempted=new Set(),current="home";
 async function telemetry(type,payload){try{await sb.functions.invoke("telemetry",{body:{type,...payload}})}catch(e){}}
@@ -5502,6 +5502,10 @@ function pilotRefreshIntelligence(finishMessage){
     executionActive:pilotExecutionRequestActive
   });
   if(stage)pilotIntelligenceFlow.start(stage.phase,stage.label);
+  else if(pilotShoppingAssistant?.getState()?.stage==="clarify")
+    pilotIntelligenceFlow.finish("Pilot wartet auf deine Angaben","waiting");
+  else if(pilotShoppingAssistant?.getState()?.stage==="error")
+    pilotIntelligenceFlow.finish("Recherche nicht erreichbar","error");
   else pilotIntelligenceFlow.finish(finishMessage||"Arbeitsabschnitt abgeschlossen");
 }
 function formatBytes(n){const v=Number(n||0);if(v<1024)return v+" B";if(v<1024*1024)return (v/1024).toFixed(1)+" KB";return (v/1024/1024).toFixed(1)+" MB"}
@@ -6010,7 +6014,17 @@ function pilotClearPendingCommand(id){
 async function createGoal(){
   const text=document.getElementById("goalText").value.trim();
   if(!text||!org)return;
-  if(await pilotShoppingAsk(text))return;
+  pilotIntelligenceFlow.start("understand","Pilot versteht deine Anfrage");
+  try {
+    if(await pilotShoppingAsk(text)){
+      pilotRefreshIntelligence("Beratung vorbereitet");
+      return;
+    }
+  } catch(error) {
+    pilotIntelligenceFlow.finish("Die Anfrage konnte nicht verarbeitet werden","error");
+    pilotNotice(String(error?.message||error),"error");
+    return;
+  }
   pilotFlowSubmitting=true;pilotFlowAccepted=false;
   pilotIntelligenceFlow.start("understand","Pilot ordnet deine Anfrage ein");
   pilotComposerDraft=text;
@@ -7345,6 +7359,7 @@ async function executeAction(){
  }finally{
    watcher?.stop();
    pilotExecutionRequestActive=false;
+    pilotRefreshIntelligence();
    if(!pilotAutoSession?.active&&pilotFlightState.mode!=="flying"&&pilotFlightState.mode!=="attention")finishPilotFlight();
    setTimeout(()=>{
      btn?.classList.remove("launching");
