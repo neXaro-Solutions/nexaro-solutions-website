@@ -425,7 +425,8 @@ assert(frontend.includes("pilotForceNewGoal=false;\n    PS.textContent=continued
 assert(frontend.includes('id="pilotCancelNewProject"'),
   "User must be able to return to the previously opened project");
 assert(frontend.includes('user=session.user;pilotPinnedGoalId=null;pilotForceNewGoal=false;'));
-assert(frontend.includes('async function leave(){pilotPinnedGoalId=null;pilotForceNewGoal=false;'));
+assert(/async function leave\(\)\{pilotPinnedGoalId=null;[\s\S]{0,240}pilotForceNewGoal=false;/.test(frontend),
+  'Logout must clear both project scope and the animation state');
 console.log("PASS New-project control actually bypasses goal matching and can be undone");
 
 const alternatives=scenario([],OWNER,[],[legalEntry]);
