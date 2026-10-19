@@ -48,7 +48,7 @@
   will-change:transform,opacity;
 }
 .pif-copy{display:flex;flex:1;min-width:0;flex-direction:column;gap:5px}
-.pif-eyebrow{font:700 9px/1.4 inherit;letter-spacing:.12em;color:#3c9db6}
+.pif-eyebrow{font-size:9px;font-weight:700;line-height:1.4;letter-spacing:.12em;color:#3c9db6}
 .pif-message{color:#234952;font-size:clamp(12px,1.4vw,14px);font-weight:700;line-height:1.4;overflow-wrap:anywhere}
 .pif-caption{font-size:11px;line-height:1.35;color:#748b8d}
 .pif-live-dot{align-self:center;width:7px;height:7px;border-radius:50%;background:#5cbddc;flex:none;opacity:.65}
@@ -89,3 +89,6 @@
   .pif-core,.pif-particle{animation:none!important;will-change:auto}
   .pif-particle{display:none}
 }
+
+.pilot-intelligence-flow[data-open="false"] .pif-core,
+.pilot-intelligence-flow[data-open="false"] .pif-particle{animation-play-state:paused}
