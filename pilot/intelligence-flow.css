@@ -36,7 +36,8 @@
   box-shadow:0 0 0 3px rgba(72,193,226,.12),0 5px 17px rgba(42,144,189,.22);
   animation:pif-breathe 3.6s ease-in-out infinite;
 }
-.pif-core span{transform:translateY(-1px)}
+.pif-core span{display:grid;place-items:center;transform:translateY(-1px)}
+.pif-core .pilot-aircraft{width:26px;height:19px;display:block}
 .pif-particles{position:absolute;inset:0;z-index:2}
 .pif-particle{
   position:absolute;left:50%;top:50%;width:4px;height:4px;margin:-2px;
