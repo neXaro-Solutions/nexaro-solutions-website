@@ -30,7 +30,7 @@ const profiles=[
  {name:"Laptop",width:1366,height:768,touch:false},
  {name:"Desktop wide",width:1920,height:1080,touch:false}
 ];
-const mime={".html":"text/html; charset=utf-8",".js":"text/javascript",".css":"text/css",".webp":"image/webp",".svg":"image/svg+xml"};
+const mime={".html":"text/html; charset=utf-8",".js":"text/javascript",".mjs":"text/javascript",".css":"text/css",".webp":"image/webp",".svg":"image/svg+xml"};
 const server=createServer((req,res)=>{
  try{
   const u=new URL(req.url||"/","http://localhost");
